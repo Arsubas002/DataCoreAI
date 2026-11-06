@@ -1,18 +1,18 @@
 """Reportes de lectura con descargas explícitas en memoria."""
-from datetime import date, datetime, timedelta
+from datetime import datetime
 
 import streamlit as st
 
 from database.dashboard import resumen_comercial
+from views.componentes import periodo
 from services.reportes import csv_reporte
 
 
 def mostrar_reportes():
     st.write("Consulta y descarga ventas del periodo o inventario actual en CSV.")
     with st.form("filtros_reportes"):
-        inicio = st.date_input("Desde", date.today() - timedelta(days=29))
-        fin = st.date_input("Hasta (inclusive)", date.today(), max_value=date(9999, 12, 30))
-        consultar = st.form_submit_button("Generar reporte")
+        inicio, fin = periodo("reportes")
+        consultar = st.form_submit_button("Generar reporte", type="primary")
     if consultar:
         # Una consulta fallida nunca conserva una descarga anterior como actual.
         st.session_state.pop("reporte_generado", None)
@@ -36,7 +36,7 @@ def mostrar_reportes():
         st.subheader(titulo)
         filas = datos[tipo]
         if filas:
-            st.dataframe(filas, hide_index=True, use_container_width=True)
+            st.dataframe(filas, hide_index=True, width="stretch")
         else:
             st.info("Sin resultados para este reporte.")
         st.download_button(f"Descargar {titulo} (CSV)",

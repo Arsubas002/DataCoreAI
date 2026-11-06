@@ -1,13 +1,12 @@
 # DataCore AI
 
-## Inicio rápido (rama de desarrollo: panel y reportes)
+## Inicio rápido (rama comercial consolidada)
 
 Aplicación de gestión comercial con Productos, Inventario y Ventas. Esta rama
 añade Dashboard y Reportes CSV con consultas de solo lectura. Asistente IA
 ofrece consultas guiadas y continúa pendiente de integración generativa.
-El código se prepara para
-el repositorio privado `https://github.com/Arsubas002/DataCoreAI.git`.
-La preparación local no publica archivos ni configura la visibilidad en GitHub.
+El desarrollo se publica mediante PR en `Arsubas002/DataCoreAI`; no se fusiona
+a main ni se despliega automáticamente.
 
 ### Instalar y ejecutar
 
@@ -48,7 +47,8 @@ Excel y PDF aún no están implementados. Las consultas separadas del resumen
 no garantizan una instantánea consistente ante ventas concurrentes.
 
 Consulta [la revisión de PR #1 y #2](docs/REVISION_PR_1_2.md) para hallazgos,
-validación y límites. Esta rama depende de la PR #2 sin fusionarla a main.
+validación y límites. La [consolidación](docs/CONSOLIDACION.md) integra las PR #1–#4 en una rama
+revisable, sin fusionar main.
 
 ### Asistente de consultas
 

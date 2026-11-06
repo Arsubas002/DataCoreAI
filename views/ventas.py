@@ -95,7 +95,7 @@ def mostrar_carrito():
         return
     st.dataframe([{"Producto": carrito[l["ProductoID"]]["Nombre"], "Cantidad": l["Cantidad"],
                    "Precio": f"S/ {l['Precio']:.2f}", "Subtotal": f"S/ {l['Subtotal']:.2f}"}
-                  for l in lineas], use_container_width=True, hide_index=True)
+                  for l in lineas], width="stretch", hide_index=True)
     st.metric("Total", f"S/ {total:.2f}")
     st.caption("Para cambiar un producto, elimínalo y agrega su reemplazo. El stock y los precios se validan nuevamente al confirmar.")
     if st.button("Confirmar venta", type="primary"):
@@ -143,4 +143,4 @@ def mostrar_historial():
                     "Cliente": fila["Cliente"], "Productos": [], "Total": f"S/ {fila['Total']:.2f}"})
         venta["Productos"].append(f"{fila['Cantidad']} × {fila['Producto']} (S/ {fila['Subtotal']:.2f})")
     st.dataframe([{**venta, "Productos": "; ".join(venta["Productos"])} for venta in resumen.values()],
-                 use_container_width=True, hide_index=True)
+                 width="stretch", hide_index=True)

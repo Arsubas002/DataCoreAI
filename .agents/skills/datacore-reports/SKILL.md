@@ -5,7 +5,7 @@ description: "Diseñar indicadores, gráficos y futuras exportaciones Excel/PDF 
 
 # Reportes y exportaciones de DataCore AI
 
-1. Inspecciona `app.py`, `database/ventas.py`, `database/productos.py` y `requirements.txt`. Reportes es una pantalla inicial y Dashboard aún muestra “—”; no hay exportación Excel/PDF implementada. Pandas y Plotly están declarados; openpyxl, XlsxWriter y bibliotecas PDF no lo están. No afirmes que una exportación ya existe ni agregues motores sin una tarea de implementación que lo requiera.
+1. Inspecciona `app.py`, los módulos de datos y `requirements.txt`. Dashboard, Reportes CSV y Asistente guiado están implementados. Verifica los motores declarados antes de cambiar exportaciones y no presentes funciones como probadas sin evidencia.
 2. Define antes de implementar el indicador: fuente, granularidad, periodo, filtros, moneda, fórmula y comportamiento vacío. Para ventas usa Ventas y DetalleVentas; evita multiplicar Ventas.Total por cada detalle al hacer joins. Mantén Decimal y los precios históricos guardados en DetalleVentas, no recalcules ventas con el precio actual de Productos.
 3. Aclara que los nombres mostrados por el historial son los actuales del cliente/producto y que no existe historial completo de movimientos de inventario. El stock actual no demuestra existencias de una fecha pasada. Stock bajo es Existencias <= StockMinimo en productos activos. No inventes márgenes o utilidad sin datos de costo.
 4. Para filtros de fechas define límites, zona horaria y tratamiento de DATETIME2, que no incluye zona. Prefiere intervalos semiabiertos [inicio, fin) y consultas parametrizadas. Muestra fecha de generación, filtros, unidades y filas incluidas. Diferencia cero, sin resultados y fallo de consulta.

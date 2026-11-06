@@ -37,7 +37,7 @@ def resumen_comercial(inicio: date, fin: date):
         JOIN dbo.Productos p ON p.ProductoID = d.ProductoID
         WHERE v.Fecha >= ? AND v.Fecha < ?
         GROUP BY p.ProductoID, p.Codigo, p.Nombre
-        ORDER BY Unidades DESC, p.Nombre
+        ORDER BY Unidades DESC, p.Nombre, p.Codigo
     """, parametros)
     inventario = consultar("""
         SELECT Codigo, Nombre, Existencias, StockMinimo,

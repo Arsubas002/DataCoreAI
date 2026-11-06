@@ -8,24 +8,10 @@ from views.ventas import mostrar_ventas
 from views.dashboard import mostrar_dashboard
 from views.reportes import mostrar_reportes
 from views.asistente import mostrar_asistente
+from views.componentes import cabecera
 
 
 st.set_page_config(page_title="DataCore AI", page_icon="📊", layout="wide")
-
-# Los colores principales se configuran en .streamlit/config.toml.
-st.markdown(
-    """
-    <style>
-    .block-container {padding-top: 2rem; max-width: 1400px;}
-    h1 {letter-spacing: -1px;}
-    div[data-testid="stMetric"] {
-        background: #172235; padding: 20px; border-radius: 14px;
-        border: 1px solid #29364a;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
 
 with st.sidebar:
     st.title("📊 DataCore AI")
@@ -36,11 +22,11 @@ with st.sidebar:
         ["Dashboard", "Productos", "Ventas", "Inventario", "Asistente IA", "Reportes"],
     )
     st.divider()
-    st.caption("Etapa 4 · Panel comercial")
+    st.caption("ESPACIO DE TRABAJO")
+    st.caption("Dashboard · Reportes · Asistente")
     st.caption("SQL Server · Autenticación de Windows")
 
-st.caption("DATACORE AI / PANEL DE GESTIÓN")
-st.title(pantalla)
+cabecera(pantalla)
 
 if pantalla == "Dashboard":
     mostrar_dashboard()
@@ -61,4 +47,4 @@ elif pantalla == "Reportes":
     mostrar_reportes()
 
 st.divider()
-st.caption("DataCore AI · Proyecto final de programación · Cuarta etapa")
+st.caption("DataCore AI · Gestión comercial con información verificable")

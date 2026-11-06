@@ -2,9 +2,9 @@
 
 ## Contexto y alcance
 
-Lee primero el inicio rápido de `README.md`, `ETAPA_3.md`, `requirements.txt` y los módulos afectados; las secciones históricas del README no sustituyen el estado actual. El proyecto usa Python 3.13, Streamlit, pyodbc, Pandas, Plotly y streamlit-keyup. No hay framework web adicional ni motor Excel/PDF declarado.
+Lee primero el inicio rápido de `README.md`, `ETAPA_3.md`, `requirements.txt` y los módulos afectados; las secciones históricas del README no sustituyen el estado actual. El proyecto usa Python 3.13, Streamlit, pyodbc, Pandas, Plotly y streamlit-keyup. No hay framework web adicional. Consulta requirements.txt para los motores de exportación.
 
-Trabaja en el checkout existente y conserva cambios del usuario. No crees worktrees salvo solicitud explícita. Mantén los cambios limitados a la tarea; no publiques, mezcles ramas o despliegues sin autorización aplicable. Para esta entrega de Skills solo se añaden este archivo y los cinco SKILL.md; no se modifican aplicación, tests, dependencias ni scripts SQL.
+Trabaja en el checkout existente y conserva cambios del usuario. No crees worktrees salvo solicitud explícita. Mantén los cambios limitados a la tarea; no publiques, mezcles ramas o despliegues sin autorización aplicable.
 
 ## Arquitectura y datos
 
@@ -12,7 +12,7 @@ Trabaja en el checkout existente y conserva cambios del usuario. No crees worktr
 
 No ejecutes scripts SQL, alteres esquema, cargues ejemplos o escribas ventas/datos sin autorización aplicable. No incluyas credenciales, archivos privados, datos personales, entornos virtuales ni exportaciones en Git. No imprimas secretos ni desactives comprobaciones TLS para resolver el entorno. La autenticación existente es integrada de Windows y no requiere claves API.
 
-La instancia está fijada a `localhost\SQLEXPRESS` con ODBC Driver 18. `DATACORE_DATABASE` solo selecciona la base para el Dashboard; las operaciones comerciales usan DataCoreAI. Linux permite UI y pruebas aisladas, pero no demuestra acceso a SQL Server Windows. No cambies conexión o autenticación como parte de una tarea documental.
+La instancia está fijada a `localhost\SQLEXPRESS` con ODBC Driver 18. Todos los análisis y operaciones comerciales usan DataCoreAI explícitamente; DATACORE_DATABASE solo afecta a conexiones sin base explícita. Linux permite UI y pruebas aisladas, pero no demuestra acceso a SQL Server Windows. No cambies conexión o autenticación como parte de una tarea documental.
 
 ## Skills del proyecto
 
@@ -24,7 +24,7 @@ Selecciona y lee las instrucciones pertinentes antes de trabajar; combínalas cu
 - [datacore-testing](.agents/skills/datacore-testing/SKILL.md): unittest, simulaciones, AppTest e integración optativa.
 - [datacore-reports](.agents/skills/datacore-reports/SKILL.md): indicadores y futuras exportaciones Excel/PDF.
 
-Estas Skills no implementan funcionalidades ni autorizan operaciones sobre datos por sí mismas. Dashboard, Reportes y Asistente IA mantienen funciones iniciales; no presentes reportes, exportaciones o integración IA como terminados.
+Estas Skills no implementan funcionalidades ni autorizan operaciones sobre datos por sí mismas. Consulta README.md y las pruebas para conocer las funciones implementadas; no presentes integración generativa como validada sin una prueba real autorizada.
 
 ## Validación y entrega
 
