@@ -6,6 +6,7 @@ from database.connection import probar_conexion
 from views.productos import mostrar_productos
 from views.inventario import mostrar_inventario
 from views.ventas import mostrar_ventas
+from views.dashboard import mostrar_dashboard
 
 
 st.set_page_config(page_title="DataCore AI", page_icon="📊", layout="wide")
@@ -34,38 +35,14 @@ with st.sidebar:
         ["Dashboard", "Productos", "Ventas", "Inventario", "Asistente IA", "Reportes"],
     )
     st.divider()
-    st.caption("Etapa 3 · Ventas e inventario")
+    st.caption("Etapa 4 · Panel comercial")
     st.caption("SQL Server · Autenticación de Windows")
 
 st.caption("DATACORE AI / PANEL DE GESTIÓN")
 st.title(pantalla)
 
 if pantalla == "Dashboard":
-    st.write("Tu negocio, organizado en un solo lugar.")
-    st.info("Bienvenido. Las métricas se habilitarán al implementar los datos del negocio.")
-    columnas = st.columns(3)
-    for columna, nombre in zip(columnas, ["Ventas totales", "Productos", "Unidades en inventario"]):
-        columna.metric(nombre, "—")
-    st.caption("Sin datos conectados: los indicadores todavía no representan valores reales.")
-    st.subheader("Espacio de trabajo")
-    izquierda, derecha = st.columns(2)
-    with izquierda:
-        with st.container(border=True):
-            st.markdown("#### Operación comercial")
-            st.write("Accede a Productos, Ventas e Inventario desde el menú lateral.")
-    with derecha:
-        with st.container(border=True):
-            st.markdown("#### Análisis e inteligencia")
-            st.write("Reportes y Asistente IA se desarrollarán en próximas etapas.")
-    st.subheader("Conexión a SQL Server")
-    st.caption(r"Servidor: localhost\SQLEXPRESS · La prueba solo abre y cierra una conexión.")
-    if st.button("Probar conexión", type="primary"):
-        with st.spinner("Comprobando conexión..."):
-            correcta, mensaje = probar_conexion()
-        if correcta:
-            st.success(mensaje)
-        else:
-            st.error(mensaje)
+    mostrar_dashboard()
 
 elif pantalla == "Productos":
     mostrar_productos()
@@ -87,4 +64,4 @@ elif pantalla == "Reportes":
     st.caption("Aquí se mostrarán los gráficos y resúmenes cuando existan datos reales.")
 
 st.divider()
-st.caption("DataCore AI · Proyecto final de programación · Tercera etapa")
+st.caption("DataCore AI · Proyecto final de programación · Cuarta etapa")
