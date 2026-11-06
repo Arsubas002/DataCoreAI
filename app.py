@@ -7,6 +7,7 @@ from views.inventario import mostrar_inventario
 from views.ventas import mostrar_ventas
 from views.dashboard import mostrar_dashboard
 from views.reportes import mostrar_reportes
+from views.asistente import mostrar_asistente
 
 
 st.set_page_config(page_title="DataCore AI", page_icon="📊", layout="wide")
@@ -54,8 +55,7 @@ elif pantalla == "Inventario":
     mostrar_inventario()
 
 elif pantalla == "Asistente IA":
-    st.write("Un futuro asistente para consultar información del negocio.")
-    st.info("Disponible en una próxima etapa. Todavía no existe integración con Groq API.")
+    mostrar_asistente()
 
 elif pantalla == "Reportes":
     mostrar_reportes()

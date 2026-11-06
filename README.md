@@ -4,7 +4,8 @@
 
 Aplicación de gestión comercial con Productos, Inventario y Ventas. Esta rama
 añade Dashboard y Reportes CSV con consultas de solo lectura. Asistente IA
-continúa pendiente de integración generativa. El código se prepara para
+ofrece consultas guiadas y continúa pendiente de integración generativa.
+El código se prepara para
 el repositorio privado `https://github.com/Arsubas002/DataCoreAI.git`.
 La preparación local no publica archivos ni configura la visibilidad en GitHub.
 
@@ -48,6 +49,17 @@ no garantizan una instantánea consistente ante ventas concurrentes.
 
 Consulta [la revisión de PR #1 y #2](docs/REVISION_PR_1_2.md) para hallazgos,
 validación y límites. Esta rama depende de la PR #2 sin fusionarla a main.
+
+### Asistente de consultas
+
+Asistente IA ofrece un modo guiado con cuatro preguntas: ingresos, ticket
+promedio, productos más vendidos y alertas de stock. Consulta únicamente al
+pulsar su botón, muestra periodo, fuente y hora, y conserva la respuesta hasta
+otra consulta. El ticket usa Decimal con redondeo monetario HALF_UP; sin ventas
+se presenta como no definido. El stock siempre es actual.
+No hay LLM ni Groq conectado: no acepta SQL libre, no hace predicciones ni envía
+datos a terceros. Esta entrega deja una capa de respuestas separada de la UI
+para una futura integración generativa explícita.
 
 ### Preparar SQL Server
 
