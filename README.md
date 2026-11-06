@@ -24,8 +24,8 @@ $env:DATACORE_DATABASE = "DataCoreAI"
 ```
 
 Abre `http://localhost:8501`. No se necesita activar el entorno virtual.
-La aplicación usa autenticación integrada de Windows: no requiere contraseñas,
-tokens ni claves API. El dashboard comercial, Reportes, Productos, Inventario y Ventas utilizan
+La conexión SQL usa autenticación integrada de Windows, sin claves API.
+Groq es opcional y requiere una clave segura separada. El dashboard comercial, Reportes, Productos, Inventario y Ventas utilizan
 `DataCoreAI` explícitamente. `DATACORE_DATABASE` solo afecta a llamadas de
 conexión sin base explícita.
 Los archivos `.env` no se cargan automáticamente: usa variables del proceso.
@@ -59,9 +59,13 @@ promedio, productos más vendidos y alertas de stock. Consulta únicamente al
 pulsar su botón, muestra periodo, fuente y hora, y conserva la respuesta hasta
 otra consulta. El ticket usa Decimal con redondeo monetario HALF_UP; sin ventas
 se presenta como no definido. El stock siempre es actual.
-No hay LLM ni Groq conectado: no acepta SQL libre, no hace predicciones ni envía
-datos a terceros. Esta entrega deja una capa de respuestas separada de la UI
-para una futura integración generativa explícita.
+El modo guiado no envía datos externos. La [integración opcional con Groq](docs/GROQ.md)
+está desactivada por defecto; con configuración segura permite explicar únicamente
+agregados de preguntas permitidas, tras autorización y envío explícitos. El modelo
+no tiene acceso a SQL ni a herramientas de escritura. Su texto se muestra separado
+de los resultados verificados. No se han realizado llamadas reales en las pruebas.
+
+Consulta las [capturas de validación visual con datos sintéticos](docs/VALIDACION_VISUAL.md).
 
 ### Preparar SQL Server
 

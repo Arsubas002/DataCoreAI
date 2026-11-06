@@ -7,6 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DATACORE_TEST_SQL: '0'
+      DATACORE_GROQ_ENABLED: '0'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
