@@ -20,7 +20,7 @@ def mostrar_dashboard():
     with izquierda:
         inicio = st.date_input("Desde", value=hoy - timedelta(days=29), key="dashboard_desde")
     with derecha:
-        fin = st.date_input("Hasta (inclusive)", value=hoy, key="dashboard_hasta")
+        fin = st.date_input("Hasta (inclusive)", value=hoy, max_value=date(9999, 12, 30), key="dashboard_hasta")
 
     if inicio > fin:
         st.warning("La fecha inicial debe ser anterior o igual a la fecha final.")
@@ -29,6 +29,9 @@ def mostrar_dashboard():
     try:
         with st.spinner("Consultando información comercial..."):
             datos = resumen_comercial(inicio, fin)
+    except ValueError as error:
+        st.warning(str(error))
+        return
     except Exception:
         st.error("No fue posible consultar el panel. Comprueba la conexión con SQL Server y la base DataCoreAI.")
         st.info("El entorno en la nube no tiene acceso directo a tu SQL Server de Windows.")
@@ -43,6 +46,7 @@ def mostrar_dashboard():
     b.metric("Ventas registradas", f'{ventas["NumeroVentas"]:,}')
     c.metric("Unidades en inventario", f"{unidades:,}")
     d.metric("Productos con alerta", str(len(stock_bajo)))
+    st.caption("Fechas locales de SQL Server, sin conversión de zona horaria. Ranking limitado a 8 productos; nombres actuales.")
     st.caption(f"Ventas entre {inicio:%d/%m/%Y} y {fin:%d/%m/%Y}. Inventario: existencias actuales, no históricas.")
 
     st.subheader("Evolución de ingresos")

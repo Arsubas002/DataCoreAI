@@ -2,11 +2,11 @@
 
 import streamlit as st
 
-from database.connection import probar_conexion
 from views.productos import mostrar_productos
 from views.inventario import mostrar_inventario
 from views.ventas import mostrar_ventas
 from views.dashboard import mostrar_dashboard
+from views.reportes import mostrar_reportes
 
 
 st.set_page_config(page_title="DataCore AI", page_icon="📊", layout="wide")
@@ -58,10 +58,7 @@ elif pantalla == "Asistente IA":
     st.info("Disponible en una próxima etapa. Todavía no existe integración con Groq API.")
 
 elif pantalla == "Reportes":
-    st.write("Convierte los datos de tu negocio en información útil.")
-    st.info("Pantalla inicial. Los reportes con Pandas y Plotly se incorporarán después.")
-    st.subheader("Análisis del negocio")
-    st.caption("Aquí se mostrarán los gráficos y resúmenes cuando existan datos reales.")
+    mostrar_reportes()
 
 st.divider()
 st.caption("DataCore AI · Proyecto final de programación · Cuarta etapa")
