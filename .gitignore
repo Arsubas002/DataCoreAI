@@ -1,0 +1,76 @@
+# Entornos virtuales y archivos generados por Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Configuración privada y credenciales
+.env
+.env.*
+.streamlit/secrets.toml
+*.pem
+*.key
+
+# Archivos locales y del editor
+.vscode/
+.idea/
+*.log
+.DS_Store
+Thumbs.db
+
+# Otros entornos y herramientas de Python
+env/
+ENV/
+.env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# Configuración local, secretos y certificados
+.aws/
+.codex/
+.agents/
+.streamlit/secrets.*
+secrets.*
+credentials.*
+*.local.*
+*.pfx
+*.p12
+*.p8
+*.jks
+*.keystore
+.netrc
+_netrc
+.pypirc
+
+# Bases locales, copias y exportaciones de datos
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+*.sqlite-*
+*.sqlite3-*
+*.mdf
+*.ndf
+*.ldf
+*.bak
+*.bacpac
+*.dacpac
+backups/
+exports/
+
+# Temporales y registros
+tmp/
+temp/
+logs/
+*.tmp
+*.temp
+*.swp
+*.swo
+*~

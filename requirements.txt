@@ -1,0 +1,6 @@
+# Dependencias de la primera etapa. Groq se agregará más adelante.
+streamlit>=1.41,<2
+pyodbc>=5.2,<6
+pandas>=2.2.3,<3
+plotly>=6,<7
+streamlit-keyup>=0.3,<1
