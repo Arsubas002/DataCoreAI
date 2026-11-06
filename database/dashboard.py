@@ -9,17 +9,19 @@ def resumen_comercial(inicio: date, fin: date):
         raise ValueError("Selecciona fechas válidas.")
     if inicio > fin:
         raise ValueError("La fecha inicial no puede ser posterior a la final.")
+    if fin == date.max:
+        raise ValueError("La fecha final debe ser anterior al 31/12/9999.")
     desde = datetime.combine(inicio, time.min)
     hasta = datetime.combine(fin + timedelta(days=1), time.min)
     parametros = (desde, hasta)
     ventas = consultar("""
-        SELECT COUNT(*) AS NumeroVentas,
+        SELECT COUNT_BIG(*) AS NumeroVentas,
                COALESCE(SUM(Total), 0) AS TotalVentas
         FROM dbo.Ventas
         WHERE Fecha >= ? AND Fecha < ?
     """, parametros)[0]
     tendencia = consultar("""
-        SELECT CAST(Fecha AS date) AS Dia, COUNT(*) AS NumeroVentas,
+        SELECT CAST(Fecha AS date) AS Dia, COUNT_BIG(*) AS NumeroVentas,
                SUM(Total) AS TotalVentas
         FROM dbo.Ventas
         WHERE Fecha >= ? AND Fecha < ?
@@ -28,7 +30,7 @@ def resumen_comercial(inicio: date, fin: date):
     """, parametros)
     productos_vendidos = consultar("""
         SELECT TOP (8) p.Codigo, p.Nombre,
-               SUM(d.Cantidad) AS Unidades,
+               SUM(CAST(d.Cantidad AS bigint)) AS Unidades,
                SUM(d.Subtotal) AS Ingresos
         FROM dbo.Ventas v
         JOIN dbo.DetalleVentas d ON d.VentaID = v.VentaID
