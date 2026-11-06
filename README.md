@@ -1,11 +1,12 @@
 # DataCore AI
 
-## Inicio rápido (versión actual: etapa 3)
+## Inicio rápido (rama comercial consolidada)
 
-Aplicación de gestión comercial con Productos, Inventario y Ventas. Dashboard,
-Reportes y Asistente IA mantienen funciones iniciales. El código se prepara para
-el repositorio privado `https://github.com/Arsubas002/DataCoreAI.git`.
-La preparación local no publica archivos ni configura la visibilidad en GitHub.
+Aplicación de gestión comercial con Productos, Inventario y Ventas. Esta rama
+añade Dashboard y Reportes CSV con consultas de solo lectura. Asistente IA
+ofrece consultas guiadas y continúa pendiente de integración generativa.
+El desarrollo se publica mediante PR en `Arsubas002/DataCoreAI`; no se fusiona
+a main ni se despliega automáticamente.
 
 ### Instalar y ejecutar
 
@@ -24,11 +25,41 @@ $env:DATACORE_DATABASE = "DataCoreAI"
 
 Abre `http://localhost:8501`. No se necesita activar el entorno virtual.
 La aplicación usa autenticación integrada de Windows: no requiere contraseñas,
-tokens ni claves API. `DATACORE_DATABASE` selecciona la base para la prueba del
-Dashboard; Productos, Inventario y Ventas utilizan `DataCoreAI` explícitamente.
+tokens ni claves API. El dashboard comercial, Reportes, Productos, Inventario y Ventas utilizan
+`DataCoreAI` explícitamente. `DATACORE_DATABASE` solo afecta a llamadas de
+conexión sin base explícita.
 Los archivos `.env` no se cargan automáticamente: usa variables del proceso.
 La instancia está definida en `database/connection.py`; si tu instalación usa
 otra instancia, adapta ese valor sin incorporar credenciales al código.
+
+### Dashboard y reportes
+
+Dashboard presenta ventas del periodo y existencias actuales. Reportes permite
+seleccionar un intervalo inclusivo y generar tres CSV UTF-8: ingresos diarios,
+los ocho productos más vendidos e inventario actual. Las fechas de ventas son
+locales de SQL Server (DATETIME2 sin zona). Los nombres son los actuales.
+Los importes permanecen en Decimal; solo la representación gráfica usa float.
+Las descargas conservan el periodo y la hora de generación visibles hasta
+solicitar otro reporte. No hay caché compartida ni archivos persistentes.
+Los CSV incluyen metadatos antes de la tabla y neutralizan fórmulas en texto.
+Para conservar ceros iniciales al abrir un CSV, importa códigos como texto.
+Excel y PDF aún no están implementados. Las consultas separadas del resumen
+no garantizan una instantánea consistente ante ventas concurrentes.
+
+Consulta [la revisión de PR #1 y #2](docs/REVISION_PR_1_2.md) para hallazgos,
+validación y límites. La [consolidación](docs/CONSOLIDACION.md) integra las PR #1–#4 en una rama
+revisable, sin fusionar main.
+
+### Asistente de consultas
+
+Asistente IA ofrece un modo guiado con cuatro preguntas: ingresos, ticket
+promedio, productos más vendidos y alertas de stock. Consulta únicamente al
+pulsar su botón, muestra periodo, fuente y hora, y conserva la respuesta hasta
+otra consulta. El ticket usa Decimal con redondeo monetario HALF_UP; sin ventas
+se presenta como no definido. El stock siempre es actual.
+No hay LLM ni Groq conectado: no acepta SQL libre, no hace predicciones ni envía
+datos a terceros. Esta entrega deja una capa de respuestas separada de la UI
+para una futura integración generativa explícita.
 
 ### Preparar SQL Server
 

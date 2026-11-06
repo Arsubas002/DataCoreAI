@@ -31,7 +31,7 @@ def mostrar_productos():
                      "Estado": "Activo" if p["Activo"] else "Inactivo"}
                     for p in productos]
         st.caption(f"Productos mostrados: {len(productos)}")
-        st.dataframe(visibles, use_container_width=True, hide_index=True)
+        st.dataframe(visibles, width="stretch", hide_index=True)
     else:
         st.info("No hay productos que coincidan con la búsqueda.")
     if not categorias:

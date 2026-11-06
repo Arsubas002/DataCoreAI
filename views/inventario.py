@@ -30,6 +30,6 @@ def mostrar_inventario():
                       "Categoría": p["Categoria"], "Disponibles": p["Existencias"],
                       "Stock mínimo": p["StockMinimo"], "Estado": estado})
     if filas:
-        st.dataframe(filas, use_container_width=True, hide_index=True)
+        st.dataframe(filas, width="stretch", hide_index=True)
     else:
         st.info("No hay productos que coincidan con los filtros.")
