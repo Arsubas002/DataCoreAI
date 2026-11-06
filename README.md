@@ -35,7 +35,7 @@ otra instancia, adapta ese valor sin incorporar credenciales al código.
 ### Dashboard y reportes
 
 Dashboard presenta ventas del periodo y existencias actuales. Reportes permite
-seleccionar un intervalo inclusivo y generar tres CSV UTF-8: ingresos diarios,
+seleccionar un intervalo inclusivo y generar CSV, Excel o PDF de: ingresos diarios,
 los ocho productos más vendidos e inventario actual. Las fechas de ventas son
 locales de SQL Server (DATETIME2 sin zona). Los nombres son los actuales.
 Los importes permanecen en Decimal; solo la representación gráfica usa float.
@@ -43,7 +43,9 @@ Las descargas conservan el periodo y la hora de generación visibles hasta
 solicitar otro reporte. No hay caché compartida ni archivos persistentes.
 Los CSV incluyen metadatos antes de la tabla y neutralizan fórmulas en texto.
 Para conservar ceros iniciales al abrir un CSV, importa códigos como texto.
-Excel y PDF aún no están implementados. Las consultas separadas del resumen
+Consulta [formatos, límites y pruebas de exportación](docs/EXPORTACIONES.md).
+Excel/PDF se generan en memoria con openpyxl y ReportLab, sin fuentes remotas.
+Las consultas separadas del resumen
 no garantizan una instantánea consistente ante ventas concurrentes.
 
 Consulta [la revisión de PR #1 y #2](docs/REVISION_PR_1_2.md) para hallazgos,
@@ -82,6 +84,7 @@ $env:DATACORE_TEST_SQL = "0"
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
 
+Instala `requirements-dev.txt` para incluir el lector PDF usado en las pruebas.
 Con esa variable en `0`, las pruebas de SQL real quedan desactivadas; las demás
 usan simulaciones. No actives `DATACORE_TEST_SQL=1` para la comprobación aislada.
 
