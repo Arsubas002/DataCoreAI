@@ -1,4 +1,4 @@
-# Dependencias de la primera etapa. Groq se agregará más adelante.
+# Aplicación comercial y exportaciones; Groq opcional desactivado por defecto.
 streamlit>=1.52,<2
 pyodbc>=5.2,<6
 pandas>=2.2.3,<3
@@ -7,3 +7,5 @@ streamlit-keyup>=0.3,<1
 # Exportaciones en memoria; Vera (incluida en ReportLab) para PDF con acentos.
 openpyxl>=3.1.5,<4
 reportlab>=4.4,<5
+# Cliente HTTP de Groq con endpoint fijo y sin reintentos automáticos.
+requests>=2.32,<3
