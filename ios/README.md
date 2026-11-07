@@ -6,11 +6,13 @@ Para pruebas del paquete en Mac se requiere macOS 14+ por Observation.
 Usa Swift Charts, Foundation, UIKit/PDFKit y Security del sistema. No contiene
 WebView, CocoaPods, dependencias Swift remotas ni claves API.
 
-**Estado:** [preparación actual y resultados](../docs/IOS_FIRST_BUILD.md). Dominio
-y coordinador Observation probados en Linux (26 tests); interfaz, firma, archivo Release y
-simulador iOS todavía pendientes de ejecución en macOS. El proyecto Xcode
-incluido se genera determinísticamente con Python, sin XcodeGen. La validación
-estructural y sintáctica no demuestra que Xcode compile o que Apple lo acepte.
+**Estado:** [corrección actual del primer build](../docs/IOS_MODULE_DEPENDENCY_FIX.md).
+La primera ejecución real con Xcode 26.3 falló por desacuerdo de arquitecturas
+Debug entre app y SwiftPM: paquete arm64, app también x86_64. El paquete pasó
+26 tests en macOS, pero la app no completó el build ni ejecutó tests UI.
+Se corrigió la política del proyecto y se prepara una segunda ejecución, pendiente
+de autorización. No hay IPA ni firma. Proyecto generado con Python sin XcodeGen;
+validación estructural/sintaxis no equivale a confirmar el build corregido.
 
 ## Desde Windows
 
@@ -146,8 +148,9 @@ texto exacto y primer intento. No reusa autorización en pushes o re-runs. La
 ruta se contrastó con reglas oficiales y actionlint, y una review neutral permitió
 registrar el workflow con job omitido: runner nulo, 0 pasos y 0 ms facturables
 ([evidencia](https://github.com/Arsubas002/DataCoreAI/actions/runs/42379840879)).
-No se envió la autorización positiva ni se inició macOS; el arranque real sigue
-dependiendo de presupuesto, permisos/política y disponibilidad.
+Después se ejecutó un primer job real autorizado y falló el build (run
+42381387852). La corrección aún no se volvió a ejecutar; una segunda review debe
+autorizar el nuevo SHA tras revisar presupuesto. Ver el informe del módulo.
 Dispatch no se da por disponible mientras no exista registro/condiciones de GitHub.
 No se cambia main. No envíes una review de autorización solo para probar el evento.
 
@@ -170,8 +173,8 @@ capturas reales si Xcode los genera, más build Release iPhoneOS sin firma. Ning
 es un IPA instalable. Retención de artefactos **1 día**; el job no
 firma ni produce IPA. Mainstep 25 min y job 30 min; no es garantía de costo fijo.
 
-No se han ejecutado macOS, tests nativos ni un iPhone en esta revisión. El simulador
-puede usar un runtime posterior a iOS 17: sigue pendiente probar el mínimo real.
+No se ha ejecutado un segundo macOS con la corrección. Los tests nativos y el
+iPhone físico siguen pendientes. El simulador puede usar un runtime posterior a iOS 17: sigue pendiente probar el mínimo real.
 
 ## TestFlight y App Store: pasos pendientes del propietario
 

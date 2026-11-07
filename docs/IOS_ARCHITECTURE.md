@@ -3,7 +3,8 @@
 Actualización: `CommercialSession` ahora reside en el paquete Foundation/Observation
 y se prueba en Linux. `AppStore` es un alias y extensión de conexión HTTPS; SwiftUI
 inyecta la sesión con `@Environment`/`@State` de iOS 17.
-Consulta [preparación actual y estado de pruebas](IOS_FIRST_BUILD.md).
+Consulta [el fallo de arquitecturas y corrección actual](IOS_MODULE_DEPENDENCY_FIX.md).
+Debug del proyecto usa ONLY_ACTIVE_ARCH=YES como SwiftPM; Release conserva NO.
 
 ## Alcance y ascendencia
 

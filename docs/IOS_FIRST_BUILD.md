@@ -1,5 +1,10 @@
 # Preparación de primera compilación real · 2026-11-07
 
+**Histórico previo al primer build.** Ya hubo una ejecución Xcode real que falló;
+la investigación y corrección actual están en [IOS_MODULE_DEPENDENCY_FIX.md](IOS_MODULE_DEPENDENCY_FIX.md).
+La afirmación de no haber ejecutado Xcode que sigue describe la entrega f674f05
+antes de la autorización del propietario, no el estado actual.
+
 ## HEAD y alcance
 
 Se comprobó HEAD local, remoto y de PR #12 antes de editar:

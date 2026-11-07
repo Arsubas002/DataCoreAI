@@ -1,0 +1,50 @@
+{
+  "failed_run": 42381387852,
+  "failed_commit": "f674f05b625411ebf32c154d8469d592b08f7d0b",
+  "artifact_id": 13578026354,
+  "artifact_zip_sha256": "e66fae408cf33b29860cc76813dd2314c22151cbafe9ad6e3cc5e7f2dd27d144",
+  "small_tests_log_sha256": "3010ba8ed4937f5540ef12bed1810f3eb3e91b3f70c02f9807f92a318ccbcab6",
+  "artifact_files_verified": 29,
+  "observed_toolchain": {
+    "runner_image": "macos-15-arm64",
+    "xcode": "26.3",
+    "xcode_build": "17C529",
+    "simulator_sdk": "26.2"
+  },
+  "native_attempt": {
+    "result": "failed",
+    "exit_code": 65,
+    "phase": "small-tests",
+    "executed_app_ui_tests": 0,
+    "macos_package_tests_passed": 26,
+    "produced_ios_package_slices": [
+      "arm64"
+    ],
+    "requested_app_slices": [
+      "arm64",
+      "x86_64"
+    ],
+    "failed_driver_arch": "x86_64",
+    "first_compiler_error_line_in_small_tests_log": 590
+  },
+  "fix": {
+    "Debug_ONLY_ACTIVE_ARCH": "YES",
+    "Release_ONLY_ACTIVE_ARCH": "NO",
+    "architecture_pins_or_exclusions_added": false,
+    "tests_removed": false,
+    "Package_swift_changed": false
+  },
+  "current_free_validation": {
+    "swift_domain_passed": 26,
+    "python_api_passed": 21,
+    "python_tools_passed": 25,
+    "streamlit_passed": 86,
+    "sql_skipped": 4,
+    "total_passed": 158,
+    "real_sql_attempts_in_regression": 0,
+    "real_http_attempts_in_regression": 0
+  },
+  "corrected_ios_build_executed": false,
+  "second_macos_run_started": false,
+  "signed_archive_or_ipa_created": false
+}
