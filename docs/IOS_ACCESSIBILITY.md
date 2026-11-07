@@ -1,5 +1,9 @@
 # Accesibilidad iPhone: implementación y aceptación pendiente
 
+Revisión posterior: selectores segmentados cambian a menú en tamaños de
+accesibilidad; conversación con foco VoiceOver, Reduce Motion y test oscuro/AX3
+preparado. Aún sin ejecución nativa; ver [auditoría](IOS_AUDIT_2026_11.md).
+
 ## Preparado en código (no equivale a una auditoría con dispositivo)
 
 - Fuentes semánticas SwiftUI, texto multilínea y vistas con scroll; sin tamaños de

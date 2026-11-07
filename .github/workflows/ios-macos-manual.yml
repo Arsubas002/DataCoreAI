@@ -7,42 +7,40 @@ on:
         required: true
         default: false
         type: boolean
+  pull_request:
+    types: [labeled]
 permissions:
   contents: read
+concurrency:
+  group: ios-macos-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
 jobs:
   simulator:
-    if: ${{ inputs.authorize_macos_minutes == true }}
+    # The label is an explicit spend authorization for this event, never reused on synchronize.
+    # Only the owner, same-repository code and the designated iOS branch may authorize it.
+    if: >-
+      github.actor == github.repository_owner &&
+      ((github.event_name == 'workflow_dispatch' && inputs.authorize_macos_minutes == true && github.ref == 'refs/heads/feature/datacore-ios') ||
+       (github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'ios-macos-cost-approved' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feature/datacore-ios'))
     runs-on: macos-15
     timeout-minutes: 30
     env:
-      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
     steps:
       - uses: actions/checkout@v4
-      - name: Verify selected toolchain
-        run: xcodebuild -version
-      - run: python3 ios/tools/verify_project.py
-      - run: swift test --package-path ios/Packages/DataCoreDomain
-      - name: Select an installed iPhone simulator
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Verify selected Xcode exists (never silently substitute)
         run: |
-          DEVICE_ID=$(xcrun simctl list devices available -j | python3 -c 'import sys,json; d=[v for rows in json.load(sys.stdin)["devices"].values() for v in rows if v["name"].startswith("iPhone")]; assert d,"No iPhone simulator installed"; print(next((v for v in d if v["name"]=="iPhone 16"), d[0])["udid"])')
-          echo "DATACORE_SIMULATOR_ID=$DEVICE_ID" >> "$GITHUB_ENV"
-      - name: Compile and test app, exports and six screens without signing
-        run: |
-          xcodebuild test -project ios/DataCoreAI.xcodeproj -scheme DataCoreAI -configuration Debug -destination "platform=iOS Simulator,id=$DATACORE_SIMULATOR_ID" -resultBundlePath ios-test-results.xcresult CODE_SIGNING_ALLOWED=NO
-      - name: Verify Release simulator build (not an archive or App Store signature)
-        run: |
-          xcodebuild build -project ios/DataCoreAI.xcodeproj -scheme DataCoreAI -configuration Release -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO
-      - name: Export captured simulator attachments
-        if: always()
-        run: |
-          if [ -d ios-test-results.xcresult ]; then
-            xcrun xcresulttool export attachments --path ios-test-results.xcresult --output-path ios-simulator-captures
-          fi
+          test -d "$DEVELOPER_DIR"
+          xcodebuild -version
+      - name: Test two iPhones, capture XCTest/logs and build unsigned Release
+        run: bash ios/tools/run_simulator_tests.sh
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ios-simulator-evidence
-          path: |
-            ios-test-results.xcresult
-            ios-simulator-captures
+          name: ios-simulator-evidence-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ios-evidence/
+          retention-days: 7
           if-no-files-found: warn

@@ -1,5 +1,10 @@
 # Arquitectura iOS + API demo
 
+Actualización: `CommercialSession` ahora reside en el paquete Foundation/Observation
+y se prueba en Linux. `AppStore` es un alias y extensión de conexión HTTPS; SwiftUI
+inyecta la sesión con `@Environment`/`@State` de iOS 17.
+Consulta [auditoría y estado de pruebas actuales](IOS_AUDIT_2026_11.md).
+
 ## Alcance y ascendencia
 
 `feature/datacore-ios` parte de `17658bf` de la propuesta más reciente #11,

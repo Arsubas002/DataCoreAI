@@ -89,3 +89,5 @@ xcuserdata/
 *.mobileprovision
 *.xcresult/
 ios/Config/Local.xcconfig
+# Local simulator audit evidence
+/ios-evidence/

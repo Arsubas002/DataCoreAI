@@ -74,6 +74,7 @@ data = icon.read_bytes()
 assert (
     data[:8] == b"\x89PNG\r\n\x1a\n"
     and int.from_bytes(data[16:20], "big") == 1024
+    and int.from_bytes(data[20:24], "big") == 1024
     and data[25] == 2
 )
 root = ROOT.parent
@@ -95,4 +96,65 @@ assert (
 )
 print(
     "Referencias, generación determinista, XML/plists, icono opaco y fixtures: correctos."
+)
+
+
+# Resolve every checked-in source/resource/configuration from the PBX group graph.
+def verify_files(identifier, parent):
+    item = objects[identifier]
+    if item.get("sourceTree") == "BUILT_PRODUCTS_DIR":
+        return
+    location = parent / item.get("path", "")
+    if item["isa"] == "PBXGroup":
+        for child in item.get("children", []):
+            verify_files(child, location)
+    elif item["isa"] == "PBXFileReference":
+        assert location.is_file() or location.is_dir(), str(location)
+
+
+verify_files(generated["main"], ROOT)
+for value in objects.values():
+    if value["isa"] == "XCLocalSwiftPackageReference":
+        assert (ROOT / value["relativePath"] / "Package.swift").is_file()
+    if value["isa"] == "PBXNativeTarget":
+        sources = [
+            objects[p]
+            for p in value["buildPhases"]
+            if objects[p]["isa"] == "PBXSourcesBuildPhase"
+        ]
+        assert len(sources) == 1 and sources[0]["files"], value["name"]
+        if value["name"] == "DataCoreAI":
+            names = {
+                objects[objects[ref]["fileRef"]]["path"] for ref in sources[0]["files"]
+            }
+            assert names == {
+                p.name for p in (ROOT / "DataCoreAI/Sources").glob("*.swift")
+            }
+            resources = next(
+                objects[p]
+                for p in value["buildPhases"]
+                if objects[p]["isa"] == "PBXResourcesBuildPhase"
+            )
+            names = {
+                objects[objects[ref]["fileRef"]]["path"] for ref in resources["files"]
+            }
+            assert names == {
+                "Assets.xcassets",
+                "LaunchScreen.storyboard",
+                "PrivacyInfo.xcprivacy",
+            }
+tree = ET.parse(scheme)
+assert tree.find("TestAction").attrib["buildConfiguration"] == "Debug"
+assert tree.find("ArchiveAction").attrib["buildConfiguration"] == "Release"
+assert len(tree.findall("TestAction/Testables/TestableReference")) == 2
+base = (ROOT / "Config/Base.xcconfig").read_text(encoding="utf-8")
+assert (
+    "IPHONEOS_DEPLOYMENT_TARGET = 17.0" in base and "TARGETED_DEVICE_FAMILY = 1" in base
+)
+release = (ROOT / "Config/Release.xcconfig").read_text(encoding="utf-8")
+assert (
+    "SWIFT_OPTIMIZATION_LEVEL = -O" in release and "ENABLE_TESTABILITY = NO" in release
+)
+print(
+    "Fuentes/recursos, paquete local, targets, esquema Debug/Release y mínimo iOS 17: correctos."
 )

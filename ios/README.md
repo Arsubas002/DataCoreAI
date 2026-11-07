@@ -1,11 +1,13 @@
 # DataCore AI para iPhone
 
 Base SwiftUI **nativa**, iOS **17.0+**, Swift 5.9+ (modo de lenguaje Swift 5),
-referencia de compilación Xcode **16.4** / macOS compatible con ese Xcode.
+referencia preparada Xcode **26.3** / macOS **15.7.9** de referencia (inventario del runner consultado). Deployment target iOS 17.
+Para pruebas del paquete en Mac se requiere macOS 14+ por Observation.
 Usa Swift Charts, Foundation, UIKit/PDFKit y Security del sistema. No contiene
 WebView, CocoaPods, dependencias Swift remotas ni claves API.
 
-**Estado:** núcleo Swift probado en Linux; interfaz, firma, archivo Release y
+**Estado:** [auditoría actual y resultados](../docs/IOS_AUDIT_2026_11.md). Dominio
+y coordinador Observation probados en Linux (24 tests); interfaz, firma, archivo Release y
 simulador iOS todavía pendientes de ejecución en macOS. El proyecto Xcode
 incluido se genera determinísticamente con Python, sin XcodeGen. La validación
 estructural y sintáctica no demuestra que Xcode compile o que Apple lo acepte.
@@ -50,7 +52,7 @@ No se contrató ni ejecutó un servicio macOS en esta entrega.
 
 ## Desde macOS: compilar y probar
 
-1. Instala Xcode 16.4 y sus componentes iOS; ábrelo y acepta sus licencias.
+1. Instala Xcode 26.3 y sus componentes iOS; ábrelo y acepta sus licencias.
    Verifica `xcodebuild -version`. Una versión posterior puede requerir actualizar
    la selección de SDK/runner; las exigencias de SDK de App Store cambian.
 2. Clona el repositorio privado y selecciona `feature/datacore-ios`.
@@ -76,8 +78,8 @@ xcodebuild build -project ios/DataCoreAI.xcodeproj -scheme DataCoreAI \
 xcrun xcresulttool export attachments --path ios-test-results.xcresult --output-path ios-simulator-captures
 ```
 
-`swift test` cubre modelos/repositorio; `xcodebuild test` añade siete pruebas del
-store/API/exportadores nativos y dos recorridos UI. Los adjuntos XCUITest capturan
+`swift test` cubre modelos/repositorio; `xcodebuild test` añade nueve pruebas del
+store/API/exportadores nativos y tres recorridos UI. Los adjuntos XCUITest capturan
 las seis pantallas. El `#Preview("Demo nativa")` carga el repositorio real demo;
 requiere Xcode y todavía no se ha renderizado en esta entrega. No se sustituyen
 capturas del simulador por renders HTML. La evidencia disponible de API e ícono
@@ -123,15 +125,61 @@ en Xcode y permite firma automática cuando decidas instalar en dispositivo.
 Para instalación personal, una cuenta gratuita puede tener limitaciones de
 provisionamiento y caducidad; comprueba las condiciones vigentes de Apple.
 
-## CI macOS: preparado, no ejecutado
+## CI macOS sin fusionar main
 
-`.github/workflows/ios-macos-manual.yml` solo tiene `workflow_dispatch`, exige
-`authorize_macos_minutes=true` y no usa secretos ni firma. Antes de ejecutarlo,
-revisa disponibilidad, presupuesto/minutos de tu plan privado y el Xcode instalado.
-No se ejecutó ese workflow ni se contrataron recursos. GitHub normalmente necesita
-el workflow en la rama predeterminada para mostrar el despacho manual: aquí queda
-preparado, sin cambiar main para activarlo. Mientras tanto usa macOS autorizado
-con los comandos anteriores. No habilites un trigger automático macOS sin aprobarlo.
+El workflow preparado usa macos-15/Xcode 26.3. El inventario oficial de GitHub
+anuncia esa combinación, pero debe verificarse al ejecutar: no se ha probado aquí.
+La compatibilidad del catálogo no garantiza disponibilidad futura del runner.
+No se ha ejecutado macOS ni se ha autorizado gasto en esta revisión.
+
+**Ruta con la PR, sin incorporar el YAML a main:**
+
+1. El propietario revisa el head exacto de #12 y su código/workflow; comprueba
+   presupuesto/cuota de GitHub Actions para el repositorio **privado**. macOS y
+   Windows hospedados pueden consumir minutos facturables. No asumir gratuidad.
+2. Si el head tiene `[skip ci]`, después de autorizar los minutos crea un commit
+   posterior sin ese marcador. Por ejemplo, desde PowerShell en la rama correcta:
+
+   ```powershell
+   git commit --allow-empty -m "Authorize reviewed CI validation"
+   git push origin feature/datacore-ios
+   ```
+
+   Esto también puede iniciar las matrices Linux/Windows existentes: revisar sus
+   costos antes de hacerlo. El marcador skip afecta eventos pull_request, incluidos
+   labeled; no se puede usar para omitir las otras matrices y activar macOS a la vez.
+3. Solo tras autorizar el gasto, el propio propietario crea/añade la etiqueta
+   **ios-macos-cost-approved** a la PR #12. Añadirla es la señal explícita de
+   autorización de esa ejecución. No se añade automáticamente desde este agente.
+4. El workflow acepta solo actor propietario, mismo repositorio y rama
+   feature/datacore-ios, evento labeled con ese nombre. Checkout del head exacto,
+   sin secretos ni firma. Un nuevo push no reutiliza la autorización: haría falta
+   revisar el nuevo head y quitar/añadir la etiqueta de nuevo. No uses
+   pull_request_target para acceder a secretos del código de la PR.
+5. Descarga ios-simulator-evidence-SHA: logs, plan de dispositivos, dos xcresult,
+   capturas normal/oscuro/AX3 y log Release. Si falla, conserva esos datos y corrige
+   antes de afirmar que la aplicación compila.
+
+La ruta por etiqueta está preparada según el evento documentado; no se disparó
+para comprobarla porque requeriría autorización de minutos. Políticas/approvals
+de Actions pueden requerir intervención del propietario. El botón dispatch normal
+exige que el YAML exista en la rama predeterminada; no se modifica main para ello.
+Si se habilita más adelante de forma autorizada, exige authorize_macos_minutes=true
+y branch feature/datacore-ios. También puede ejecutarse directamente en un Mac
+prestado/autorizado, sin ningún job de GitHub:
+
+```bash
+# Xcode 26.3 ya instalado, licencias y simuladores listos; sin descarga automática.
+export DEVELOPER_DIR=/Applications/Xcode_26.3.app/Contents/Developer
+bash ios/tools/run_simulator_tests.sh
+```
+
+El script elige dos iPhone distintos con runtime iOS >=17 compatible con el SDK.
+Falla si no existen, conserva logs/adjuntos aun con errores y no sobrescribe
+resultados anteriores. Para repetir, usa un directorio nuevo:
+`DATACORE_EVIDENCE_DIR=/ruta/nueva bash ios/tools/run_simulator_tests.sh`.
+No firma ni produce IPA, y no prueba necesariamente el runtime mínimo iOS 17 si
+solo están instalados runtimes posteriores. Esa prueba sigue pendiente aparte.
 
 ## TestFlight y App Store: pasos pendientes del propietario
 

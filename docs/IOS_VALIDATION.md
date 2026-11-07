@@ -1,5 +1,9 @@
 # Entrega iOS: funcionalidades, evidencia y límites
 
+**Actualización:** consulta [la auditoría posterior](IOS_AUDIT_2026_11.md) para
+los cambios y resultados actuales. Lo que sigue conserva la evidencia de la
+entrega inicial; sus conteos y toolchain no describen la revisión posterior.
+
 ## Código entregado
 
 - SwiftUI iOS 17+ con seis pantallas y navegación inferior nativa, modo oscuro,
