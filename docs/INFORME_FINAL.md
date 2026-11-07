@@ -30,7 +30,7 @@ La comprobación de SQL Server Windows real permanece pendiente. Main conserva
 | --- | --- |
 | Dashboard | Periodo inclusivo, ingresos, ventas, unidades actuales, alertas y dos gráficos con tablas de evidencia |
 | Productos | Catálogo, búsqueda literal, edición concurrente con ROWVERSION y desactivación lógica; escrituras explícitas |
-| Ventas | Carrito por sesión, Decimal, transacción e idempotencia UUID, recuperación de respuesta incierta e historial |
+| Ventas | Carrito por sesión, Decimal, transacción e idempotencia UUID, recuperación de respuesta incierta e historial paginado |
 | Inventario | Consulta de activos, filtros y alertas por stock menor o igual al mínimo |
 | Reportes | CSV UTF-8, Excel tipado y PDF paginado en memoria, con filtros, hora, alcance y límites |
 | Asistente | Cuatro preguntas permitidas, cálculos verificables, fuente/periodo y explicación Groq opcional |
@@ -42,6 +42,10 @@ El modo de solo lectura conserva una confirmación incierta y su clave sin
 reintentar. No cambia permisos SQL y no reemplaza una identidad de mínimos
 privilegios. Las escrituras históricas siguen disponibles cuando ese modo no
 está habilitado; el inicio recomendado de Windows lo establece expresamente.
+
+La revisión inicial del commit 303cc95 tuvo 68 pruebas (64 aprobadas y 4 omitidas).
+La auditoría posterior y los nuevos casos están en [AUDITORIA_V1.md](AUDITORIA_V1.md).
+La [lista de aceptación local](PRUEBAS_LOCALES_V1.md) sigue pendiente en tu equipo.
 
 ## Correcciones de esta revisión
 
@@ -58,7 +62,7 @@ está habilitado; el inicio recomendado de Windows lo establece expresamente.
 ## Pruebas y reproducción
 
 Suite de partida #7: 59 descubiertas, 55 aprobadas, 4 SQL omitidas.
-Suite final local: **68 descubiertas, 64 aprobadas, 4 SQL omitidas, 0 fallos,
+Suite de estabilización local: **85 descubiertas, 81 aprobadas, 4 SQL omitidas, 0 fallos,
 0 errores, 0 intentos SQL real y 0 intentos HTTP real**, Python 3.13.17/Linux.
 
 ```powershell
@@ -116,7 +120,7 @@ Windows; el modelo no tiene acceso a esa conexión.
 - Inventario actual, sin historial de movimientos; nombres actuales de productos
   y clientes; sin costos para calcular utilidades ni predicciones.
 - Excel: 5.000 filas; PDF: 2.000; 10 MiB por archivo; precisión Excel acotada.
-  Fuentes PDF probadas en español, no todos los alfabetos. CSV para conjuntos mayores.
+  Fuentes PDF probadas en español, no todos los alfabetos. CSV hasta 100.000 filas/10 MiB.
 - No es despliegue de producción: no hay autenticación web multiusuario. TLS SQL
   local confía en el certificado del servidor y requiere revisión fuera de local.
 - Las cuatro pruebas SQL optativas dependen de ejemplos y no se ejecutan en CI.

@@ -10,6 +10,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from database.connection import obtener_conexion
+from services.configuracion import solo_lectura
 
 REQUERIDAS = {
     "Categorias": {"CategoriaID", "Nombre"},
@@ -35,7 +36,7 @@ def revisar_entorno():
         driver = False
     return {"python": platform.python_version(), "python_313": sys.version_info[:2] == (3, 13),
             "plataforma": platform.system(), "paquetes": paquetes, "odbc_driver_18": driver,
-            "solo_lectura": os.getenv("DATACORE_READ_ONLY") == "1",
+            "solo_lectura": solo_lectura(),
             "groq_habilitado": os.getenv("DATACORE_GROQ_ENABLED") == "1",
             "conexion_sql_probada": False}
 

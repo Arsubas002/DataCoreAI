@@ -10,6 +10,8 @@ a main ni se despliega automáticamente.
 
 Consulta la [guía completa de Windows y SQL Server Express](docs/INSTALACION_WINDOWS.md)
 y el [informe final de integración](docs/INFORME_FINAL.md).
+La [auditoría v1.0](docs/AUDITORIA_V1.md) registra correcciones y límites;
+la [lista de aceptación local](docs/PRUEBAS_LOCALES_V1.md) detalla lo pendiente en tu equipo.
 
 ### Instalar y ejecutar
 

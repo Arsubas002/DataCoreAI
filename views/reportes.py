@@ -33,7 +33,7 @@ def mostrar_reportes():
     st.caption(f"Reporte generado: {generado:%d/%m/%Y %H:%M %z}. Periodo: {inicio} a {fin}, inclusive. Moneda: S/.")
     st.caption("Las fechas de ventas corresponden al reloj local de SQL Server. El inventario es actual, no histórico. Los nombres de productos son los actuales.")
     formato = st.selectbox("Formato de descarga", ("CSV", "Excel", "PDF"))
-    st.caption("Excel: hasta 5.000 filas · PDF: hasta 2.000 filas · Máximo por archivo: 10 MiB. CSV para conjuntos mayores.")
+    st.caption("CSV: hasta 100.000 filas · Excel: 5.000 · PDF: 2.000 · Máximo por archivo: 10 MiB.")
     generador, extension, mime = {
         "CSV": (csv_reporte, "csv", "text/csv"),
         "Excel": (excel_reporte, "xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),

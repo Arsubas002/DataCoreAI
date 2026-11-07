@@ -7,7 +7,9 @@ class ErrorSoloLectura(PermissionError):
 
 
 def solo_lectura():
-    return os.getenv("DATACORE_READ_ONLY", "0") == "1"
+    # Solo un 0 explícito (o la ausencia histórica) permite escrituras.
+    # Una configuración mal escrita nunca las habilita accidentalmente.
+    return os.getenv("DATACORE_READ_ONLY", "0").strip() != "0"
 
 
 def exigir_escritura():

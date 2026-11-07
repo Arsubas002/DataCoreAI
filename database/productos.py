@@ -9,6 +9,8 @@ from services.configuracion import exigir_escritura
 
 def validar_producto(codigo, nombre, categoria_id, precio, existencias, stock_minimo):
     """Valida también fuera de la interfaz; devuelve valores normalizados."""
+    if not isinstance(codigo, str) or not isinstance(nombre, str):
+        raise ValueError("Código y nombre deben ser texto.")
     codigo, nombre = codigo.strip().upper(), nombre.strip()
     if not codigo or len(codigo) > 30:
         raise ValueError("El código es obligatorio y admite hasta 30 caracteres.")
@@ -25,7 +27,7 @@ def validar_producto(codigo, nombre, categoria_id, precio, existencias, stock_mi
     for valor in (existencias, stock_minimo):
         if isinstance(valor, bool) or not isinstance(valor, int) or not 0 <= valor <= 2147483647:
             raise ValueError("Las existencias y el stock mínimo deben ser enteros no negativos.")
-    if isinstance(categoria_id, bool) or not isinstance(categoria_id, int) or categoria_id <= 0:
+    if isinstance(categoria_id, bool) or not isinstance(categoria_id, int) or not 1 <= categoria_id <= 2147483647:
         raise ValueError("Selecciona una categoría válida.")
     return codigo, nombre, categoria_id, precio, existencias, stock_minimo
 

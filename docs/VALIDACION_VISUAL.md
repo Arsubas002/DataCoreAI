@@ -43,3 +43,8 @@ bloqueadas. Estas capturas no demuestran SQL Server Windows ni Groq reales.
 ![Reportes, datos sintéticos](imagenes/reportes-sintetico.png)
 
 ![Asistente, datos sintéticos](imagenes/asistente-sintetico.png)
+
+En la auditoría v1.0 se repitió el recorrido y las tres descargas con las
+correcciones nuevas. Se esperó a que cada vista terminara de renderizar antes
+de capturar. Productos agrupa identificación, categoría/precio y stock en filas
+adaptables; Ventas muestra paginación y Reportes los límites de los tres formatos.

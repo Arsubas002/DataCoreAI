@@ -178,8 +178,8 @@ Streamlit y cierra la sesión al terminar.
 No desactives el modo de solo lectura para completar esta lista. El registro de
 productos/ventas y las pruebas de bloqueos reales requieren autorización aparte,
 una base de pruebas identificada, un plan de verificación y un usuario autorizado.
-La aplicación histórica permite escrituras si DATACORE_READ_ONLY está ausente o
-vale `0`; conserva `1` en la sesión de revisión. No cambies este modo durante una
+La aplicación permite escrituras si DATACORE_READ_ONLY está ausente o
+vale `0`; cualquier otro valor se trata como modo lector; conserva `1` en la sesión de revisión. No cambies este modo durante una
 venta de resultado incierto. Su UUID debe preservarse hasta reconciliarla.
 
 Las cuatro pruebas optativas `DATACORE_TEST_SQL=1` esperan los ejemplos DEMO-001
@@ -199,3 +199,8 @@ La suite aislada fuerza `0`; una integración autorizada se ejecuta por separado
 | Excel/PDF supera límites | Reduce el periodo o usa CSV; véase EXPORTACIONES.md |
 | Groq falla | Revisa clave, modelo, cuota y conectividad sin imprimir valores; conserva modo guiado |
 | Una venta queda incierta | Conserva UUID y contenido; no confirmes otra venta hasta reconciliarla |
+
+La [lista de pruebas v1.0](PRUEBAS_LOCALES_V1.md) separa lectura, negocio autorizado
+y Groq opcional. El historial pagina 100 ventas completas; los SELECT tienen
+timeout de consulta de 15 s (distinto al login de 5 s), pendiente de verificar
+con tu controlador/instancia.

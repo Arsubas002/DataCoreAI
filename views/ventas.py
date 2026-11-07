@@ -50,8 +50,10 @@ def mostrar_carrito():
                               format_func=lambda i: f"{clientes_por_id[i]['Nombre']} · {clientes_por_id[i]['Documento']}")
     productos_por_id = {p["ProductoID"]: p for p in productos}
     if productos:
+        if st.session_state.get("producto_activo_venta") not in productos_por_id:
+            st.session_state.pop("producto_activo_venta", None)
         with st.form("agregar_al_carrito"):
-            producto_id = st.selectbox("Producto activo", list(productos_por_id),
+            producto_id = st.selectbox("Producto activo", list(productos_por_id), key="producto_activo_venta",
                                       format_func=lambda i: f"{productos_por_id[i]['Codigo']} · {productos_por_id[i]['Nombre']} · S/ {productos_por_id[i]['Precio']:.2f} · Stock: {productos_por_id[i]['Existencias']}")
             cantidad = st.number_input("Cantidad para agregar", min_value=1, max_value=2147483647, value=1, step=1)
             agregar = st.form_submit_button("Agregar al carrito")
@@ -132,14 +134,17 @@ def confirmar_pendiente(ejecutar=False):
 
 def mostrar_historial():
     st.subheader("Historial de ventas")
+    pagina = st.number_input("Página del historial", min_value=1, max_value=21474836,
+                             value=1, step=1, key="pagina_historial")
+    st.caption("Hasta 100 ventas por página, de más recientes a antiguas. Cada venta conserva todos sus detalles.")
     st.button("Actualizar historial")
     try:
-        filas = listar_historial()
+        filas = listar_historial(limite=100, desplazamiento=(pagina - 1) * 100)
     except Exception:
         st.error("No se pudo cargar el historial. Revisa la conexión.")
         return
     if not filas:
-        st.info("Todavía no hay ventas registradas.")
+        st.info("No hay ventas en esta página del historial. Vuelve a una página anterior si corresponde.")
         return
     resumen = {}
     for fila in filas:

@@ -17,7 +17,7 @@ se conservan únicamente en memoria de la sesión y se invalidan al generar de n
   sin fuentes remotas ni dependencias del sistema. Texto escapado, sin enlaces
   ni interpretación de marcado de los nombres. Cubre español y acentos; no se
   garantiza cobertura de todos los alfabetos Unicode.
-- Hasta 5.000 filas por Excel y 2.000 por PDF; máximo 10 MiB por archivo.
+- Hasta 100.000 filas por CSV, 5.000 por Excel y 2.000 por PDF; máximo 10 MiB por archivo.
   Se rechazan textos de más de 2.000 caracteres o controles XML no válidos.
   No se truncan filas. Para conjuntos mayores usa CSV o reduce el periodo.
 
@@ -38,3 +38,8 @@ pdftoppm e inspeccionado visualmente: cabecera, acentos, ajuste de texto y pie
 legibles. No se exportaron datos reales.
 
 Para instalar lectores de prueba: `python -m pip install -r requirements-dev.txt`.
+
+La estabilización añade división de filas PDF con muchas líneas, rechazo de
+importes no finitos y fechas anteriores a 1900 como texto ISO en Excel. No se
+truncan archivos al superar límites. Los conteos anteriores corresponden a la
+etapa original; véase INFORME_FINAL.md para la suite actual.

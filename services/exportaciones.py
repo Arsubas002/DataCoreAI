@@ -18,7 +18,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import LongTable, Paragraph, SimpleDocTemplate, Spacer, TableStyle
 
-from services.reportes import COLUMNAS
+from services.reportes import COLUMNAS, validar_numero
 
 MAX_FILAS = 5000
 MAX_FILAS_PDF = 2000
@@ -37,6 +37,7 @@ def _validar(filas, tipo, limite):
     for fila in filas:
         for columna in COLUMNAS[tipo]:
             valor = fila[columna]
+            validar_numero(valor)
             if isinstance(valor, str) and (len(valor) > 2000 or any(
                     ord(c) < 32 and c not in "\t\n\r" for c in valor)):
                 raise ValueError("El reporte contiene texto demasiado largo o caracteres de control no admitidos.")
@@ -84,6 +85,8 @@ def excel_reporte(filas, tipo, inicio, fin, generado):
                 # Excel solo conserva 15 cifras significativas. No ocultar pérdida de céntimos.
                 if abs(Decimal(valor)) >= Decimal("1000000000000"):
                     raise ValueError("Un valor supera la precisión numérica de esta exportación Excel. Utiliza CSV o PDF.")
+            if isinstance(valor, (date, datetime)) and valor.year < 1900:
+                valor = valor.isoformat()
             valores.append(valor)
         hoja.append(valores)
         for celda, columna in zip(hoja[hoja.max_row], columnas):
@@ -149,7 +152,7 @@ def pdf_reporte(filas, tipo, inicio, fin, generado):
         elementos.append(parrafo("Sin resultados para este reporte."))
     anchos = [2 if c == "Nombre" else 1 for c in columnas]
     ancho = documento.width / sum(anchos)
-    tabla_pdf = LongTable(tabla, colWidths=[ancho * peso for peso in anchos], repeatRows=1, hAlign="LEFT")
+    tabla_pdf = LongTable(tabla, colWidths=[ancho * peso for peso in anchos], repeatRows=1, splitInRow=1, hAlign="LEFT")
     tabla_pdf.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#DCECF5")),
         ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F1F5F9")]),

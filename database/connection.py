@@ -25,7 +25,14 @@ def obtener_conexion(base_datos: str | None = None):
         "TrustServerCertificate=yes;"
     )
     # Confiar en el certificado se limita a este entorno local de desarrollo.
-    return pyodbc.connect(cadena, timeout=5)
+    conexion = pyodbc.connect(cadena, timeout=5)
+    try:
+        # El timeout de login no limita los SELECT ni los bloqueos de consultas.
+        conexion.timeout = 15
+    except Exception:
+        conexion.close()
+        raise
+    return conexion
 
 
 def probar_conexion() -> tuple[bool, str]:

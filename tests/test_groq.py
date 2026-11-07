@@ -95,7 +95,7 @@ class GroqTests(TestCase):
 
     @patch("services.groq.requests.post")
     def test_errores_y_respuestas_malformadas_no_filtran_detalles(self, post):
-        resultados = [respuesta_bytes(b"privado", 401), respuesta_bytes(b"privado", 429),
+        resultados = [respuesta_bytes(b"privado", 307), respuesta_bytes(b"privado", 401), respuesta_bytes(b"privado", 429),
                       respuesta_bytes(b"privado", 500), respuesta_bytes(b"<html>privado</html>"),
                       respuesta_bytes(b"{}"), respuesta(""), respuesta("x" * 6001), respuesta(ENTORNO["GROQ_API_KEY"]),
                       respuesta("texto", tool_calls=[{"function": {"name": "DELETE"}}]),
@@ -119,6 +119,16 @@ class GroqTests(TestCase):
             with self.assertRaises(ErrorGroq) as error:
                 explicar_con_groq(PREGUNTAS[0], datos())
             self.assertNotIn("privada", str(error.exception))
+
+    @patch("services.groq.requests.post")
+    def test_corte_durante_lectura_cierra_y_no_revela_detalles(self, post):
+        post.return_value = respuesta()
+        post.return_value.iter_content.side_effect = requests.exceptions.ChunkedEncodingError("detalle privado")
+        with patch.dict(os.environ, ENTORNO), self.assertRaises(ErrorGroq) as error:
+            explicar_con_groq(PREGUNTAS[0], datos())
+        self.assertNotIn("privado", str(error.exception))
+        post.return_value.close.assert_called_once()
+        post.assert_called_once()
 
     @patch("views.asistente.explicar_con_groq", return_value="Explicación de prueba")
     @patch("views.asistente.resumen_comercial", side_effect=lambda *args: datos())
