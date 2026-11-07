@@ -13,7 +13,7 @@ const pages={
 };
 function downloadDemoCsv(){const lines=['Producto,Precio_Soles,Stock',...products.map(p=>[p[0],p[1].toFixed(2),p[2]].join(','))];const blob=new Blob(['\uFEFF'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='datacore_demo_inventario.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
 const nav=document.querySelector('#nav'),content=document.querySelector('#content');
-function show(name){content.innerHTML=pages[name]();document.querySelector('#subtitle').textContent=name;[...nav.children].forEach(b=>b.setAttribute('aria-current',b.textContent===name?'page':'false'));location.hash=encodeURIComponent(name)}
+function show(name){content.innerHTML=pages[name]();document.querySelector('#subtitle').textContent=name;[...nav.children].forEach(b=>b.setAttribute('aria-current',b.textContent===name?'page':'false'));if(decodeURIComponent(location.hash.slice(1))!==name)location.hash=encodeURIComponent(name)}
 Object.keys(pages).forEach(name=>{const b=document.createElement('button');b.textContent=name;b.type='button';b.onclick=()=>show(name);nav.appendChild(b)});
 function currentPage(){try{const p=decodeURIComponent(location.hash.slice(1));return pages[p]?p:'Dashboard'}catch{return 'Dashboard'}}
 window.addEventListener('hashchange',()=>show(currentPage()));show(currentPage());
