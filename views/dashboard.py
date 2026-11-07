@@ -1,11 +1,19 @@
-"""Panel comercial con información SQL consultada, sin indicadores ficticios."""
+"""Cockpit comercial: gráfico principal, actividad y decisiones operativas."""
+
 from decimal import Decimal
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 from database.dashboard import resumen_comercial
-from views.componentes import periodo, tarjeta_metrica, tabla_comercial, titulo_panel, estilo_grafico
+from views.componentes import (
+    periodo,
+    titulo_panel,
+    tabla_comercial,
+    estilo_grafico,
+    estado_vacio,
+    cambiar_pantalla,
+)
 
 
 def _soles(valor):
@@ -13,8 +21,25 @@ def _soles(valor):
 
 
 def mostrar_dashboard():
-    with st.container(key="panel_filtros"):
-        inicio, fin = periodo("dashboard", actualizar=True)
+    control, contexto = st.columns([1, 2], vertical_alignment="center")
+    with (
+        control,
+        st.popover(
+            "Periodo de análisis", icon=":material/calendar_month:", width="stretch"
+        ),
+    ):
+        with st.form("periodo_dashboard", border=False):
+            inicio, fin = periodo("dashboard")
+            st.form_submit_button(
+                "Actualizar panel",
+                type="primary",
+                icon=":material/refresh:",
+                width="stretch",
+            )
+    with contexto:
+        st.caption(
+            f"{inicio:%d/%m/%Y} — {fin:%d/%m/%Y} · Fechas locales de SQL Server · S/"
+        )
     if inicio > fin:
         st.warning("La fecha inicial debe ser anterior o igual a la fecha final.")
         return
@@ -25,71 +50,139 @@ def mostrar_dashboard():
         st.warning(str(error))
         return
     except Exception:
-        st.error("No fue posible consultar el panel. Comprueba la conexión con SQL Server y la base DataCoreAI.")
-        st.info("Comprueba el servicio SQL Server, el controlador ODBC y los permisos de Windows.")
+        st.error(
+            "No fue posible consultar el panel. Comprueba la conexión con SQL Server y la base DataCoreAI."
+        )
+        st.info(
+            "Comprueba el servicio SQL Server, el controlador ODBC y los permisos de Windows."
+        )
         return
-
     ventas, inventario = datos["ventas"], datos["inventario"]
-    stock_bajo = [p for p in inventario if p["Existencias"] <= p["StockMinimo"]]
-    unidades = sum(int(p["Existencias"]) for p in inventario)
-    with st.container(horizontal=True, key="kpi_grid", gap="small"):
-        tarjeta_metrica(None,"Ingresos del periodo",_soles(ventas["TotalVentas"]),"income","S/",
-                        "Ingresos diarios · Periodo seleccionado", [float(f["TotalVentas"]) for f in datos["tendencia"]] or None)
-        tarjeta_metrica(None,"Ventas registradas",f'{ventas["NumeroVentas"]:,}',"sales","#",
-                        "Ventas diarias · Periodo seleccionado", [f["NumeroVentas"] for f in datos["tendencia"]] or None)
-        tarjeta_metrica(None,"Unidades en inventario",f"{unidades:,}","units","▦","Existencias actuales · Productos activos")
-        tarjeta_metrica(None,"Productos con alerta",str(len(stock_bajo)),"alerts","!","Stock menor o igual al mínimo")
-    st.caption(f"Periodo: {inicio:%d/%m/%Y} — {fin:%d/%m/%Y} · S/ · Fechas locales de SQL Server. Inventario actual, no histórico.")
-
-    izquierda,derecha = st.columns([2,1], gap="medium")
-    with izquierda, st.container(key="panel_ingresos"):
-        titulo_panel("Evolución de ingresos", "VENTAS DEL PERIODO")
+    alertas = [p for p in inventario if p["Existencias"] <= p["StockMinimo"]]
+    principal, lateral = st.columns([2.25, 1], gap="medium")
+    with principal, st.container(key="hero_chart"):
+        titulo_panel(
+            "El pulso de tu negocio", "Una lectura diaria del periodo seleccionado"
+        )
+        st.metric("Ingresos del periodo", _soles(ventas["TotalVentas"]))
+        serie = st.segmented_control(
+            "Visualización",
+            ["Ingresos", "Ventas"],
+            default="Ingresos",
+            key="dashboard_serie",
+            required=True,
+        )
         if datos["tendencia"]:
             tabla = pd.DataFrame(datos["tendencia"])
-            grafico = tabla.assign(Dia=tabla["Dia"].map(str), TotalVentas=tabla["TotalVentas"].map(float))
-            figura = px.area(grafico,x="Dia",y="TotalVentas",markers=True,
-                             labels={"Dia":"Fecha","TotalVentas":"Ingresos (S/)"},color_discrete_sequence=["#DDB566"])
-            figura.update_traces(line=dict(width=2.5),fillcolor="rgba(221,181,102,.12)",marker=dict(size=5))
-            figura.update_layout(hovermode="x unified")
-            st.plotly_chart(estilo_grafico(figura),width="stretch")
+            grafico = tabla.assign(
+                Dia=tabla["Dia"].map(str), TotalVentas=tabla["TotalVentas"].map(float)
+            )
+            columna = "TotalVentas" if serie == "Ingresos" else "NumeroVentas"
+            figura = px.bar(
+                grafico,
+                x="Dia",
+                y=columna,
+                labels={
+                    "Dia": "Fecha",
+                    "TotalVentas": "Ingresos (S/)",
+                    "NumeroVentas": "Ventas",
+                },
+                color_discrete_sequence=[
+                    "#7659E8" if serie == "Ingresos" else "#24C9C0"
+                ],
+            )
+            figura.update_traces(marker_line_width=0, marker_cornerradius=4)
+            figura.update_layout(bargap=0.35, hovermode="x unified")
+            st.plotly_chart(estilo_grafico(figura, 330), width="stretch")
             with st.expander("Ver datos de ingresos"):
                 tabla_comercial(tabla)
         else:
             st.info("No se registraron ventas en el periodo seleccionado.")
-
-    with derecha, st.container(key="panel_stock"):
-        titulo_panel("Estado del inventario", "PRODUCTOS ACTIVOS")
-        if inventario:
-            agotados = sum(p["Existencias"] == 0 for p in inventario)
-            bajos = len(stock_bajo)-agotados
-            normales = len(inventario)-len(stock_bajo)
-            figura = go.Figure(go.Pie(labels=["Disponible","Stock bajo","Agotado"],values=[normales,bajos,agotados],
-                                     hole=.78,sort=False,textinfo="none",marker=dict(colors=["#B6985D","#6F6249","#C07C61"],line=dict(color="#191918",width=4))))
-            figura.update_layout(showlegend=False,annotations=[dict(text=f"<b>{len(inventario)}</b><br>productos",x=.5,y=.5,
-                                      font=dict(size=20,color="#E9DDC4"),showarrow=False)])
-            st.plotly_chart(estilo_grafico(figura,250),width="stretch")
-            st.caption(f"Disponible: {normales} · Stock bajo: {bajos} · Agotado: {agotados}")
-        else:
-            st.info("No hay productos activos en el inventario.")
-
-    izquierda,derecha = st.columns([1,1],gap="medium")
-    with izquierda, st.container(key="panel_productos"):
-        titulo_panel("Productos más vendidos", "TOP 8 · UNIDADES")
+    with lateral:
+        with st.container(key="stat_sales"):
+            st.metric("Ventas registradas", f"{ventas['NumeroVentas']:,}")
+            st.html(
+                '<div class="dc-micro-label">Actividad del periodo · Sin comparaciones estimadas</div>'
+            )
+        with st.container(key="stock_summary"):
+            titulo_panel(
+                "Inventario vivo",
+                f"{len(inventario)} productos activos · Existencias actuales",
+            )
+            unidades_col, alertas_col = st.columns(2)
+            unidades_col.metric(
+                "Unidades", f"{sum(int(p['Existencias']) for p in inventario):,}"
+            )
+            alertas_col.metric("Con alerta", str(len(alertas)))
+            if inventario:
+                agotados = sum(p["Existencias"] == 0 for p in inventario)
+                figura = go.Figure(
+                    go.Pie(
+                        labels=["Disponible", "Stock bajo", "Agotado"],
+                        values=[
+                            len(inventario) - len(alertas),
+                            len(alertas) - agotados,
+                            agotados,
+                        ],
+                        hole=0.72,
+                        sort=False,
+                        textinfo="none",
+                        marker=dict(
+                            colors=["#24C9C0", "#7659E8", "#B74F6E"],
+                            line=dict(color="#fff", width=3),
+                        ),
+                    )
+                )
+                figura.update_layout(showlegend=False)
+                st.plotly_chart(estilo_grafico(figura, 160), width="stretch")
+                st.caption(
+                    f"Disponibles: {len(inventario) - len(alertas)} · Bajos: {len(alertas) - agotados} · Agotados: {agotados}"
+                )
+            else:
+                st.info("No hay productos activos en el inventario.")
+            st.button(
+                "Revisar inventario",
+                icon=":material/warehouse:",
+                width="stretch",
+                key="ir_inventario_dashboard",
+                on_click=cambiar_pantalla,
+                args=("Inventario",),
+            )
+    catalogo, accion = st.columns([1.65, 1], gap="medium")
+    with catalogo, st.container(key="top_products"):
+        titulo_panel(
+            "Lo que impulsa tus ventas",
+            "Hasta 8 productos · Precios vendidos y nombres actuales",
+        )
         if datos["productos_vendidos"]:
-            tabla = pd.DataFrame(datos["productos_vendidos"])
-            figura = px.bar(tabla,x="Unidades",y="Codigo",hover_name="Nombre",orientation="h",
-                            labels={"Unidades":"Unidades vendidas","Codigo":"Código de producto"},color_discrete_sequence=["#DDB566"])
-            figura.update_layout(yaxis={"categoryorder":"total ascending"},bargap=.48)
-            st.plotly_chart(estilo_grafico(figura,250),width="stretch")
-            with st.expander("Ver detalle de productos vendidos"):
-                tabla_comercial(tabla)
+            detalle, grafico = st.tabs(["Detalle comercial", "Comparar unidades"])
+            with detalle:
+                tabla_comercial(datos["productos_vendidos"])
+            with grafico:
+                figura = px.bar(
+                    pd.DataFrame(datos["productos_vendidos"]),
+                    x="Unidades",
+                    y="Codigo",
+                    hover_name="Nombre",
+                    orientation="h",
+                    color_discrete_sequence=["#24C9C0"],
+                )
+                figura.update_layout(yaxis={"categoryorder": "total ascending"})
+                st.plotly_chart(estilo_grafico(figura, 220), width="stretch")
         else:
-            st.caption("Todavía no hay productos vendidos en el periodo.")
-    with derecha, st.container(key="panel_alertas"):
-        titulo_panel("Atención al inventario", "REPOSICIÓN")
-        if stock_bajo:
-            st.caption(f"{len(stock_bajo)} producto(s) con stock bajo o agotado.")
-            tabla_comercial(pd.DataFrame(stock_bajo))
+            estado_vacio(
+                "El ranking empieza con tu primera venta",
+                "No hay productos vendidos en el periodo.",
+            )
+    with accion, st.container(key="action_queue"):
+        titulo_panel(
+            "Tu siguiente acción", "Productos que necesitan una revisión de existencias"
+        )
+        if alertas:
+            tabla_comercial(alertas)
         else:
             st.success("No hay productos activos con stock bajo o agotado.")
-    st.caption("Fuentes: DataCoreAI · Ranking limitado a 8 productos, nombres actuales. Las consultas no forman una instantánea transaccional. Sin comparación de periodos no se muestran porcentajes de crecimiento.")
+    with st.expander("Fuentes y alcance del panel"):
+        st.caption(
+            "DataCoreAI · Inventario actual, no histórico. Ranking limitado a 8 productos. Las consultas no forman una instantánea transaccional. Sin periodo comparable no se muestran porcentajes de crecimiento."
+        )

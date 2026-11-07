@@ -34,11 +34,11 @@ class EditorProductosTests(TestCase):
 
     def test_recargar_descarta_borrador_aunque_sql_no_haya_cambiado(self):
         self.campo("Nombre").set_value("Borrador sin guardar")
-        self.campo("Precio (usa punto decimal)").set_value("19.99")
+        self.campo("Precio (S/)").set_value("19.99")
         next(b for b in self.app.button if b.label == "Recargar versión del producto").click().run()
         self.assertFalse(self.app.exception)
         self.assertEqual(self.campo("Nombre").value, "Mouse de prueba")
-        self.assertEqual(self.campo("Precio (usa punto decimal)").value, "8.50")
+        self.assertEqual(self.campo("Precio (S/)").value, "8.50")
 
     @patch("views.productos.guardar_producto", side_effect=ValueError("El producto cambió"))
     def test_sesion_anterior_conserva_version_hasta_recarga(self, guardar):
@@ -55,7 +55,7 @@ class EditorProductosTests(TestCase):
         self.app.selectbox[0].set_value(None).run()
         self.campo("Código").set_value("NUEVO")
         self.campo("Nombre").set_value("Artículo nuevo")
-        self.campo("Precio (usa punto decimal)").set_value("1.50")
+        self.campo("Precio (S/)").set_value("1.50")
         next(b for b in self.app.button if b.label == "Guardar producto").click().run()
         self.assertFalse(self.app.exception)
         self.assertEqual(self.campo("Código").value, "")

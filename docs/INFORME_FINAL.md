@@ -1,5 +1,13 @@
 # Informe final de integración
 
+## Revisión visual posterior
+
+La propuesta actual `design/petroleo-workspace` incluye #8 y #9 y sustituye el
+diseño negro/ámbar por una estructura comercial nueva. No está fusionada a main.
+Validación local: 90 pruebas, 86 aprobadas y 4 SQL omitidas, sin accesos reales.
+Consulta [composiciones, capturas y límites](WORKSPACE_PETROLEO.md).
+El informe que sigue conserva el historial de integración de #8.
+
 ## Resultado y procedencia
 
 Rama candidata: `release/integracion-final`, creada directamente desde el head

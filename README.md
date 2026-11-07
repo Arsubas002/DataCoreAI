@@ -2,8 +2,10 @@
 
 ## Versión candidata para pruebas locales
 
-Interfaz grafito/ámbar con navegación, KPIs y paneles renovados. Consulta el
-[sistema visual y las capturas antes/después](docs/DISENO_PREMIUM.md).
+Nueva experiencia comercial: petróleo, blanco frío, violeta y turquesa; navegación
+por secciones y seis composiciones orientadas a tareas. Consulta el
+[sistema visual, validación y doce capturas](docs/WORKSPACE_PETROLEO.md).
+La revisión visual está en `design/petroleo-workspace`, sobre las PR #8 y #9.
 
 Aplicación de gestión comercial con seis pantallas integradas, reportes CSV/Excel/PDF
 y asistente comercial con explicación Groq opcional. La rama final parte de la PR #7
