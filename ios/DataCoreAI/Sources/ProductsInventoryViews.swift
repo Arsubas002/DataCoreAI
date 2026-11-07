@@ -3,16 +3,17 @@ import DataCoreDomain
 import SwiftUI
 
 struct ProductsView: View {
-  @EnvironmentObject private var store: AppStore
+  @Environment(AppStore.self) private var store
   @State private var query = ""
   @State private var category = "Todas"
   @State private var selected: Product?
+  @State private var inStockOnly = false
   private var categories: [String] {
     ["Todas"] + Set(store.snapshot?.products.map(\.category) ?? []).sorted()
   }
   private var filtered: [Product] {
     (store.snapshot?.products ?? []).filter {
-      (category == "Todas" || $0.category == category)
+      (category == "Todas" || $0.category == category) && (!inStockOnly || $0.stock > 0)
         && (query.isEmpty || $0.name.localizedStandardContains(query)
           || $0.code.localizedStandardContains(query))
     }
@@ -28,7 +29,18 @@ struct ProductsView: View {
           Label("Filtrar", systemImage: "line.3.horizontal.decrease.circle")
         }
       }
-      Text("Categoría: \(category)").font(.caption).foregroundStyle(.secondary)
+      Toggle("Solo productos disponibles", isOn: $inStockOnly).tint(.violet)
+      HStack {
+        Text("Categoría: \(category)").font(.caption).foregroundStyle(.secondary)
+        Spacer()
+        if category != "Todas" || inStockOnly || !query.isEmpty {
+          Button("Limpiar filtros") {
+            category = "Todas"
+            inStockOnly = false
+            query = ""
+          }.font(.caption)
+        }
+      }
       if filtered.isEmpty {
         EmptyPanel(
           title: "Sin coincidencias", message: "Prueba otro nombre, código o categoría.",
@@ -52,36 +64,39 @@ struct ProductsView: View {
       }
     }
     .navigationTitle("Productos").searchable(text: $query, prompt: "Nombre o código")
+    .onChange(of: store.snapshotRevision) { _, _ in
+      if !categories.contains(category) { category = "Todas" }
+    }
     .sheet(item: $selected) { product in ProductDetailView(product: product) }
   }
 }
 
 struct ProductDetailView: View {
-  @EnvironmentObject private var store: AppStore
+  @Environment(AppStore.self) private var store
   @Environment(\.dismiss) private var dismiss
   let product: Product
+  private var current: Product { store.snapshot?.products.first { $0.id == product.id } ?? product }
   var body: some View {
     NavigationStack {
       Workspace {
         Panel(accent: true) {
           Image(systemName: "shippingbox.fill").font(.largeTitle).accessibilityHidden(true)
-          Text(product.name).font(.title.bold())
-          Text(Money.formatted(product.priceMinor)).font(.title2.weight(.semibold))
+          Text(current.name).font(.title.bold())
+          Text(Money.formatted(current.priceMinor)).font(.title2.weight(.semibold))
         }
         Panel {
-          LabeledContent("Código", value: product.code)
-          LabeledContent("Categoría", value: product.category)
-          LabeledContent("Disponibles", value: String(product.stock))
-          LabeledContent("Mínimo", value: String(product.minimumStock))
-          StockBadge(product: product)
+          LabeledContent("Código", value: current.code)
+          LabeledContent("Categoría", value: current.category)
+          LabeledContent("Disponibles", value: String(current.stock))
+          LabeledContent("Mínimo", value: String(current.minimumStock))
+          StockBadge(product: current)
         }
         Button {
-          store.add(product)
+          store.add(current)
           if store.error == nil { dismiss() }
         } label: {
           Label("Agregar al carrito", systemImage: "cart.badge.plus").frame(maxWidth: .infinity)
-        }.buttonStyle(.borderedProminent).disabled(product.stock == 0 || store.isWorking)
-        if let error = store.error { Text(error).foregroundStyle(.red) }
+        }.buttonStyle(.borderedProminent).disabled(current.stock == 0 || !store.canEditCart)
         Text(
           "No se edita el catálogo ni se conecta a SQL. La venta se simula solo en la demo local."
         ).font(.footnote).foregroundStyle(.secondary)
@@ -92,7 +107,7 @@ struct ProductDetailView: View {
 }
 
 struct InventoryView: View {
-  @EnvironmentObject private var store: AppStore
+  @Environment(AppStore.self) private var store
   @State private var state = "Todos"
   @State private var query = ""
   private var products: [Product] {
@@ -104,20 +119,20 @@ struct InventoryView: View {
     }.sorted { $0.stock == $1.stock ? $0.name < $1.name : $0.stock < $1.stock }
   }
   var body: some View {
+    let visible = products
+    let maximumStock = max(1, visible.map(\.stock).max() ?? 1)
     Workspace {
       SectionTitle(title: "Centro de existencias", subtitle: "Primero lo que requiere tu atención")
-      Picker("Estado", selection: $state) {
-        ForEach(["Todos", "Alertas", "Agotados"], id: \.self) { Text($0) }
-      }.pickerStyle(.segmented)
+      AdaptiveChoice(title: "Estado", options: ["Todos", "Alertas", "Agotados"], selection: $state)
       Panel(accent: true) {
-        Text("\(products.reduce(0) { $0 + $1.stock })").font(.largeTitle.bold()).monospacedDigit()
-        Text("Unidades en la vista · \(products.count) productos")
+        Text("\(visible.reduce(0) { $0 + $1.stock })").font(.largeTitle.bold()).monospacedDigit()
+        Text("Unidades en la vista · \(visible.count) productos")
       }
-      if products.isEmpty {
+      if visible.isEmpty {
         EmptyPanel(
           title: "Nada que revisar", message: "Cambia la búsqueda o el estado del inventario.")
       }
-      ForEach(products) { product in
+      ForEach(visible) { product in
         Panel {
           HStack(alignment: .top) {
             Text(product.name).font(.headline)
@@ -126,7 +141,7 @@ struct InventoryView: View {
           }
           Text("\(product.code) · \(product.category)").font(.caption).foregroundStyle(.secondary)
           ProgressView(
-            value: Double(product.stock), total: Double(max(1, products.map(\.stock).max() ?? 1))
+            value: Double(product.stock), total: Double(maximumStock)
           )
           .tint(product.isLow ? .violet : .turquoise)
           .accessibilityLabel("Existencias de \(product.name)")

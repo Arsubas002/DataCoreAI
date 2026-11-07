@@ -146,4 +146,16 @@ final class DomainTests: XCTestCase {
       .average, period: Period(start: "2026-12-01", end: "2026-12-02"))
     XCTAssertTrue(answer.text.contains("no está definido"))
   }
+  func testProductRankingUsesSoldUnitsAndStoredPrices() throws {
+    let snapshot = try DemoFixture.load()
+    let rows = snapshot.topProducts(for: .demoWeek)
+    XCTAssertEqual(rows.first?.id, "p6")
+    XCTAssertEqual(rows.first?.units, 9)
+    XCTAssertEqual(rows.first?.revenueMinor, 17910)
+    XCTAssertEqual(
+      rows.reduce(0) { $0 + $1.revenueMinor }, snapshot.summary(for: .demoWeek).revenueMinor)
+    XCTAssertTrue(
+      snapshot.topProducts(for: try Period(start: "2026-12-01", end: "2026-12-01")).isEmpty)
+  }
+
 }

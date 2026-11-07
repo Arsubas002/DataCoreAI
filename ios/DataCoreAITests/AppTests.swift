@@ -76,4 +76,24 @@ final class AppTests: XCTestCase {
     XCTAssertTrue(document.string?.contains("DEMO") == true)
     XCTAssertTrue(try String(contentsOf: csv, encoding: .utf8).contains("1347.70"))
   }
+  func testKeychainReplacementAndRemovalWithFictionalValues() throws {
+    let store = KeychainTokenStore(service: "DataCoreAI.tests.\(UUID().uuidString)")
+    defer { try? store.clear() }
+    XCTAssertNil(try store.token())
+    try store.save("fictional-first-token")
+    try store.save("fictional-second-token")
+    XCTAssertEqual(try store.token(), "fictional-second-token")
+    try store.clear()
+    XCTAssertNil(try store.token())
+  }
+  func testPDFPaginationRetainsLastDateAndTotal() throws {
+    let period = try Period(start: "2026-01-01", end: "2026-12-31")
+    let url = try ReportExporter.make(snapshot: DemoFixture.load(), period: period, pdf: true)
+    defer { try? FileManager.default.removeItem(at: url) }
+    let document = try XCTUnwrap(PDFDocument(url: url))
+    XCTAssertGreaterThan(document.pageCount, 1)
+    XCTAssertTrue(document.string?.contains("2026-12-31") == true)
+    XCTAssertTrue(document.string?.contains("TOTAL") == true)
+  }
+
 }

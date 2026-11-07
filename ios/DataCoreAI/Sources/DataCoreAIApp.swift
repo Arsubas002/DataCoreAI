@@ -1,20 +1,23 @@
 import DataCoreDomain
+import Foundation
 import SwiftUI
 
 @main
+@MainActor
 struct DataCoreAIApp: App {
-  @StateObject private var store = AppStore()
+  @State private var store = AppStore()
   init() { ReportExporter.cleanPreviousSession() }
   var body: some Scene {
     WindowGroup {
-      RootView().environmentObject(store).tint(.violet).controlSize(.large)
+      RootView().environment(store).tint(.violet).controlSize(.large)
+        .modifier(UITestAppearance())
         .task { await store.load() }
     }
   }
 }
 
 struct RootView: View {
-  @EnvironmentObject private var store: AppStore
+  @Environment(AppStore.self) private var store
   @State private var settings = false
   var body: some View {
     TabView {
@@ -64,19 +67,11 @@ struct RootView: View {
           Color.petroleum.opacity(0.35).ignoresSafeArea()
           ProgressView("Cargando demostración…").padding(24).background(
             .regularMaterial, in: RoundedRectangle(cornerRadius: 20))
-        }
+        }.allowsHitTesting(false)
       }
     }
     .sheet(isPresented: $settings) { SettingsView() }
-    .alert(
-      "Revisa esta operación",
-      isPresented: Binding(get: { store.error != nil }, set: { if !$0 { store.error = nil } })
-    ) {
-      if store.snapshot == nil { Button("Reintentar") { Task { await store.load() } } }
-      Button("Cerrar", role: .cancel) { store.error = nil }
-    } message: {
-      Text(store.error ?? "No se pudo completar la operación.")
-    }
+
   }
   @ToolbarContentBuilder private var settingsButton: some ToolbarContent {
     ToolbarItem(placement: .topBarTrailing) {
@@ -90,7 +85,7 @@ struct RootView: View {
 }
 
 struct SettingsView: View {
-  @EnvironmentObject private var store: AppStore
+  @Environment(AppStore.self) private var store
   @Environment(\.dismiss) private var dismiss
   @State private var address = ""
   @State private var resetting = false
@@ -153,12 +148,27 @@ struct SettingsView: View {
 }
 
 private struct DemoPreview: View {
-  @StateObject private var store = AppStore()
+  @State private var store = AppStore()
   var body: some View {
-    RootView().environmentObject(store).tint(.violet).controlSize(.large).task {
+    RootView().environment(store).tint(.violet).controlSize(.large).task {
       await store.load()
     }
   }
 }
 
 #Preview("Demo nativa") { DemoPreview() }
+
+/// Debug-only appearance fixtures; normal launches preserve the user's system settings.
+private struct UITestAppearance: ViewModifier {
+  @ViewBuilder func body(content: Content) -> some View {
+    #if DEBUG
+      if ProcessInfo.processInfo.arguments.contains("--ui-dark-large") {
+        content.preferredColorScheme(.dark).dynamicTypeSize(.accessibility3)
+      } else {
+        content
+      }
+    #else
+      content
+    #endif
+  }
+}

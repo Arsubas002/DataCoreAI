@@ -177,16 +177,41 @@ public struct Snapshot: Codable, Sendable {
   }
 
   public func summary(for period: Period) -> CommercialSummary {
-    let selected = sales.filter { period.contains($0.day) }
+    var dailyTotals: [String: (revenue: Int64, count: Int)] = [:]
+    var revenue: Int64 = 0
+    var count = 0
+    for sale in sales where period.contains(sale.day) {
+      let amount = sale.totalMinor
+      revenue += amount
+      count += 1
+      let previous = dailyTotals[sale.day, default: (0, 0)]
+      dailyTotals[sale.day] = (previous.revenue + amount, previous.count + 1)
+    }
     let daily = period.days.map { day in
-      let values = selected.filter { $0.day == day }
-      return DailyRevenue(
-        day: day, revenueMinor: values.reduce(0) { $0 + $1.totalMinor }, salesCount: values.count)
+      let value = dailyTotals[day, default: (0, 0)]
+      return DailyRevenue(day: day, revenueMinor: value.revenue, salesCount: value.count)
     }
     return CommercialSummary(
-      period: period, revenueMinor: selected.reduce(0) { $0 + $1.totalMinor },
-      salesCount: selected.count, stockUnits: products.reduce(0) { $0 + $1.stock },
-      alertCount: products.filter(\.isLow).count, daily: daily)
+      period: period, revenueMinor: revenue, salesCount: count,
+      stockUnits: products.reduce(0) { $0 + $1.stock }, alertCount: products.filter(\.isLow).count,
+      daily: daily)
+  }
+
+  public func topProducts(for period: Period) -> [ProductPerformance] {
+    var totals: [String: (units: Int, revenue: Int64)] = [:]
+    for sale in sales where period.contains(sale.day) {
+      for line in sale.lines {
+        let previous = totals[line.productId, default: (0, 0)]
+        totals[line.productId] = (
+          previous.units + line.quantity, previous.revenue + line.subtotalMinor
+        )
+      }
+    }
+    return products.compactMap { product -> ProductPerformance? in
+      guard let value = totals[product.id] else { return nil }
+      return ProductPerformance(
+        id: product.id, name: product.name, units: value.units, revenueMinor: value.revenue)
+    }.sorted { $0.units == $1.units ? $0.id < $1.id : $0.units > $1.units }
   }
 
   public func quote(_ cart: [CartLine]) throws -> [SaleLine] {
@@ -240,4 +265,11 @@ public struct AssistantAnswer: Codable, Identifiable, Sendable {
     self.sources = sources
     generative = false
   }
+}
+
+public struct ProductPerformance: Identifiable, Sendable {
+  public let id: String
+  public let name: String
+  public let units: Int
+  public let revenueMinor: Int64
 }

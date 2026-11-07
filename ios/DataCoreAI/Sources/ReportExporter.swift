@@ -29,23 +29,26 @@ enum ReportExporter {
           "\($0.day)   ·   \($0.salesCount) ventas   ·   \(Money.formatted($0.revenueMinor))"
         } + [
           "", "TOTAL: \(Money.formatted(summary.revenueMinor)) · \(summary.salesCount) ventas",
-          "Fuente: fixture demo v1 y operaciones locales en memoria.",
+          "Fuente: demostración DataCore AI. Sin datos comerciales reales.",
         ]
       let bounds = CGRect(x: 0, y: 0, width: 595, height: 842)
       let renderer = UIGraphicsPDFRenderer(bounds: bounds)
       data = renderer.pdfData { context in
         var y: CGFloat = 0
         for line in lines {
-          if y == 0 || y > 760 {
-            context.beginPage()
-            y = 40
-          }
           let text = NSAttributedString(
             string: line,
             attributes: [.font: UIFont.systemFont(ofSize: 12), .foregroundColor: UIColor.black])
-          let rect = CGRect(x: 36, y: y, width: 523, height: 44)
-          text.draw(in: rect)
-          y += 32
+          let measured = text.boundingRect(
+            with: CGSize(width: 523, height: .greatestFiniteMagnitude),
+            options: [.usesLineFragmentOrigin, .usesFontLeading], context: nil)
+          let height = max(20, measured.height.rounded(.up))
+          if y == 0 || y + height > 760 {
+            context.beginPage()
+            y = 40
+          }
+          text.draw(in: CGRect(x: 36, y: y, width: 523, height: height))
+          y += height + 10
         }
       }
     } else {

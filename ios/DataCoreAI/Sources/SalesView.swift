@@ -2,16 +2,15 @@ import DataCoreDomain
 import SwiftUI
 
 struct SalesView: View {
-  @EnvironmentObject private var store: AppStore
+  @Environment(AppStore.self) private var store
   @State private var section = "Preparar"
   @State private var confirming = false
   @State private var query = ""
+  @State private var catalogExpanded = true
   var body: some View {
     Workspace {
-      Picker("Vista de ventas", selection: $section) {
-        Text("Preparar").tag("Preparar")
-        Text("Historial").tag("Historial")
-      }.pickerStyle(.segmented)
+      AdaptiveChoice(
+        title: "Vista de ventas", options: ["Preparar", "Historial"], selection: $section)
       if section == "Preparar" {
         if let notice = store.notice {
           Label(notice, systemImage: "checkmark.circle.fill").font(.subheadline)
@@ -21,23 +20,26 @@ struct SalesView: View {
           SectionTitle(
             title: "1 · Selecciona productos",
             subtitle: "El precio y stock se vuelven a validar al simular")
-          TextField("Buscar para agregar", text: $query).textFieldStyle(.roundedBorder)
-          ForEach(
-            (store.snapshot?.products ?? []).filter {
-              query.isEmpty || $0.name.localizedStandardContains(query)
-                || $0.code.localizedStandardContains(query)
-            }
-          ) { product in
-            HStack(alignment: .top) {
-              ProductRow(product: product)
-              Button {
-                store.add(product)
-              } label: {
-                Image(systemName: "plus.circle.fill").font(.title).padding(6).frame(
-                  minWidth: 44, minHeight: 44)
+          DisclosureGroup("Catálogo disponible", isExpanded: $catalogExpanded) {
+            TextField("Buscar para agregar", text: $query).textFieldStyle(.roundedBorder)
+            ForEach(
+              (store.snapshot?.products ?? []).filter {
+                query.isEmpty || $0.name.localizedStandardContains(query)
+                  || $0.code.localizedStandardContains(query)
               }
-              .disabled(product.stock == 0 || store.isWorking)
-              .accessibilityLabel("Agregar \(product.name)")
+            ) { product in
+              HStack(alignment: .top) {
+                ProductRow(product: product)
+                Button {
+                  store.add(product)
+                  if store.error == nil { catalogExpanded = false }
+                } label: {
+                  Image(systemName: "plus.circle.fill").font(.title).padding(6).frame(
+                    minWidth: 44, minHeight: 44)
+                }
+                .disabled(product.stock == 0 || !store.canEditCart)
+                .accessibilityLabel("Agregar \(product.name)")
+              }
             }
           }
         }
@@ -60,13 +62,13 @@ struct SalesView: View {
                     get: { line.quantity }, set: { store.setQuantity(line.productId, quantity: $0) }
                   ), in: 1...max(1, min(product.stock, 999))
                 )
-                .disabled(store.isWorking).accessibilityLabel("Cantidad de \(product.name)")
+                .disabled(!store.canEditCart).accessibilityLabel("Cantidad de \(product.name)")
                 HStack {
                   Text(Money.formatted(product.priceMinor * Int64(line.quantity))).monospacedDigit()
                   Spacer()
                   Button("Eliminar", role: .destructive) {
                     store.setQuantity(line.productId, quantity: 0)
-                  }.disabled(store.isWorking)
+                  }.disabled(!store.canEditCart)
                     .accessibilityLabel("Eliminar \(product.name)")
                 }
                 Divider()
@@ -75,12 +77,22 @@ struct SalesView: View {
           }
         }
         Panel(accent: true) {
+          if store.hasPendingSale {
+            Label("Resultado pendiente · carrito bloqueado", systemImage: "lock.shield").font(
+              .subheadline)
+          }
+          if store.isWorking && !store.isAnswering {
+            ProgressView("Resolviendo simulación…").tint(.white)
+          }
           Text("TOTAL DEL CARRITO").font(.caption.weight(.semibold))
           Text(Money.formatted(store.totalMinor)).font(.largeTitle.bold()).monospacedDigit()
           Button {
             confirming = true
           } label: {
-            Label("Simular venta", systemImage: "checkmark.shield").frame(maxWidth: .infinity)
+            Label(
+              store.hasPendingSale ? "Reintentar simulación" : "Simular venta",
+              systemImage: "checkmark.shield"
+            ).frame(maxWidth: .infinity)
           }.buttonStyle(.borderedProminent).tint(.turquoise).foregroundStyle(Color.petroleum)
             .disabled(!store.canCheckout).accessibilityIdentifier("simulate-sale")
           Text(

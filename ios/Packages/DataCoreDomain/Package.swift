@@ -3,7 +3,7 @@ import PackageDescription
 
 let package = Package(
   name: "DataCoreDomain",
-  platforms: [.iOS(.v17), .macOS(.v13)],
+  platforms: [.iOS(.v17), .macOS(.v14)],
   products: [.library(name: "DataCoreDomain", targets: ["DataCoreDomain"])],
   targets: [
     .target(name: "DataCoreDomain", resources: [.process("Resources")]),

@@ -1,4 +1,5 @@
 import DataCoreDomain
+import Foundation
 import SwiftUI
 
 extension Color {
@@ -35,7 +36,7 @@ struct Panel<Content: View>: View {
 
 struct Workspace<Content: View>: View {
   @Environment(\.colorScheme) private var scheme
-  @EnvironmentObject private var store: AppStore
+  @Environment(AppStore.self) private var store
   @ViewBuilder var content: Content
   var body: some View {
     ScrollView {
@@ -46,7 +47,23 @@ struct Workspace<Content: View>: View {
         )
         .font(.caption.weight(.semibold)).foregroundStyle(.secondary)
         .accessibilityIdentifier("demo-banner")
-        content
+        if let error = store.error {
+          VStack(alignment: .leading, spacing: 8) {
+            Label(error, systemImage: "exclamationmark.triangle").font(.subheadline)
+            Button("Cerrar aviso") { store.error = nil }
+          }.padding(14).frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.violet.opacity(0.12), in: RoundedRectangle(cornerRadius: 16))
+            .accessibilityElement(children: .contain)
+        }
+        if store.snapshot == nil && !store.isLoading {
+          EmptyPanel(
+            title: "No se han cargado los datos",
+            message: "Reintenta para abrir tu espacio de demostración.",
+            symbol: "wifi.exclamationmark")
+          Button("Reintentar carga") { Task { await store.load() } }.buttonStyle(.borderedProminent)
+        } else {
+          content
+        }
       }.padding(20)
     }
     .background(scheme == .dark ? Color.petroleum : .coldWhite)
@@ -114,7 +131,7 @@ struct EmptyPanel: View {
 }
 
 struct PeriodPicker: View {
-  @EnvironmentObject private var store: AppStore
+  @Environment(AppStore.self) private var store
   @Environment(\.dismiss) private var dismiss
   @State private var start = DemoDate.parse(Period.demoWeek.start)!
   @State private var end = DemoDate.parse(Period.demoWeek.end)!
@@ -145,13 +162,14 @@ struct PeriodPicker: View {
         start = DemoDate.parse(store.period.start)!
         end = DemoDate.parse(store.period.end)!
       }
-      .environment(\.timeZone, TimeZone(secondsFromGMT: 0)!)
+      .environment(\.timeZone, DemoDate.calendar.timeZone)
+      .environment(\.calendar, DemoDate.calendar)
     }
   }
 }
 
 struct PeriodButton: View {
-  @EnvironmentObject private var store: AppStore
+  @Environment(AppStore.self) private var store
   @State private var presenting = false
   var body: some View {
     Button {
@@ -161,5 +179,23 @@ struct PeriodButton: View {
         .font(.subheadline).frame(maxWidth: .infinity, alignment: .leading)
     }.buttonStyle(.bordered).disabled(store.isWorking)
       .sheet(isPresented: $presenting) { PeriodPicker() }
+  }
+}
+
+/// Segmented controls become native menus at accessibility sizes rather than truncating text.
+struct AdaptiveChoice: View {
+  let title: String
+  let options: [String]
+  @Binding var selection: String
+  @Environment(\.dynamicTypeSize) private var typeSize
+  var body: some View {
+    if typeSize.isAccessibilitySize {
+      picker.pickerStyle(.menu)
+    } else {
+      picker.pickerStyle(.segmented)
+    }
+  }
+  private var picker: some View {
+    Picker(title, selection: $selection) { ForEach(options, id: \.self) { Text($0).tag($0) } }
   }
 }

@@ -7,7 +7,10 @@ import Security
 protocol AccessTokenProviding: Sendable { func token() throws -> String? }
 
 struct KeychainTokenStore: AccessTokenProviding {
-  private let service = "DataCoreAI.user-session"
+  private let service: String
+  init(service: String = (Bundle.main.bundleIdentifier ?? "DataCoreAI.demo") + ".user-session") {
+    self.service = service
+  }
   func token() throws -> String? {
     let query: [String: Any] = [
       kSecClass as String: kSecClassGenericPassword,
@@ -24,17 +27,25 @@ struct KeychainTokenStore: AccessTokenProviding {
   }
   func save(_ token: String) throws {
     guard !token.isEmpty, token.utf8.count <= 8192 else { throw BusinessError.invalidData }
-    try clear()
-    let query: [String: Any] = [
+    let selector: [String: Any] = [
       kSecClass as String: kSecClassGenericPassword,
       kSecAttrService as String: service, kSecAttrAccount as String: "access-token",
+    ]
+    let attributes: [String: Any] = [
       kSecValueData as String: Data(token.utf8),
       kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
     ]
-    guard SecItemAdd(query as CFDictionary, nil) == errSecSuccess else {
+    let status = SecItemUpdate(selector as CFDictionary, attributes as CFDictionary)
+    if status == errSecItemNotFound {
+      let item = selector.merging(attributes) { _, new in new }
+      guard SecItemAdd(item as CFDictionary, nil) == errSecSuccess else {
+        throw BusinessError.invalidData
+      }
+    } else if status != errSecSuccess {
       throw BusinessError.invalidData
     }
   }
+
   func clear() throws {
     let status = SecItemDelete(
       [
@@ -103,6 +114,7 @@ actor APIDemoRepository: BusinessRepository {
     // Demo sends no tokens, device identifiers, credentials or client-supplied tenant IDs.
     do {
       let (bytes, response) = try await session.bytes(for: request)
+      defer { bytes.task.cancel() }
       guard let http = response as? HTTPURLResponse, http.statusCode == 200,
         http.mimeType == "application/json"
       else { throw APIError.response }

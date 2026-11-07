@@ -1,55 +1,76 @@
 import XCTest
 
-/// Prepared for a real iOS Simulator. Not executed on Windows/Linux.
+/// Prepared for authorized iOS Simulator execution, never treated as Linux UI coverage.
 final class NavigationTests: XCTestCase {
-  @MainActor
-  func testSixScreensAndCaptureEvidence() throws {
+  @MainActor func testSixScreensAndCaptureEvidence() throws {
+    try captureSixScreens(darkLarge: false)
+  }
+  @MainActor func testDarkLargeTypeSixScreens() throws { try captureSixScreens(darkLarge: true) }
+  @MainActor private func captureSixScreens(darkLarge: Bool) throws {
     let app = XCUIApplication()
+    if darkLarge { app.launchArguments = ["--ui-dark-large"] }
     app.launch()
-    XCTAssertTrue(app.staticTexts["DEMO LOCAL · DATOS FICTICIOS"].waitForExistence(timeout: 15))
-    capture("01-Dashboard", app)
+    XCTAssertTrue(app.staticTexts["dashboard-income"].waitForExistence(timeout: 15))
+    let suffix = darkLarge ? "Dark-AX3" : "System"
+    capture("01-Dashboard-\(suffix)", app)
     app.tabBars.buttons["Productos"].tap()
     XCTAssertTrue(app.navigationBars["Productos"].waitForExistence(timeout: 5))
-    capture("02-Productos", app)
+    capture("02-Productos-\(suffix)", app)
     app.tabBars.buttons["Ventas"].tap()
-    XCTAssertTrue(app.buttons["Agregar Cuaderno Studio"].waitForExistence(timeout: 5))
-    app.buttons["Agregar Cuaderno Studio"].tap()
-    capture("03-Ventas", app)
+    let add = app.buttons["Agregar Cuaderno Studio"]
+    reveal(add, app)
+    XCTAssertTrue(add.isHittable)
+    add.tap()
+    capture("03-Ventas-\(suffix)", app)
     app.tabBars.buttons["Más"].tap()
     for (name, number) in [("Inventario", "04"), ("Reportes", "05"), ("Asistente IA", "06")] {
-      app.buttons[name].tap()
+      let link = app.buttons[name]
+      reveal(link, app)
+      link.tap()
       XCTAssertTrue(app.navigationBars[name].waitForExistence(timeout: 5))
       if name == "Asistente IA" {
-        app.buttons["ask-revenue"].tap()
-        for _ in 0..<3 { app.swipeUp() }
+        let question = app.buttons["ask-revenue"]
+        reveal(question, app)
+        question.tap()
+        XCTAssertTrue(app.staticTexts["assistant-answer-revenue"].waitForExistence(timeout: 10))
       }
-      capture("\(number)-\(name)", app)
+      capture("\(number)-\(name)-\(suffix)", app)
       app.navigationBars.buttons["Más"].tap()
     }
   }
-  @MainActor
-  func testDemoConfirmationAndHistory() throws {
+  @MainActor func testDemoConfirmationAndHistory() throws {
     let app = XCUIApplication()
     app.launch()
+    XCTAssertTrue(app.staticTexts["dashboard-income"].waitForExistence(timeout: 15))
     app.tabBars.buttons["Ventas"].tap()
     let add = app.buttons["Agregar Cuaderno Studio"]
-    XCTAssertTrue(add.waitForExistence(timeout: 10))
+    reveal(add, app)
     add.tap()
     let simulate = app.buttons["simulate-sale"]
-    for _ in 0..<10 {
-      if simulate.isHittable { break }
-      app.swipeUp()
-    }
+    reveal(simulate, app)
     XCTAssertTrue(simulate.isHittable)
     simulate.tap()
     app.buttons["Confirmar simulación"].tap()
+    let result = app.descendants(matching: .any).matching(identifier: "sale-result").firstMatch
+    XCTAssertTrue(result.waitForExistence(timeout: 10))
     for _ in 0..<10 {
-      if app.staticTexts["sale-result"].isHittable { break }
+      if result.isHittable { break }
       app.swipeDown()
     }
-    XCTAssertTrue(app.staticTexts["sale-result"].exists)
-    app.buttons["Historial"].tap()
+    let history = app.buttons["Historial"]
+    for _ in 0..<10 {
+      if history.isHittable { break }
+      app.swipeDown()
+    }
+    history.tap()
     capture("07-Historial-demo", app)
+  }
+  @MainActor private func reveal(_ element: XCUIElement, _ app: XCUIApplication) {
+    _ = element.waitForExistence(timeout: 5)
+    for _ in 0..<12 {
+      if element.isHittable { return }
+      app.swipeUp()
+    }
   }
   @MainActor private func capture(_ name: String, _ app: XCUIApplication) {
     let attachment = XCTAttachment(screenshot: app.screenshot())
