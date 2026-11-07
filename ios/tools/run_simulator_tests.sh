@@ -15,6 +15,9 @@ finish() {
   trap - EXIT
   set +e
   evidence_error=0
+  if [ -f "$EVIDENCE_DIR/small-tests.log" ]; then
+    python3 ios/tools/module_integration.py --log "$EVIDENCE_DIR/small-tests.log" --output "$EVIDENCE_DIR/module-diagnostic.json" > "$EVIDENCE_DIR/module-diagnostic.log" 2>&1
+  fi
   for size in small large; do
     if [ -d "$EVIDENCE_DIR/$size.xcresult" ]; then
       xcrun xcresulttool get test-results summary --path "$EVIDENCE_DIR/$size.xcresult" > "$EVIDENCE_DIR/$size-summary.json" 2> "$EVIDENCE_DIR/$size-summary-error.log"
@@ -52,6 +55,9 @@ SDK_VERSION="$(xcrun --sdk iphonesimulator --show-sdk-version)"
 python3 ios/tools/simulator_plan.py "$EVIDENCE_DIR/simulators.json" --sdk "$SDK_VERSION" > "$EVIDENCE_DIR/plan.json"
 SMALL_ID="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["small"]["udid"])' "$EVIDENCE_DIR/plan.json")"
 LARGE_ID="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["large"]["udid"])' "$EVIDENCE_DIR/plan.json")"
+phase=debug-architecture-settings
+# Inspect actual settings without storing arbitrary build environment values.
+xcodebuild -quiet -project ios/DataCoreAI.xcodeproj -scheme DataCoreAI -configuration Debug -destination "platform=iOS Simulator,id=$SMALL_ID" -showBuildSettings -json 2> "$EVIDENCE_DIR/debug-settings-stderr.log" | python3 ios/tools/module_integration.py --resolved-settings --output "$EVIDENCE_DIR/debug-architecture-settings.json" | tee "$EVIDENCE_DIR/debug-architecture-settings.log"
 phase=small-tests
 xcodebuild test -project ios/DataCoreAI.xcodeproj -scheme DataCoreAI -configuration Debug -destination "platform=iOS Simulator,id=$SMALL_ID" -parallel-testing-enabled NO -resultBundlePath "$EVIDENCE_DIR/small.xcresult" CODE_SIGNING_ALLOWED=NO 2>&1 | tee "$EVIDENCE_DIR/small-tests.log"
 phase=large-tests

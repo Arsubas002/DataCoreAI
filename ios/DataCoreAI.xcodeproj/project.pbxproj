@@ -18,6 +18,7 @@
 			"name" = "Release";
 			"buildSettings" = {
 				"SDKROOT" = "iphoneos";
+				"ONLY_ACTIVE_ARCH" = "NO";
 				"CLANG_ENABLE_MODULES" = "YES";
 				"CLANG_ENABLE_OBJC_ARC" = "YES";
 				"SWIFT_EMIT_LOC_STRINGS" = "YES";
@@ -491,6 +492,7 @@
 			"name" = "Debug";
 			"buildSettings" = {
 				"SDKROOT" = "iphoneos";
+				"ONLY_ACTIVE_ARCH" = "YES";
 				"CLANG_ENABLE_MODULES" = "YES";
 				"CLANG_ENABLE_OBJC_ARC" = "YES";
 				"SWIFT_EMIT_LOC_STRINGS" = "YES";

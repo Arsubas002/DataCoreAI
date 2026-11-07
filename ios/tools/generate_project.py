@@ -270,6 +270,9 @@ for config in ["Debug", "Release"]:
             name=config,
             buildSettings={
                 "SDKROOT": "iphoneos",
+                # Match SwiftPM: Debug builds only the destination's active CPU;
+                # Release retains every standard architecture, including Intel simulators.
+                "ONLY_ACTIVE_ARCH": "YES" if config == "Debug" else "NO",
                 "CLANG_ENABLE_MODULES": "YES",
                 "CLANG_ENABLE_OBJC_ARC": "YES",
                 "SWIFT_EMIT_LOC_STRINGS": "YES",

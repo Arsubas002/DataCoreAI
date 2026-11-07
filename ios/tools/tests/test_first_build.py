@@ -77,6 +77,8 @@ args=sys.argv[1:]
 if name=='swift': print('SIMULATED domain command');sys.exit(0)
 if name=='xcodebuild':
  if os.getenv('FAIL_DEVICE')=='1' and 'generic/platform=iOS' in args: print('SIMULATED device build failure');sys.exit(43)
+ if '-showBuildSettings' in args:
+  print(json.dumps([{'target':'DataCoreAI','buildSettings':{'CONFIGURATION':'Debug','PLATFORM_NAME':'iphonesimulator','ONLY_ACTIVE_ARCH': 'NO' if os.getenv('BAD_ARCH_POLICY')=='1' else 'YES','ARCHS':'arm64','NATIVE_ARCH_ACTUAL':'arm64'}}]));sys.exit(0)
  if args==['-version']: print('Xcode 26.3\\nBuild version FIXTURE');sys.exit(0)
  if '-resultBundlePath' in args:
   result=pathlib.Path(args[args.index('-resultBundlePath')+1])
@@ -101,7 +103,13 @@ sys.exit(3)
 )
 class OrchestrationTests(TestCase):
     def run_fixture(
-        self, *, missing=False, fail_build=False, fail_export=False, fail_device=False
+        self,
+        *,
+        missing=False,
+        fail_build=False,
+        fail_export=False,
+        fail_device=False,
+        bad_arch_policy=False,
     ):
         workspace = tempfile.TemporaryDirectory()
         self.addCleanup(workspace.cleanup)
@@ -125,6 +133,7 @@ class OrchestrationTests(TestCase):
             "FAIL_BUILD": str(int(fail_build)),
             "FAIL_EXPORT": str(int(fail_export)),
             "FAIL_DEVICE": str(int(fail_device)),
+            "BAD_ARCH_POLICY": str(int(bad_arch_policy)),
         }
         result = subprocess.run(
             ["bash", str(TOOLS / "run_simulator_tests.sh")],
@@ -156,6 +165,17 @@ class OrchestrationTests(TestCase):
         result, manifest, _ = self.run_fixture(fail_export=True)
         self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
         self.assertEqual(manifest["last_phase"], "evidence-export")
+
+    def test_effective_architecture_mismatch_stops_before_compile(self):
+        result, manifest, output = self.run_fixture(bad_arch_policy=True)
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        self.assertEqual(manifest["last_phase"], "debug-architecture-settings")
+        self.assertFalse((output / "small-tests.log").exists())
+        self.assertFalse(
+            json.loads((output / "debug-architecture-settings.json").read_text())[
+                "verified"
+            ]
+        )
 
     def test_unsigned_device_build_failure_is_preserved(self):
         result, manifest, output = self.run_fixture(fail_device=True)

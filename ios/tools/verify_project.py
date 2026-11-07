@@ -5,6 +5,7 @@ import difflib
 import json
 import plistlib
 import runpy
+from module_integration import validate_project
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -157,4 +158,9 @@ assert (
 )
 print(
     "Fuentes/recursos, paquete local, targets, esquema Debug/Release y mínimo iOS 17: correctos."
+)
+
+validate_project(generated["output"])
+print(
+    "DataCoreDomain package/product/linkage and Debug/Release architecture policy: correct."
 )
