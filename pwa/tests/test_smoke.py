@@ -15,7 +15,7 @@ class PWASmokeTests(unittest.TestCase):
     def test_six_sections(self):
         for section in ("Dashboard", "Productos", "Ventas", "Inventario", "Reportes", "Asistente IA"):
             with self.subTest(section=section):
-                self.assertIn('"' + section + '":()=>', self.html)
+                self.assertIn(section + ":'", self.html)
 
     def test_manifest(self):
         self.assertEqual(self.manifest["display"], "standalone")
@@ -32,11 +32,11 @@ class PWASmokeTests(unittest.TestCase):
     def test_no_secrets_or_external_services(self):
         for token in ("api.groq.com", "SQLEXPRESS", "sk-", "Authorization: Bearer"):
             self.assertNotIn(token, self.html)
-        self.assertIn("Datos ficticios", self.html)
+        self.assertIn("datos ficticios", self.html.lower())
 
-    def test_demo_export(self):
-        self.assertIn("downloadDemoCsv()", self.html)
-        self.assertIn("datacore_demo_inventario.csv", self.html)
+    def test_advanced_dashboard(self):\n        for token in ("function lineChart(", "function donut(", "function dashboard(", "id=\\"period\\"", "id=\\"branch\\""):\n            self.assertIn(token, self.html)\n\n    def test_demo_export(self):
+        self.assertIn("function csv()", self.html)
+        self.assertIn("datacore_demo_productos.csv", self.html)
 
 if __name__ == "__main__":
     unittest.main()
