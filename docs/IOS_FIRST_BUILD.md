@@ -58,9 +58,19 @@ se omiten expresamente en Windows, donde se validará el resto tras autorizació
 
 ## Resultado de la investigación de GitHub Actions
 
-Se leyó la API de workflows del repositorio: mostraba activos únicamente
-`api-demo.yml` y `tests.yml`. El workflow macOS no estaba registrado. No se envió
-un dispatch, review de autorización, etiqueta ni re-run para probarlo.
+Antes de la comprobación, la API solo mostraba activos `api-demo.yml` y `tests.yml`.
+Después de publicar el YAML se envió **una review neutral no autorizante** de tipo
+Comment, sobre 51aa10c: review 5812650992. Su cuerpo niega expresamente el gasto y
+no coincide con la frase exigida. No se envió dispatch, etiqueta, re-run ni review
+de autorización.
+
+GitHub descubrió el workflow desde la PR y creó el
+[run 42379840879](https://github.com/Arsubas002/DataCoreAI/actions/runs/42379840879)
+con evento pull_request_review y HEAD 51aa10c, que también tenía skip. Resultado:
+**simulator omitido, runner_id=null, runner_name=null, cero pasos**. La API de timing
+informó **MACOS.total_ms=0**. El workflow quedó registrado activo con ID 410379129.
+Esto comprueba realmente descubrimiento/registro y negación de ejecución, no
+compilación ni presencia de Xcode. El YAML no existe en main y main no cambió.
 
 - `workflow_dispatch`: el botón requiere el YAML en la rama predeterminada.
   La documentación también permite dispatch por API/CLI después de una primera
@@ -81,10 +91,12 @@ un dispatch, review de autorización, etiqueta ni re-run para probarlo.
   igual al head actual, texto exacto de autorización y primer intento. Checkout del
   SHA del evento; sin secretos de firma y con token read-only no persistido.
 
-**Grado de comprobación:** reglas contrastadas con documentación y YAML validado
-por actionlint; elegibilidad estática preparada. Entrega real del primer evento,
-registro del workflow y arranque de macOS no comprobados: implican autorización
-de minutos. Políticas de Actions, conflictos de merge o permisos pueden impedirlo.
+**Grado de comprobación:** documentación/actionlint más evento real de descubrimiento
+con ejecución denegada y 0 ms facturables. La condición de autorización positiva,
+arranque del runner, presencia real de Xcode y ejecución nativa **no se probaron**:
+requieren autorización. El endpoint administrativo de permisos de Actions devolvió
+403 a la integración; no se eludió esa limitación. El propietario debe revisar cuota,
+permisos y política; el registro no garantiza disponibilidad de una VM.
 Si no arranca, no repetir el envío a ciegas: revisar review y Actions primero.
 La alternativa segura es ejecutar el mismo script en un Mac prestado/autorizado,
 sin cambiar main, crear repositorios auxiliares ni contratar servicios.

@@ -143,8 +143,11 @@ AUTHORIZE_IOS_SIMULATOR SHA_COMPLETO_APROBADO MAX_30_MINUTES
 
 El workflow compara propietario, PR #12, mismo repo/rama, SHA de review/head,
 texto exacto y primer intento. No reusa autorización en pushes o re-runs. La
-ruta se contrastó con reglas oficiales y actionlint, **no se disparó**: el primer
-arranque real depende de permisos/política de Actions y minutos autorizados.
+ruta se contrastó con reglas oficiales y actionlint, y una review neutral permitió
+registrar el workflow con job omitido: runner nulo, 0 pasos y 0 ms facturables
+([evidencia](https://github.com/Arsubas002/DataCoreAI/actions/runs/42379840879)).
+No se envió la autorización positiva ni se inició macOS; el arranque real sigue
+dependiendo de presupuesto, permisos/política y disponibilidad.
 Dispatch no se da por disponible mientras no exista registro/condiciones de GitHub.
 No se cambia main. No envíes una review de autorización solo para probar el evento.
 
