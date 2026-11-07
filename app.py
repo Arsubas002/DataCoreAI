@@ -1,4 +1,5 @@
 """Entrada de la interfaz comercial. Ejecutar con streamlit run app.py."""
+
 import streamlit as st
 from services.configuracion import solo_lectura
 from views.productos import mostrar_productos
@@ -15,9 +16,18 @@ pantalla = menu_lateral()
 with st.container(key="workspace"):
     cabecera(pantalla)
     if solo_lectura():
-        st.caption(":material/lock: Solo lectura · Consulta y exportación disponibles. Guardar, desactivar y confirmar ventas están bloqueados.")
-    rutas = {"Dashboard": mostrar_dashboard, "Productos": mostrar_productos,
-             "Ventas": mostrar_ventas, "Inventario": mostrar_inventario,
-             "Reportes": mostrar_reportes, "Asistente IA": mostrar_asistente}
+        st.caption(
+            ":material/lock: Solo lectura · Consulta y exportación disponibles. Guardar, desactivar y confirmar ventas están bloqueados."
+        )
+    rutas = {
+        "Dashboard": mostrar_dashboard,
+        "Productos": mostrar_productos,
+        "Ventas": mostrar_ventas,
+        "Inventario": mostrar_inventario,
+        "Reportes": mostrar_reportes,
+        "Asistente IA": mostrar_asistente,
+    }
     rutas[pantalla]()
-    st.html('<div class="dc-footer"><span>DATACORE AI / COMMERCE WORKSPACE</span><span>Datos verificables. Decisiones informadas.</span></div>')
+    st.html(
+        '<div class="dc-footer"><span>DATACORE AI / COMMERCE WORKSPACE</span><span>Datos verificables. Decisiones informadas.</span></div>'
+    )
