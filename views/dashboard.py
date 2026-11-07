@@ -93,7 +93,9 @@ def mostrar_dashboard():
                 color_discrete_sequence=[color],
             )
             figura.update_traces(
-                line=dict(width=3, shape="spline", smoothing=0.55),
+                # No suavizar: la curva spline puede crear picos que no existen
+                # en las ventas diarias observadas.
+                line=dict(width=3, shape="linear"),
                 marker=dict(size=7, line=dict(color="#FFFFFF", width=2)),
                 fillcolor="rgba(118,89,232,0.12)" if serie == "Ingresos"
                 else "rgba(9,157,173,0.12)",
@@ -102,7 +104,7 @@ def mostrar_dashboard():
                 hovermode="x unified",
                 showlegend=False,
                 xaxis=dict(showgrid=False, showline=False),
-                yaxis=dict(gridcolor="#E7EAF5", zeroline=False),
+                yaxis=dict(gridcolor="#E7EAF5", zeroline=False, rangemode="tozero"),
             )
             st.plotly_chart(estilo_grafico(figura, 330), width="stretch")
             with st.expander("Ver datos de ingresos"):
