@@ -1,6 +1,6 @@
 # DataCore AI · PWA de demostración
 
-Prototipo móvil **estático** y **sin datos reales**. No conecta SQL Server, Groq, API ni autenticación. Las seis pantallas muestran datos ficticios; Ventas y Reportes no efectúan operaciones reales.
+Prototipo móvil **estático** y **sin datos reales**. No conecta SQL Server, Groq, API ni autenticación. Las seis pantallas muestran datos ficticios; Ventas no efectúa operaciones reales. Reportes ofrece una descarga CSV de ejemplo sin consultar servicios externos.
 
 ## Probar desde Windows
 ```powershell
@@ -13,3 +13,11 @@ Abrir la URL HTTPS en Safari > Compartir > Añadir a pantalla de inicio. La comp
 
 ## Pendiente
 Pruebas en Safari real, PNG de iconos, exportaciones, UX accesible, datos persistentes, autenticación y backend seguro. No hay URL pública todavía.
+
+## Verificación rápida
+
+```powershell
+py -m unittest discover -s pwa/tests -v
+```
+
+Estas pruebas comprueban archivos y contenido estático; **no sustituyen** una prueba real en Safari. El proyecto todavía no tiene iconos PNG de 192/512 ni apple-touch-icon, y la instalación final sigue pendiente.
