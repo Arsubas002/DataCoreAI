@@ -1,0 +1,5 @@
+# Reproducible generated iOS project and shared fixtures on Windows/macOS/Linux.
+ios/** text eol=lf
+ios/**/*.png -text
+contracts/*.json text eol=lf
+api/datacore_api/resources/*.json text eol=lf

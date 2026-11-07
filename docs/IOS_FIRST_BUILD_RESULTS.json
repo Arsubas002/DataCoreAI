@@ -1,0 +1,61 @@
+{
+  "code_reference": "8ac0668a332aab10ddddeb06bebeff74e5ec78e8",
+  "starting_head": "5c81da4b3766fdadd3e5328bfeac9e8d5c728bee",
+  "validation_environment": "Linux; no macOS or Windows executor started",
+  "suites": {
+    "swift_domain_and_session": {
+      "passed": 26,
+      "skipped": 0,
+      "swift": "6.2.4"
+    },
+    "api": {
+      "passed": 21,
+      "skipped": 0,
+      "python": "3.13.5"
+    },
+    "python_tools": {
+      "passed": 14,
+      "skipped": 0,
+      "python": "3.13.17",
+      "orchestration_tests_with_command_doubles": 5
+    },
+    "streamlit_regression": {
+      "passed": 86,
+      "skipped": 4,
+      "python": "3.13.17",
+      "real_sql_attempts": 0,
+      "real_http_attempts": 0
+    }
+  },
+  "total_passed": 147,
+  "total_skipped": 4,
+  "ios_compiled": false,
+  "signed_archive_or_ipa_created": false,
+  "native_screenshots_created": false,
+  "prepared_native_tests": 13,
+  "prepared_ui_tests": 3,
+  "workflow_discovery": {
+    "run_id": 42379840879,
+    "head_sha": "51aa10cefe9ca3ce21270a78cd9f9c400e59038f",
+    "event": "pull_request_review",
+    "conclusion": "skipped",
+    "runner_id": null,
+    "runner_name": null,
+    "steps": 0,
+    "macos_billable_ms": 0,
+    "authorization_sent": false
+  },
+  "baseline_artifact_download": {
+    "run_id": 42373903233,
+    "artifact_id": 13575300249,
+    "bytes": 281,
+    "succeeded": true,
+    "native_evidence": false
+  },
+  "limits": [
+    "Syntax parsing is not an iOS build.",
+    "Command doubles do not generate actual XCTest results or phone screenshots.",
+    "No new Windows validation was executed.",
+    "A positive macOS job still requires owner cost authorization."
+  ]
+}

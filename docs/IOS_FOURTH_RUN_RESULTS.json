@@ -1,0 +1,47 @@
+{
+  "failed_run": 42389527111,
+  "failed_commit": "1efc5956fa16a5af7262be15dc2b178778487a3b",
+  "artifact_id": 13581141535,
+  "artifact_zip_sha256": "2d6481d0e556d05cd731314107f324debe7da35202a1e94e9efa6e1a927a4599",
+  "small_tests_log_sha256": "93b712206bba919f604d192a9104149c9096cc6bff57aa05f606343b17335240",
+  "artifact_files_verified": 36,
+  "exit_code": 65,
+  "phase": "small-tests",
+  "observed_xcode": "26.3 (17C529)",
+  "observed_simulator_sdk": "26.2",
+  "first_error_log_line": 400,
+  "second_error_log_line": 411,
+  "affected_targets": [
+    "DataCoreDomain_DataCoreDomain",
+    "DataCoreDomain"
+  ],
+  "incorrect_package_relative_path": "ios/Packages/DataCoreDomain/Config/Simulator.entitlements",
+  "global_entitlements_override_confirmed": true,
+  "native_app_ui_tests_executed": 0,
+  "macos_domain_tests_passed": 26,
+  "fix": {
+    "global_signing_overrides_removed": true,
+    "explicit_entitlements_target": "DataCoreAI",
+    "configuration": "Debug",
+    "sdk": "iphonesimulator*",
+    "path": "$(SRCROOT)/Config/Simulator.entitlements",
+    "native_debug_simulator_targets_ad_hoc": true,
+    "package_entitlements_added": false,
+    "release_signing_changed": false,
+    "keychain_tests_removed_or_disabled": false
+  },
+  "free_validation": {
+    "swift_domain_passed": 26,
+    "api_passed": 21,
+    "tools_passed": 40,
+    "isolated_regression_passed": 86,
+    "total_passed": 173,
+    "sql_skipped": 4,
+    "real_sql_attempts": 0,
+    "real_http_attempts": 0
+  },
+  "fifth_macos_run_started": false,
+  "corrected_project_built_with_xcode": false,
+  "keychain_native_fix_confirmed": false,
+  "ipa_created": false
+}

@@ -1,5 +1,13 @@
 # DataCore AI
 
+## Base nativa iPhone (rama de revisión)
+
+La propuesta `feature/datacore-ios` añade una aplicación SwiftUI offline demo y
+una API FastAPI independiente, sin alterar Streamlit ni conectar SQL desde iOS.
+Consulta [instalación Windows/macOS y TestFlight](ios/README.md),
+[arquitectura](docs/IOS_ARCHITECTURE.md) y [pruebas/límites](docs/IOS_VALIDATION.md).
+La interfaz iOS aún requiere compilación real con Xcode; no hay IPA firmado.
+
 ## Versión candidata para pruebas locales
 
 Nueva experiencia comercial: petróleo, blanco frío, violeta y turquesa; navegación

@@ -1,0 +1,6 @@
+# Reduced, path-normalized excerpt of run 42381387852; not a successful build.
+Copy <BUILD>/DataCoreDomain.swiftmodule/arm64-apple-ios-simulator.swiftmodule <INTERMEDIATES>/DataCoreDomain.swiftmodule
+<PROJECT>/APIRepository.swift:1:8: error: Unable to find module dependency: 'DataCoreDomain'
+builtin-SwiftDriver -- swiftc -module-name DataCoreAI -target arm64-apple-ios17.0-simulator
+builtin-SwiftDriver -- swiftc -module-name DataCoreAI -target x86_64-apple-ios17.0-simulator
+SwiftDriver DataCoreAI normal x86_64 (failed)

@@ -1,0 +1,49 @@
+{
+  "run": 42387712389,
+  "head": "40f720ce7b5465be3b4a9e193db23b272a4e2e79",
+  "artifact_id": 13580745911,
+  "artifact_zip_sha256": "fdf8625cc9450032ade4bc0519ab5adeca7c534fef17bd95bebf51c555e68ed3",
+  "small_tests_log_sha256": "1f1570255cc559debcfd15bbf239752a3fd6f7ac1f38772a897f68b76bdddb20",
+  "artifact_files_verified": 1177,
+  "exit_code": 65,
+  "phase": "small-tests",
+  "observed_native_results": {
+    "domain_passed": 26,
+    "unit_tests_executed": 13,
+    "unit_failed_test_cases": 1,
+    "unit_failure_records": 2,
+    "ui_passed": 3,
+    "summary_total": 16,
+    "summary_passed": 15,
+    "summary_failed": 1,
+    "screenshots_png": 13,
+    "device": "iPhone SE (3rd generation)",
+    "os": "26.2",
+    "larger_iphone_tested": false,
+    "release_builds_reached": false
+  },
+  "diagnosis": {
+    "first_failure_file": "ios/DataCoreAITests/AppTests.swift",
+    "initial_read_line": 82,
+    "second_error_attributed_line": 81,
+    "native_osstatus_recorded": false,
+    "test_command_disabled_code_signing": true,
+    "missing_entitlement_status_confirmed": false
+  },
+  "free_validation": {
+    "swift_domain_passed": 26,
+    "api_passed": 21,
+    "tools_passed": 31,
+    "isolated_regression_passed": 86,
+    "total_passed": 164,
+    "sql_skipped": 4,
+    "keychain_wrapper_test_used_scripted_security": true,
+    "real_sql_attempts": 0,
+    "real_http_attempts": 0
+  },
+  "new_native_regression_tests_added": 3,
+  "new_native_tests_executed": false,
+  "fourth_macos_run_started": false,
+  "corrected_keychain_verified_natively": false,
+  "ipa_created": false
+}

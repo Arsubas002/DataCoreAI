@@ -77,3 +77,17 @@ logs/
 
 # Informes de pruebas locales; CI los conserva como artefactos
 /test-results/
+
+# iOS developer-local files and generated build/signing artifacts
+ios/**/.build/
+ios/**/.swiftpm/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.xcarchive/
+*.ipa
+*.mobileprovision
+*.xcresult/
+ios/Config/Local.xcconfig
+# Local simulator audit evidence
+/ios-evidence/
