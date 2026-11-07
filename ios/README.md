@@ -6,8 +6,8 @@ Para pruebas del paquete en Mac se requiere macOS 14+ por Observation.
 Usa Swift Charts, Foundation, UIKit/PDFKit y Security del sistema. No contiene
 WebView, CocoaPods, dependencias Swift remotas ni claves API.
 
-**Estado:** [auditoría actual y resultados](../docs/IOS_AUDIT_2026_11.md). Dominio
-y coordinador Observation probados en Linux (24 tests); interfaz, firma, archivo Release y
+**Estado:** [preparación actual y resultados](../docs/IOS_FIRST_BUILD.md). Dominio
+y coordinador Observation probados en Linux (26 tests); interfaz, firma, archivo Release y
 simulador iOS todavía pendientes de ejecución en macOS. El proyecto Xcode
 incluido se genera determinísticamente con Python, sin XcodeGen. La validación
 estructural y sintáctica no demuestra que Xcode compile o que Apple lo acepte.
@@ -78,7 +78,7 @@ xcodebuild build -project ios/DataCoreAI.xcodeproj -scheme DataCoreAI \
 xcrun xcresulttool export attachments --path ios-test-results.xcresult --output-path ios-simulator-captures
 ```
 
-`swift test` cubre modelos/repositorio; `xcodebuild test` añade nueve pruebas del
+`swift test` cubre modelos/repositorio; `xcodebuild test` añade trece pruebas del
 store/API/exportadores nativos y tres recorridos UI. Los adjuntos XCUITest capturan
 las seis pantallas. El `#Preview("Demo nativa")` carga el repositorio real demo;
 requiere Xcode y todavía no se ha renderizado en esta entrega. No se sustituyen
@@ -127,59 +127,47 @@ provisionamiento y caducidad; comprueba las condiciones vigentes de Apple.
 
 ## CI macOS sin fusionar main
 
-El workflow preparado usa macos-15/Xcode 26.3. El inventario oficial de GitHub
-anuncia esa combinación, pero debe verificarse al ejecutar: no se ha probado aquí.
-La compatibilidad del catálogo no garantiza disponibilidad futura del runner.
-No se ha ejecutado macOS ni se ha autorizado gasto en esta revisión.
+**No ejecutar hasta autorizar costo/cuota.** El HEAD mantiene `[skip ci]`.
+La antigua etiqueta `ios-macos-cost-approved` se retiró: el evento pull_request
+está afectado por skip y el workflow aún no estaba registrado para dispatch.
+No es necesario retirar skip ni provocar las otras matrices para intentar la
+ruta documentada de **pull_request_review**.
 
-**Ruta con la PR, sin incorporar el YAML a main:**
+El propietario revisa el SHA completo de la PR #12 y, después de comprobar su
+presupuesto, envía una review de tipo **Comment** (no Approve ni comentario de
+Conversation) con una única línea exacta:
 
-1. El propietario revisa el head exacto de #12 y su código/workflow; comprueba
-   presupuesto/cuota de GitHub Actions para el repositorio **privado**. macOS y
-   Windows hospedados pueden consumir minutos facturables. No asumir gratuidad.
-2. Si el head tiene `[skip ci]`, después de autorizar los minutos crea un commit
-   posterior sin ese marcador. Por ejemplo, desde PowerShell en la rama correcta:
+```text
+AUTHORIZE_IOS_SIMULATOR SHA_COMPLETO_APROBADO MAX_30_MINUTES
+```
 
-   ```powershell
-   git commit --allow-empty -m "Authorize reviewed CI validation"
-   git push origin feature/datacore-ios
-   ```
+El workflow compara propietario, PR #12, mismo repo/rama, SHA de review/head,
+texto exacto y primer intento. No reusa autorización en pushes o re-runs. La
+ruta se contrastó con reglas oficiales y actionlint, **no se disparó**: el primer
+arranque real depende de permisos/política de Actions y minutos autorizados.
+Dispatch no se da por disponible mientras no exista registro/condiciones de GitHub.
+No se cambia main. No envíes una review de autorización solo para probar el evento.
 
-   Esto también puede iniciar las matrices Linux/Windows existentes: revisar sus
-   costos antes de hacerlo. El marcador skip afecta eventos pull_request, incluidos
-   labeled; no se puede usar para omitir las otras matrices y activar macOS a la vez.
-3. Solo tras autorizar el gasto, el propio propietario crea/añade la etiqueta
-   **ios-macos-cost-approved** a la PR #12. Añadirla es la señal explícita de
-   autorización de esa ejecución. No se añade automáticamente desde este agente.
-4. El workflow acepta solo actor propietario, mismo repositorio y rama
-   feature/datacore-ios, evento labeled con ese nombre. Checkout del head exacto,
-   sin secretos ni firma. Un nuevo push no reutiliza la autorización: haría falta
-   revisar el nuevo head y quitar/añadir la etiqueta de nuevo. No uses
-   pull_request_target para acceder a secretos del código de la PR.
-5. Descarga ios-simulator-evidence-SHA: logs, plan de dispositivos, dos xcresult,
-   capturas normal/oscuro/AX3 y log Release. Si falla, conserva esos datos y corrige
-   antes de afirmar que la aplicación compila.
-
-La ruta por etiqueta está preparada según el evento documentado; no se disparó
-para comprobarla porque requeriría autorización de minutos. Políticas/approvals
-de Actions pueden requerir intervención del propietario. El botón dispatch normal
-exige que el YAML exista en la rama predeterminada; no se modifica main para ello.
-Si se habilita más adelante de forma autorizada, exige authorize_macos_minutes=true
-y branch feature/datacore-ios. También puede ejecutarse directamente en un Mac
-prestado/autorizado, sin ningún job de GitHub:
+[Receta completa PowerShell, diagnóstico, alternativa y descarga](../docs/IOS_FIRST_BUILD.md).
+Si el evento no arranca, comprobar Actions/reviews antes de repetir; no cambiar
+main ni contratar servicios para sortearlo. Alternativa: un Mac prestado/de
+confianza autorizado, con SDKs ya instalados, ejecutando el mismo script:
 
 ```bash
-# Xcode 26.3 ya instalado, licencias y simuladores listos; sin descarga automática.
 export DEVELOPER_DIR=/Applications/Xcode_26.3.app/Contents/Developer
+export DATACORE_EXPECTED_XCODE=26.3
 bash ios/tools/run_simulator_tests.sh
 ```
 
-El script elige dos iPhone distintos con runtime iOS >=17 compatible con el SDK.
-Falla si no existen, conserva logs/adjuntos aun con errores y no sobrescribe
-resultados anteriores. Para repetir, usa un directorio nuevo:
-`DATACORE_EVIDENCE_DIR=/ruta/nueva bash ios/tools/run_simulator_tests.sh`.
-No firma ni produce IPA, y no prueba necesariamente el runtime mínimo iOS 17 si
-solo están instalados runtimes posteriores. Esa prueba sigue pendiente aparte.
+El inventario del runner anuncia Xcode 26.3, pero la VM real debe superar un
+preflight que comprueba directorio, versión real y SDK 26+. No hay sustitución
+silenciosa ni descargas. El script exige carpeta de evidencia vacía y dos iPhone
+compatibles; conserva logs al fallar y produce hashes, JSON XCTest, xcresult y
+capturas reales si Xcode los genera. Retención de artefactos **1 día**; el job no
+firma ni produce IPA. Mainstep 25 min y job 30 min; no es garantía de costo fijo.
+
+No se han ejecutado macOS, tests nativos ni un iPhone en esta revisión. El simulador
+puede usar un runtime posterior a iOS 17: sigue pendiente probar el mínimo real.
 
 ## TestFlight y App Store: pasos pendientes del propietario
 

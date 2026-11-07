@@ -1,5 +1,10 @@
 # Auditoría de continuidad iOS · 2026-11-07
 
+**Histórico:** esta auditoría describe 5c81da4. La preparación posterior está en
+[IOS_FIRST_BUILD.md](IOS_FIRST_BUILD.md): sustituye la antigua etiqueta por una
+review neutral de autorización y actualiza pruebas/evidencia. No seguir la receta
+de etiqueta o commit vacío que se conserva debajo como historial.
+
 ## Punto de partida y alcance
 
 PR #12, `feature/datacore-ios`, commit
