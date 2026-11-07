@@ -22,7 +22,7 @@ ICONOS = {"Dashboard": "dashboard", "Productos": "inventory_2", "Ventas": "point
 
 
 def sistema_visual():
-    css = (Path(__file__).resolve().parents[1] / "assets" / "premium.css").read_text(encoding="utf-8")
+    css = (Path(__file__).resolve().parents[1] / "assets" / "workspace.css").read_text(encoding="utf-8")
     st.html(f"<style>{css}</style>")
 
 
@@ -30,22 +30,31 @@ def cambiar_pantalla(pantalla):
     st.session_state.pantalla_actual = pantalla
 
 
+def boton_navegacion(pantalla, actual):
+    icono = ICONOS[pantalla]
+    with st.container(key="nav_active" if pantalla == actual else f"nav_{icono}"):
+        st.button(pantalla, icon=f":material/{icono}:", width="stretch", key=f"navegar_{icono}",
+                  help="Sección actual" if pantalla == actual else f"Abrir {pantalla}",
+                  on_click=cambiar_pantalla, args=(pantalla,))
+
+
 def menu_lateral():
     actual = st.session_state.setdefault("pantalla_actual", "Dashboard")
     if actual not in ICONOS:
         actual = st.session_state.pantalla_actual = "Dashboard"
     with st.sidebar, st.container(key="sidebar_shell"):
-        st.html('<div class="dc-brand"><div class="dc-brand-mark">D</div><div class="dc-brand-name">DataCore <span>AI</span><small>BUSINESS INTELLIGENCE</small></div></div>')
-        st.html('<div class="dc-nav-label">ESPACIO DE TRABAJO</div>')
+        st.html('<div class="dc-brand"><div class="dc-mark">D</div><div><strong>DataCore AI</strong><small>COMMERCE WORKSPACE</small></div></div>')
         with st.container(key="navigation", gap=None):
-            for pantalla, icono in ICONOS.items():
-                with st.container(key="nav_active" if pantalla == actual else f"nav_{icono}"):
-                    st.button(pantalla, icon=f":material/{icono}:", width="stretch",
-                              key=f"navegar_{icono}", help="Sección actual" if pantalla == actual else f"Abrir {pantalla}", on_click=cambiar_pantalla, args=(pantalla,))
-        st.html('<div class="dc-nav-label">ENTORNO</div>')
+            st.html('<div class="dc-nav-group">PERSPECTIVA</div>')
+            for pantalla in ("Dashboard","Reportes"):
+                boton_navegacion(pantalla, actual)
+            with st.expander("Operación comercial",expanded=True,icon=":material/storefront:",key="nav_operacion"):
+                for pantalla in ("Ventas","Productos","Inventario"):
+                    boton_navegacion(pantalla, actual)
+            st.html('<div class="dc-nav-group">INTELIGENCIA</div>')
+            boton_navegacion("Asistente IA", actual)
         modo = "Solo lectura" if solo_lectura() else "Operación comercial"
-        st.html(f'<div class="dc-sidebar-note"><strong>{modo}</strong>SQL Server · Windows<br>Información de tu negocio en un solo lugar.</div>')
-        st.html('<div class="dc-sidebar-footer">DATACORE / WORKSPACE<br>Gestión comercial & análisis</div>')
+        st.html(f'<div class="dc-environment"><strong>{modo}</strong>Espacio de trabajo local<br><small>SQL Server · Windows</small></div>')
     return actual
 
 
@@ -65,29 +74,37 @@ def periodo(clave, actualizar=False):
 
 
 def cabecera(pantalla):
+    seccion = "PERSPECTIVA" if pantalla in ("Dashboard","Reportes") else "INTELIGENCIA" if pantalla=="Asistente IA" else "OPERACIÓN COMERCIAL"
     modo = "SOLO LECTURA" if solo_lectura() else "OPERACIÓN COMERCIAL"
-    st.html(f'<div class="dc-topline"><span>Workspace <b>/ {escape(pantalla)}</b></span><span class="dc-mode">{modo}</span></div><header class="dc-header"><div class="dc-eyebrow">INTELIGENCIA COMERCIAL</div><h1>{escape(pantalla)}</h1><div class="dc-subtitle">{escape(DESCRIPCIONES[pantalla])}</div></header>')
+    st.html(f'<header class="dc-pagehead"><div><div class="dc-section">{seccion}</div><h1>{escape(pantalla)}</h1><p>{escape(DESCRIPCIONES[pantalla])}</p></div><span class="dc-mode">{modo}</span></header>')
 
 
 def titulo_panel(titulo, detalle=""):
-    st.html(f'<div class="dc-panel-heading"><h3>{escape(titulo)}</h3><span>{escape(detalle)}</span></div>')
+    st.html(f'<h3 class="dc-panel-title">{escape(titulo)}</h3><p class="dc-panel-caption">{escape(detalle)}</p>')
+
+
+def paso(numero, titulo):
+    st.html(f'<div class="dc-step"><b>{int(numero)}</b>{escape(titulo)}</div>')
+
+
+def estado_vacio(titulo, descripcion):
+    st.html(f'<div class="dc-empty"><strong>{escape(titulo)}</strong>{escape(descripcion)}</div>')
 
 
 def tarjeta_metrica(columna, etiqueta, valor, clave="income", icono="◇", nota="Periodo seleccionado", serie=None):
-    with (columna if columna is not None else nullcontext()), st.container(key=f"kpi_{clave}", gap=None):
-        st.html(f'<div class="dc-kpi-icon">{escape(icono)}</div>')
+    with (columna if columna is not None else nullcontext()):
         st.metric(etiqueta, valor, chart_data=serie, chart_type="line")
-        st.html(f'<div class="dc-kpi-note">{escape(nota)}</div>')
+        st.caption(nota)
 
 
 def estilo_grafico(figura, altura=280):
-    figura.update_layout(template="plotly_dark", height=altura, margin=dict(l=5,r=8,t=12,b=5),
-                          paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                          font=dict(family="Arial, sans-serif",color="#ABA596",size=11),
-                          colorway=["#DDB566","#A78346","#7B8075"],
-                          xaxis=dict(gridcolor="#302E29",zeroline=False),
-                          yaxis=dict(gridcolor="#302E29",zeroline=False),
-                          hoverlabel=dict(bgcolor="#292720",font_color="#F4E9D4",bordercolor="#5A4C33"))
+    figura.update_layout(template="plotly_white",height=altura,margin=dict(l=5,r=8,t=10,b=5),
+                          paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="rgba(0,0,0,0)",
+                          font=dict(family="Arial, sans-serif",color="#62748B",size=11),
+                          colorway=["#7659E8","#24C9C0","#A397DC"],
+                          xaxis=dict(gridcolor="#EAF0F7",zeroline=False),
+                          yaxis=dict(gridcolor="#EAF0F7",zeroline=False),
+                          hoverlabel=dict(bgcolor="#0D1726",font_color="#F2F5FA",bordercolor="#7659E8"))
     return figura
 
 

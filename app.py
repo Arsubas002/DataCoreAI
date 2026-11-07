@@ -19,11 +19,5 @@ with st.container(key="workspace"):
     rutas = {"Dashboard": mostrar_dashboard, "Productos": mostrar_productos,
              "Ventas": mostrar_ventas, "Inventario": mostrar_inventario,
              "Reportes": mostrar_reportes, "Asistente IA": mostrar_asistente}
-    paneles = {"Productos":"panel_catalogo", "Inventario":"panel_inventario",
-               "Asistente IA":"panel_asistente", "Reportes":"panel_reportes", "Ventas":"panel_ventas"}
-    if pantalla in paneles:
-        with st.container(key=paneles[pantalla]):
-            rutas[pantalla]()
-    else:
-        rutas[pantalla]()
-    st.html('<div class="dc-footer"><span>DATACORE AI · GESTIÓN COMERCIAL</span><span>Datos verificables. Decisiones informadas.</span></div>')
+    rutas[pantalla]()
+    st.html('<div class="dc-footer"><span>DATACORE AI / COMMERCE WORKSPACE</span><span>Datos verificables. Decisiones informadas.</span></div>')
