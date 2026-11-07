@@ -1,0 +1,955 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "DataCore AI · Demo API",
+    "description": "Solo datos ficticios. Sin SQL, Groq, cuentas ni escrituras de producción.",
+    "version": "1.0.0-demo"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "diagnóstico"
+        ],
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/snapshot": {
+      "get": {
+        "summary": "Snapshot",
+        "operationId": "snapshot_v1_snapshot_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Snapshot"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/v1/dashboard": {
+      "get": {
+        "summary": "Dashboard",
+        "operationId": "dashboard_v1_dashboard_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "start",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "default": "2026-11-01",
+              "title": "Start"
+            }
+          },
+          {
+            "name": "end",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "default": "2026-11-07",
+              "title": "End"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Summary"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/products": {
+      "get": {
+        "summary": "Products",
+        "operationId": "products_v1_products_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 120,
+              "default": "",
+              "title": "Q"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Product"
+                  },
+                  "title": "Response Products V1 Products Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/inventory": {
+      "get": {
+        "summary": "Inventory",
+        "operationId": "inventory_v1_inventory_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "all",
+                "low",
+                "out"
+              ],
+              "type": "string",
+              "default": "all",
+              "title": "State"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Product"
+                  },
+                  "title": "Response Inventory V1 Inventory Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/sales": {
+      "get": {
+        "summary": "Sales",
+        "operationId": "sales_v1_sales_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "start",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "default": "2026-11-01",
+              "title": "Start"
+            }
+          },
+          {
+            "name": "end",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "default": "2026-11-07",
+              "title": "End"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Sale"
+                  },
+                  "title": "Response Sales V1 Sales Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/sales/preview": {
+      "post": {
+        "summary": "Preview",
+        "operationId": "preview_v1_sales_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SalePreviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalePreview"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/v1/reports": {
+      "get": {
+        "summary": "Reports",
+        "operationId": "reports_v1_reports_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "start",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "default": "2026-11-01",
+              "title": "Start"
+            }
+          },
+          {
+            "name": "end",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "default": "2026-11-07",
+              "title": "End"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Report"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/assistant": {
+      "post": {
+        "summary": "Assistant",
+        "operationId": "assistant_v1_assistant_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssistantRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Answer"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Answer": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "const": "demo",
+            "title": "Mode",
+            "default": "demo"
+          },
+          "question": {
+            "type": "string",
+            "enum": [
+              "revenue",
+              "average",
+              "top_products",
+              "stock_alerts"
+            ],
+            "title": "Question"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "sources": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Sources"
+          },
+          "generative": {
+            "type": "boolean",
+            "const": false,
+            "title": "Generative",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "question",
+          "text",
+          "sources"
+        ],
+        "title": "Answer"
+      },
+      "AssistantRequest": {
+        "properties": {
+          "question": {
+            "type": "string",
+            "enum": [
+              "revenue",
+              "average",
+              "top_products",
+              "stock_alerts"
+            ],
+            "title": "Question"
+          },
+          "start": {
+            "type": "string",
+            "format": "date",
+            "title": "Start",
+            "default": "2026-11-01"
+          },
+          "end": {
+            "type": "string",
+            "format": "date",
+            "title": "End",
+            "default": "2026-11-07"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "question"
+        ],
+        "title": "AssistantRequest"
+      },
+      "CartLine": {
+        "properties": {
+          "product_id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Product Id"
+          },
+          "quantity": {
+            "type": "integer",
+            "maximum": 999.0,
+            "minimum": 1.0,
+            "title": "Quantity"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "product_id",
+          "quantity"
+        ],
+        "title": "CartLine"
+      },
+      "DailyRevenue": {
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date",
+            "title": "Day"
+          },
+          "revenue_minor": {
+            "type": "integer",
+            "maximum": 999999999999.0,
+            "minimum": 0.0,
+            "title": "Revenue Minor"
+          },
+          "sales_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Sales Count"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "day",
+          "revenue_minor",
+          "sales_count"
+        ],
+        "title": "DailyRevenue"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "Product": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Id"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 1,
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "category": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Category"
+          },
+          "price_minor": {
+            "type": "integer",
+            "maximum": 999999999999.0,
+            "minimum": 0.0,
+            "title": "Price Minor"
+          },
+          "stock": {
+            "type": "integer",
+            "maximum": 1000000.0,
+            "minimum": 0.0,
+            "title": "Stock"
+          },
+          "minimum_stock": {
+            "type": "integer",
+            "maximum": 1000000.0,
+            "minimum": 0.0,
+            "title": "Minimum Stock"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "name",
+          "category",
+          "price_minor",
+          "stock",
+          "minimum_stock"
+        ],
+        "title": "Product"
+      },
+      "Report": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "const": "demo",
+            "title": "Mode",
+            "default": "demo"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/Summary"
+          },
+          "inventory": {
+            "items": {
+              "$ref": "#/components/schemas/Product"
+            },
+            "type": "array",
+            "title": "Inventory"
+          },
+          "scope": {
+            "type": "string",
+            "title": "Scope",
+            "default": "Ventas del periodo; existencias actuales ficticias, no históricas."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "summary",
+          "inventory"
+        ],
+        "title": "Report"
+      },
+      "Sale": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Id"
+          },
+          "day": {
+            "type": "string",
+            "format": "date",
+            "title": "Day"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/SaleLine"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Lines"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "day",
+          "lines"
+        ],
+        "title": "Sale"
+      },
+      "SaleLine": {
+        "properties": {
+          "product_id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Product Id"
+          },
+          "quantity": {
+            "type": "integer",
+            "maximum": 999.0,
+            "minimum": 1.0,
+            "title": "Quantity"
+          },
+          "unit_price_minor": {
+            "type": "integer",
+            "maximum": 999999999999.0,
+            "minimum": 0.0,
+            "title": "Unit Price Minor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "product_id",
+          "quantity",
+          "unit_price_minor"
+        ],
+        "title": "SaleLine"
+      },
+      "SalePreview": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "const": "demo",
+            "title": "Mode",
+            "default": "demo"
+          },
+          "persisted": {
+            "type": "boolean",
+            "const": false,
+            "title": "Persisted",
+            "default": false
+          },
+          "currency": {
+            "type": "string",
+            "const": "PEN",
+            "title": "Currency",
+            "default": "PEN"
+          },
+          "total_minor": {
+            "type": "integer",
+            "maximum": 999999999999.0,
+            "minimum": 0.0,
+            "title": "Total Minor"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/SaleLine"
+            },
+            "type": "array",
+            "title": "Lines"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "total_minor",
+          "lines"
+        ],
+        "title": "SalePreview"
+      },
+      "SalePreviewRequest": {
+        "properties": {
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/CartLine"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Lines"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "lines"
+        ],
+        "title": "SalePreviewRequest"
+      },
+      "Snapshot": {
+        "properties": {
+          "version": {
+            "type": "integer",
+            "const": 1,
+            "title": "Version"
+          },
+          "mode": {
+            "type": "string",
+            "const": "demo",
+            "title": "Mode"
+          },
+          "currency": {
+            "type": "string",
+            "const": "PEN",
+            "title": "Currency"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date",
+            "title": "As Of"
+          },
+          "products": {
+            "items": {
+              "$ref": "#/components/schemas/Product"
+            },
+            "type": "array",
+            "maxItems": 5000,
+            "title": "Products"
+          },
+          "sales": {
+            "items": {
+              "$ref": "#/components/schemas/Sale"
+            },
+            "type": "array",
+            "maxItems": 5000,
+            "title": "Sales"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "version",
+          "mode",
+          "currency",
+          "as_of",
+          "products",
+          "sales"
+        ],
+        "title": "Snapshot"
+      },
+      "Summary": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "const": "demo",
+            "title": "Mode",
+            "default": "demo"
+          },
+          "currency": {
+            "type": "string",
+            "const": "PEN",
+            "title": "Currency",
+            "default": "PEN"
+          },
+          "start": {
+            "type": "string",
+            "format": "date",
+            "title": "Start"
+          },
+          "end": {
+            "type": "string",
+            "format": "date",
+            "title": "End"
+          },
+          "revenue_minor": {
+            "type": "integer",
+            "maximum": 999999999999.0,
+            "minimum": 0.0,
+            "title": "Revenue Minor"
+          },
+          "sales_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Sales Count"
+          },
+          "stock_units": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Stock Units"
+          },
+          "alert_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Alert Count"
+          },
+          "daily": {
+            "items": {
+              "$ref": "#/components/schemas/DailyRevenue"
+            },
+            "type": "array",
+            "title": "Daily"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "start",
+          "end",
+          "revenue_minor",
+          "sales_count",
+          "stock_units",
+          "alert_count",
+          "daily"
+        ],
+        "title": "Summary"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}

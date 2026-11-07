@@ -1,0 +1,166 @@
+{
+  "version": 1,
+  "mode": "demo",
+  "currency": "PEN",
+  "as_of": "2026-11-07",
+  "products": [
+    {
+      "id": "p1",
+      "code": "DEMO-001",
+      "name": "Cuaderno Studio",
+      "category": "Oficina",
+      "price_minor": 4990,
+      "stock": 24,
+      "minimum_stock": 5
+    },
+    {
+      "id": "p2",
+      "code": "DEMO-002",
+      "name": "Lámpara Focus",
+      "category": "Oficina",
+      "price_minor": 12990,
+      "stock": 4,
+      "minimum_stock": 5
+    },
+    {
+      "id": "p3",
+      "code": "DEMO-003",
+      "name": "Botella Flow",
+      "category": "Accesorios",
+      "price_minor": 6990,
+      "stock": 0,
+      "minimum_stock": 3
+    },
+    {
+      "id": "p4",
+      "code": "DEMO-004",
+      "name": "Organizador Grid",
+      "category": "Accesorios",
+      "price_minor": 8990,
+      "stock": 12,
+      "minimum_stock": 4
+    },
+    {
+      "id": "p5",
+      "code": "DEMO-005",
+      "name": "Mochila Transit",
+      "category": "Accesorios",
+      "price_minor": 19990,
+      "stock": 3,
+      "minimum_stock": 3
+    },
+    {
+      "id": "p6",
+      "code": "DEMO-006",
+      "name": "Bolígrafo Orbit",
+      "category": "Oficina",
+      "price_minor": 1990,
+      "stock": 40,
+      "minimum_stock": 10
+    }
+  ],
+  "sales": [
+    {
+      "id": "demo-sale-1",
+      "day": "2026-11-01",
+      "lines": [
+        {
+          "product_id": "p1",
+          "quantity": 2,
+          "unit_price_minor": 4990
+        },
+        {
+          "product_id": "p6",
+          "quantity": 3,
+          "unit_price_minor": 1990
+        }
+      ]
+    },
+    {
+      "id": "demo-sale-2",
+      "day": "2026-11-02",
+      "lines": [
+        {
+          "product_id": "p2",
+          "quantity": 1,
+          "unit_price_minor": 12990
+        }
+      ]
+    },
+    {
+      "id": "demo-sale-3",
+      "day": "2026-11-03",
+      "lines": [
+        {
+          "product_id": "p4",
+          "quantity": 2,
+          "unit_price_minor": 8990
+        }
+      ]
+    },
+    {
+      "id": "demo-sale-4",
+      "day": "2026-11-04",
+      "lines": [
+        {
+          "product_id": "p5",
+          "quantity": 1,
+          "unit_price_minor": 19990
+        },
+        {
+          "product_id": "p1",
+          "quantity": 1,
+          "unit_price_minor": 4990
+        }
+      ]
+    },
+    {
+      "id": "demo-sale-5",
+      "day": "2026-11-05",
+      "lines": [
+        {
+          "product_id": "p3",
+          "quantity": 2,
+          "unit_price_minor": 6990
+        },
+        {
+          "product_id": "p6",
+          "quantity": 2,
+          "unit_price_minor": 1990
+        }
+      ]
+    },
+    {
+      "id": "demo-sale-6",
+      "day": "2026-11-06",
+      "lines": [
+        {
+          "product_id": "p1",
+          "quantity": 3,
+          "unit_price_minor": 4990
+        },
+        {
+          "product_id": "p4",
+          "quantity": 1,
+          "unit_price_minor": 8990
+        }
+      ]
+    },
+    {
+      "id": "demo-sale-7",
+      "day": "2026-11-07",
+      "lines": [
+        {
+          "product_id": "p2",
+          "quantity": 1,
+          "unit_price_minor": 12990
+        },
+        {
+          "product_id": "p6",
+          "quantity": 4,
+          "unit_price_minor": 1990
+        }
+      ]
+    }
+  ]
+}
