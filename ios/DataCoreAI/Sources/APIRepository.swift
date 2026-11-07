@@ -6,54 +6,87 @@ import Security
 /// Production login is deliberately not enabled by this demo.
 protocol AccessTokenProviding: Sendable { func token() throws -> String? }
 
-struct KeychainTokenStore: AccessTokenProviding {
-  private let service: String
-  init(service: String = (Bundle.main.bundleIdentifier ?? "DataCoreAI.demo") + ".user-session") {
-    self.service = service
+/// Only operation/status are diagnostic. Never include queries, services or token bytes.
+enum KeychainError: Error, Equatable, CustomStringConvertible {
+  enum Operation: String { case read, update, add, delete }
+  case status(Operation, OSStatus)
+  case invalidStoredData
+
+  var description: String {
+    switch self {
+    case .status(let operation, let code):
+      return "Keychain \(operation.rawValue) failed (OSStatus \(code))"
+    case .invalidStoredData: return "Keychain returned invalid stored data"
+    }
   }
-  func token() throws -> String? {
-    let query: [String: Any] = [
-      kSecClass as String: kSecClassGenericPassword,
-      kSecAttrService as String: service, kSecAttrAccount as String: "access-token",
-      kSecReturnData as String: true, kSecMatchLimit as String: kSecMatchLimitOne,
-    ]
+}
+
+protocol KeychainAccessing: Sendable {
+  func read(_ query: [String: Any]) -> (OSStatus, Data?)
+  func update(_ query: [String: Any], attributes: [String: Any]) -> OSStatus
+  func add(_ item: [String: Any]) -> OSStatus
+  func delete(_ query: [String: Any]) -> OSStatus
+}
+
+struct SecurityKeychainClient: KeychainAccessing {
+  func read(_ query: [String: Any]) -> (OSStatus, Data?) {
     var result: CFTypeRef?
     let status = SecItemCopyMatching(query as CFDictionary, &result)
+    return (status, result as? Data)
+  }
+  func update(_ query: [String: Any], attributes: [String: Any]) -> OSStatus {
+    SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
+  }
+  func add(_ item: [String: Any]) -> OSStatus { SecItemAdd(item as CFDictionary, nil) }
+  func delete(_ query: [String: Any]) -> OSStatus { SecItemDelete(query as CFDictionary) }
+}
+
+struct KeychainTokenStore: AccessTokenProviding {
+  private let service: String
+  private let client: any KeychainAccessing
+  init(
+    service: String = (Bundle.main.bundleIdentifier ?? "DataCoreAI.demo") + ".user-session",
+    client: any KeychainAccessing = SecurityKeychainClient()
+  ) {
+    self.service = service
+    self.client = client
+  }
+  private var selector: [String: Any] {
+    [
+      kSecClass as String: kSecClassGenericPassword,
+      kSecAttrService as String: service, kSecAttrAccount as String: "access-token",
+    ]
+  }
+  func token() throws -> String? {
+    let query = selector.merging([
+      kSecReturnData as String: true, kSecMatchLimit as String: kSecMatchLimitOne,
+    ]) { _, new in new }
+    let (status, data) = client.read(query)
     if status == errSecItemNotFound { return nil }
-    guard status == errSecSuccess, let data = result as? Data,
-      let value = String(data: data, encoding: .utf8)
-    else { throw BusinessError.invalidData }
+    guard status == errSecSuccess else { throw KeychainError.status(.read, status) }
+    guard let data, let value = String(data: data, encoding: .utf8),
+      !value.isEmpty, data.count <= 8192
+    else { throw KeychainError.invalidStoredData }
     return value
   }
   func save(_ token: String) throws {
     guard !token.isEmpty, token.utf8.count <= 8192 else { throw BusinessError.invalidData }
-    let selector: [String: Any] = [
-      kSecClass as String: kSecClassGenericPassword,
-      kSecAttrService as String: service, kSecAttrAccount as String: "access-token",
-    ]
     let attributes: [String: Any] = [
       kSecValueData as String: Data(token.utf8),
       kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
     ]
-    let status = SecItemUpdate(selector as CFDictionary, attributes as CFDictionary)
+    let status = client.update(selector, attributes: attributes)
     if status == errSecItemNotFound {
-      let item = selector.merging(attributes) { _, new in new }
-      guard SecItemAdd(item as CFDictionary, nil) == errSecSuccess else {
-        throw BusinessError.invalidData
-      }
+      let status = client.add(selector.merging(attributes) { _, new in new })
+      guard status == errSecSuccess else { throw KeychainError.status(.add, status) }
     } else if status != errSecSuccess {
-      throw BusinessError.invalidData
+      throw KeychainError.status(.update, status)
     }
   }
-
   func clear() throws {
-    let status = SecItemDelete(
-      [
-        kSecClass as String: kSecClassGenericPassword,
-        kSecAttrService as String: service, kSecAttrAccount as String: "access-token",
-      ] as CFDictionary)
+    let status = client.delete(selector)
     guard status == errSecSuccess || status == errSecItemNotFound else {
-      throw BusinessError.invalidData
+      throw KeychainError.status(.delete, status)
     }
   }
 }

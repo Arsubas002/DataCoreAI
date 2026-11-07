@@ -76,6 +76,7 @@ name=pathlib.Path(sys.argv[0]).name
 args=sys.argv[1:]
 if name=='swift': print('SIMULATED domain command');sys.exit(0)
 if name=='xcodebuild':
+ with (pathlib.Path(os.environ['DATACORE_EVIDENCE_DIR'])/'invocations.jsonl').open('a') as log: log.write(json.dumps(args)+'\\n')
  if os.getenv('FAIL_DEVICE')=='1' and 'generic/platform=iOS' in args: print('SIMULATED device build failure');sys.exit(43)
  if '-showBuildSettings' in args:
   print(json.dumps([{'target':'DataCoreAI','buildSettings':{'CONFIGURATION':'Debug','PLATFORM_NAME':'iphonesimulator','ONLY_ACTIVE_ARCH': 'NO' if os.getenv('BAD_ARCH_POLICY')=='1' else 'YES','ARCHS':'arm64','NATIVE_ARCH_ACTUAL':'arm64'}}]));sys.exit(0)
@@ -198,3 +199,30 @@ class OrchestrationTests(TestCase):
             "device-build.log",
         ]:
             self.assertIn(expected, paths)
+
+    def test_simulator_tests_use_local_signing_but_device_build_stays_unsigned(self):
+        result, _, output = self.run_fixture()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        commands = [
+            json.loads(line)
+            for line in (output / "invocations.jsonl").read_text().splitlines()
+        ]
+        tests = [args for args in commands if "test" in args]
+        self.assertEqual(len(tests), 2)
+        for args in tests:
+            for setting in [
+                "CODE_SIGNING_ALLOWED=YES",
+                "CODE_SIGNING_REQUIRED=YES",
+                "CODE_SIGN_IDENTITY=-",
+                "CODE_SIGN_STYLE=Manual",
+                "DEVELOPMENT_TEAM=",
+                "PROVISIONING_PROFILE_SPECIFIER=",
+                "CODE_SIGN_ENTITLEMENTS=Config/Simulator.entitlements",
+            ]:
+                self.assertIn(setting, args)
+            self.assertNotIn("CODE_SIGNING_ALLOWED=NO", args)
+        device = next(args for args in commands if "generic/platform=iOS" in args)
+        self.assertIn("CODE_SIGNING_ALLOWED=NO", device)
+        self.assertFalse(
+            any(arg.startswith("CODE_SIGN_ENTITLEMENTS=") for arg in device)
+        )

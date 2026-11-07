@@ -1,5 +1,6 @@
 import DataCoreDomain
 import PDFKit
+import Security
 import XCTest
 
 @testable import DataCoreAI
@@ -81,9 +82,11 @@ final class AppTests: XCTestCase {
     defer { try? store.clear() }
     XCTAssertNil(try store.token())
     try store.save("fictional-first-token")
+    XCTAssertEqual(try store.token(), "fictional-first-token")
     try store.save("fictional-second-token")
     XCTAssertEqual(try store.token(), "fictional-second-token")
     try store.clear()
+    try store.clear()  // Deletion must be idempotent.
     XCTAssertNil(try store.token())
   }
   func testPDFPaginationRetainsLastDateAndTotal() throws {
@@ -96,4 +99,59 @@ final class AppTests: XCTestCase {
     XCTAssertTrue(document.string?.contains("TOTAL") == true)
   }
 
+}
+
+/// Scripted statuses exercise failure paths; the original test still uses the real Keychain.
+private struct KeychainStub: KeychainAccessing {
+  var readStatus: OSStatus = errSecSuccess
+  var data: Data? = Data("fictional".utf8)
+  var updateStatus: OSStatus = errSecSuccess
+  var addStatus: OSStatus = errSecSuccess
+  var deleteStatus: OSStatus = errSecSuccess
+  func read(_ query: [String: Any]) -> (OSStatus, Data?) { (readStatus, data) }
+  func update(_ query: [String: Any], attributes: [String: Any]) -> OSStatus { updateStatus }
+  func add(_ item: [String: Any]) -> OSStatus { addStatus }
+  func delete(_ query: [String: Any]) -> OSStatus { deleteStatus }
+}
+
+extension AppTests {
+  func testKeychainMissingEntitlementIsNotTreatedAsEmpty() {
+    let store = KeychainTokenStore(client: KeychainStub(readStatus: errSecMissingEntitlement))
+    XCTAssertThrowsError(try store.token()) {
+      XCTAssertEqual($0 as? KeychainError, .status(.read, errSecMissingEntitlement))
+      XCTAssertEqual(String(describing: $0), "Keychain read failed (OSStatus -34018)")
+    }
+  }
+  func testKeychainMalformedDataFailsClosed() {
+    for data in [Data(), Data([0xff]), Data(repeating: 65, count: 8193)] {
+      XCTAssertThrowsError(try KeychainTokenStore(client: KeychainStub(data: data)).token()) {
+        XCTAssertEqual($0 as? KeychainError, .invalidStoredData)
+      }
+    }
+  }
+  func testKeychainWriteAndDeleteStatusesRemainDiagnostic() {
+    let cases: [(KeychainStub, KeychainError, (KeychainTokenStore) throws -> Void)] = [
+      (
+        KeychainStub(updateStatus: errSecInteractionNotAllowed),
+        .status(.update, errSecInteractionNotAllowed), { try $0.save("fictional") }
+      ),
+      (
+        KeychainStub(updateStatus: errSecItemNotFound, addStatus: errSecMissingEntitlement),
+        .status(.add, errSecMissingEntitlement), { try $0.save("fictional") }
+      ),
+      (
+        KeychainStub(deleteStatus: errSecMissingEntitlement),
+        .status(.delete, errSecMissingEntitlement), { try $0.clear() }
+      ),
+    ]
+    for (client, expected, operation) in cases {
+      XCTAssertThrowsError(try operation(KeychainTokenStore(client: client))) {
+        XCTAssertEqual($0 as? KeychainError, expected)
+      }
+    }
+    let missing = KeychainTokenStore(
+      client: KeychainStub(readStatus: errSecItemNotFound, deleteStatus: errSecItemNotFound))
+    XCTAssertNil(try missing.token())
+    XCTAssertNoThrow(try missing.clear())
+  }
 }

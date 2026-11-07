@@ -28,13 +28,17 @@ CDN estándar; no forma parte de la aplicación iPhone.
 
 - Sin permisos de cámara, fotos, ubicación, contactos, micrófono, Bluetooth,
   notificaciones o seguimiento. Compartir por hoja de iOS no pide acceso general
-  a fotos/documentos. Sin entitlements ni grupos Keychain/CloudKit/push adicionales.
+  a fotos/documentos. Sin grupos compartidos de producción, CloudKit o push.
+  Solo el comando CI de simulador usa identidad/grupo Keychain ad hoc por bundle;
+  no se aplica a dispositivo ni requiere certificados de distribución.
 - ATS sin excepciones. Cliente opcional HTTPS, certificados del sistema,
   timeouts, respuesta <=2 MiB, sesiones efímeras y redirecciones rechazadas. No hay
   certificate pinning: revisar estrategia de rotación/amenazas antes de añadirlo.
 - No se guarda URL de servidor ni tokens en UserDefaults. Helper Keychain aislado
   con `WhenUnlockedThisDeviceOnly`, sin Access Group compartido; no se usa para
   simular autenticación ni contiene tokens reales. Login de producción pendiente.
+  Los errores Keychain exponen únicamente operación y OSStatus numérico; nunca
+  consultas, service, cuentas ni bytes. Ver [corrección y límites](IOS_KEYCHAIN_FIX.md).
 - API local: fixture anónimo, scopes demo, producción cerrada, sin writes. Cualquier
   cabecera Authorization se rechaza para impedir que parezca una sesión real.
   No hay administración de cuentas, aislamiento comercial real ni JWT implementado.

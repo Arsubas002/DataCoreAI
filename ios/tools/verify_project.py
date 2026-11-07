@@ -172,3 +172,16 @@ for source in ROOT.rglob("*.swift"):
 print(
     "Swift floating-point limits use explicit scalar types (source guard, not SDK typechecking)."
 )
+
+# This identity is deliberately simulator-only, never a device signing entitlement.
+with (ROOT / "Config/Simulator.entitlements").open("rb") as stream:
+    simulator_entitlements = plistlib.load(stream)
+assert simulator_entitlements == {
+    "application-identifier": "DataCoreSimulator.$(PRODUCT_BUNDLE_IDENTIFIER)",
+    "keychain-access-groups": ["DataCoreSimulator.$(PRODUCT_BUNDLE_IDENTIFIER)"],
+}
+for config in (ROOT / "Config").glob("*.xcconfig"):
+    assert "Simulator.entitlements" not in config.read_text(), (
+        "Simulator signing must remain CLI-scoped"
+    )
+print("Simulator-only local identity is isolated from device/Release configuration.")

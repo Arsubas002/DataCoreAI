@@ -1,5 +1,8 @@
 # Segundo build real: ambigüedad de CGFloat en exportación PDF
 
+> Histórico: el tercer run ya compiló y ejecutó la app. Estado actual en
+> [IOS_KEYCHAIN_FIX.md](IOS_KEYCHAIN_FIX.md).
+
 ## Evidencia y primer error
 
 Se partió del HEAD actual de PR #12, `162e03e3d63f3c2fb4c09014932912e1087cda9a`,

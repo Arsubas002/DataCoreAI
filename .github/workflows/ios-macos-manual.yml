@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       authorize_macos_minutes:
-        description: 'Autorizo una ejecución macOS sin firma, máximo 30 minutos'
+        description: 'Autorizo macOS con firma ad hoc solo de simulador, máximo 30 minutos'
         required: true
         default: false
         type: boolean
