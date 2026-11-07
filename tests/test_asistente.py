@@ -60,9 +60,9 @@ class AsistenteTests(TestCase):
     @patch("views.dashboard.resumen_comercial", return_value=datos())
     def test_navegacion_desde_app(self, dashboard, asistente):
         app = AppTest.from_file(str(Path(__file__).resolve().parents[1] / "app.py")).run()
-        app.sidebar.radio[0].set_value("Asistente IA").run()
+        next(b for b in app.sidebar.button if b.label == "Asistente IA").click().run()
         self.assertFalse(app.exception)
         asistente.assert_not_called()
-        app.button[0].click().run()
+        next(b for b in app.button if b.label == "Consultar asistente").click().run()
         self.assertFalse(app.exception)
         asistente.assert_called_once()

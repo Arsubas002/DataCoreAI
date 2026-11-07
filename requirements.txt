@@ -1,5 +1,5 @@
 # Aplicación comercial y exportaciones; Groq opcional desactivado por defecto.
-streamlit>=1.52,<2
+streamlit>=1.67,<2
 pyodbc>=5.2,<6
 pandas>=2.2.3,<3
 plotly>=6,<7

@@ -1,54 +1,29 @@
 """Entrada de la interfaz comercial. Ejecutar con streamlit run app.py."""
-
 import streamlit as st
 from services.configuracion import solo_lectura
-
 from views.productos import mostrar_productos
 from views.inventario import mostrar_inventario
 from views.ventas import mostrar_ventas
 from views.dashboard import mostrar_dashboard
 from views.reportes import mostrar_reportes
 from views.asistente import mostrar_asistente
-from views.componentes import cabecera
+from views.componentes import cabecera, sistema_visual, menu_lateral
 
-
-st.set_page_config(page_title="DataCore AI", page_icon="📊", layout="wide")
-
-with st.sidebar:
-    st.title("📊 DataCore AI")
-    st.caption("GESTIÓN COMERCIAL")
-    st.divider()
-    pantalla = st.radio(
-        "Menú principal",
-        ["Dashboard", "Productos", "Ventas", "Inventario", "Asistente IA", "Reportes"],
-    )
-    st.divider()
-    st.caption("ESPACIO DE TRABAJO")
-    st.caption("Dashboard · Reportes · Asistente")
-    st.caption("SQL Server · Autenticación de Windows")
-    st.caption("SOLO LECTURA" if solo_lectura() else "OPERACIÓN COMERCIAL")
-
-cabecera(pantalla)
-if solo_lectura():
-    st.info("Modo de solo lectura: puedes consultar y exportar. Guardar productos, desactivar y confirmar ventas están bloqueados.")
-
-if pantalla == "Dashboard":
-    mostrar_dashboard()
-
-elif pantalla == "Productos":
-    mostrar_productos()
-
-elif pantalla == "Ventas":
-    mostrar_ventas()
-
-elif pantalla == "Inventario":
-    mostrar_inventario()
-
-elif pantalla == "Asistente IA":
-    mostrar_asistente()
-
-elif pantalla == "Reportes":
-    mostrar_reportes()
-
-st.divider()
-st.caption("DataCore AI · Gestión comercial con información verificable")
+st.set_page_config(page_title="DataCore AI", page_icon="◈", layout="wide")
+sistema_visual()
+pantalla = menu_lateral()
+with st.container(key="workspace"):
+    cabecera(pantalla)
+    if solo_lectura():
+        st.caption(":material/lock: Solo lectura · Consulta y exportación disponibles. Guardar, desactivar y confirmar ventas están bloqueados.")
+    rutas = {"Dashboard": mostrar_dashboard, "Productos": mostrar_productos,
+             "Ventas": mostrar_ventas, "Inventario": mostrar_inventario,
+             "Reportes": mostrar_reportes, "Asistente IA": mostrar_asistente}
+    paneles = {"Productos":"panel_catalogo", "Inventario":"panel_inventario",
+               "Asistente IA":"panel_asistente", "Reportes":"panel_reportes", "Ventas":"panel_ventas"}
+    if pantalla in paneles:
+        with st.container(key=paneles[pantalla]):
+            rutas[pantalla]()
+    else:
+        rutas[pantalla]()
+    st.html('<div class="dc-footer"><span>DATACORE AI · GESTIÓN COMERCIAL</span><span>Datos verificables. Decisiones informadas.</span></div>')

@@ -27,7 +27,7 @@ class PruebasInterfazVentas(unittest.TestCase):
         self.registro = patch("views.ventas.registrar_venta", return_value=25).start()
         self.addCleanup(patch.stopall)
         self.app = AppTest.from_file(str(Path(__file__).resolve().parents[1] / "app.py")).run()
-        self.app.sidebar.radio[0].set_value("Ventas").run()
+        next(b for b in self.app.sidebar.button if b.label == "Ventas").click().run()
 
     def pulsar(self, texto):
         next(b for b in self.app.button if b.label == texto).click().run()

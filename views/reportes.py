@@ -13,7 +13,8 @@ def mostrar_reportes():
     st.write("Consulta y descarga ventas del periodo o inventario actual en CSV, Excel y PDF.")
     with st.form("filtros_reportes"):
         inicio, fin = periodo("reportes")
-        consultar = st.form_submit_button("Generar reporte", type="primary")
+        with st.container(key="primary_action"):
+            consultar = st.form_submit_button("Generar reporte", type="primary", icon=":material/description:")
     if consultar:
         # Una consulta fallida nunca conserva una descarga anterior como actual.
         st.session_state.pop("reporte_generado", None)

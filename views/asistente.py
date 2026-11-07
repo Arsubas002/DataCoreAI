@@ -17,7 +17,8 @@ def mostrar_asistente():
     with st.form("consulta_asistente"):
         pregunta = st.selectbox("Pregunta", PREGUNTAS)
         inicio, fin = periodo("asistente")
-        enviar = st.form_submit_button("Consultar asistente", type="primary")
+        with st.container(key="primary_action"):
+            enviar = st.form_submit_button("Consultar asistente", type="primary", icon=":material/auto_awesome:")
     if enviar:
         st.session_state.pop("respuesta_asistente", None)
         st.session_state.pop("evidencia_asistente", None)
@@ -34,13 +35,14 @@ def mostrar_asistente():
             st.session_state.evidencia_asistente = datos
     if "respuesta_asistente" in st.session_state:
         pregunta, inicio, fin, generado, texto, filas = st.session_state.respuesta_asistente
-        st.subheader(pregunta)
-        st.write(texto)
-        if filas:
-            tabla_comercial(filas)
-        st.caption(f"Fuente: DataCoreAI · Periodo consultado: {inicio} a {fin}, inclusive · Consulta: {generado:%d/%m/%Y %H:%M %z}")
-        st.caption("Fechas locales de SQL Server. Inventario actual. Vuelve a consultar para actualizar la respuesta; las consultas no forman una instantánea transaccional.")
-        mostrar_opcion_groq(pregunta)
+        with st.chat_message("assistant", avatar=":material/auto_awesome:"):
+            st.subheader(pregunta)
+            st.write(texto)
+            if filas:
+                tabla_comercial(filas)
+            st.caption(f"Fuente: DataCoreAI · Periodo consultado: {inicio} a {fin}, inclusive · Consulta: {generado:%d/%m/%Y %H:%M %z}")
+            st.caption("Fechas locales de SQL Server. Inventario actual. Vuelve a consultar para actualizar la respuesta; las consultas no forman una instantánea transaccional.")
+            mostrar_opcion_groq(pregunta)
     st.caption("Solo lectura: no registra ventas ni cambia existencias. El modo guiado no envía datos externos; Groq requiere envío explícito.")
 
 

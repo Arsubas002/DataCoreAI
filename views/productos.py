@@ -17,7 +17,7 @@ def mostrar_productos():
     busqueda = st_keyup("Buscar por código o nombre", key="buscar_productos",
                         debounce=300, placeholder="Escribe un código o nombre…") or ""
     incluir_inactivos = st.checkbox("Mostrar también productos inactivos")
-    st.button("Actualizar listado")  # El clic vuelve a ejecutar las consultas.
+    st.button("Actualizar listado", icon=":material/refresh:")  # El clic vuelve a ejecutar las consultas.
     try:
         productos = listar_productos(busqueda, incluir_inactivos)
         categorias = listar_categorias()
@@ -86,7 +86,8 @@ def mostrar_productos():
         with minimo_col:
             minimo = st.number_input("Stock mínimo", min_value=0, max_value=2147483647,
                                     value=int(producto["StockMinimo"]) if producto else 5, step=1)
-        guardar = st.form_submit_button("Guardar producto", type="primary", disabled=solo_lectura())
+        with st.container(key="primary_action"):
+            guardar = st.form_submit_button("Guardar producto", type="primary", icon=":material/save:", disabled=solo_lectura())
     if guardar:
         try:
             guardar_producto(codigo, nombre, categoria, precio, existencias, minimo,
@@ -115,7 +116,7 @@ def mostrar_productos():
                     descartar_edicion(seleccionado)
                     st.session_state["aviso_productos"] = "Producto desactivado. Sus datos se conservan."
                     st.rerun()
-        if st.button("Recargar versión del producto"):
+        if st.button("Recargar versión del producto", icon=":material/sync:"):
             descartar_edicion(seleccionado)
             st.rerun()
 

@@ -56,7 +56,7 @@ def mostrar_carrito():
             producto_id = st.selectbox("Producto activo", list(productos_por_id), key="producto_activo_venta",
                                       format_func=lambda i: f"{productos_por_id[i]['Codigo']} · {productos_por_id[i]['Nombre']} · S/ {productos_por_id[i]['Precio']:.2f} · Stock: {productos_por_id[i]['Existencias']}")
             cantidad = st.number_input("Cantidad para agregar", min_value=1, max_value=2147483647, value=1, step=1)
-            agregar = st.form_submit_button("Agregar al carrito")
+            agregar = st.form_submit_button("Agregar al carrito", icon=":material/add_shopping_cart:")
         if agregar:
             producto = productos_por_id[producto_id]
             acumulado = carrito.get(producto_id, {}).get("Cantidad", 0) + cantidad
@@ -137,7 +137,7 @@ def mostrar_historial():
     pagina = st.number_input("Página del historial", min_value=1, max_value=21474836,
                              value=1, step=1, key="pagina_historial")
     st.caption("Hasta 100 ventas por página, de más recientes a antiguas. Cada venta conserva todos sus detalles.")
-    st.button("Actualizar historial")
+    st.button("Actualizar historial", icon=":material/refresh:")
     try:
         filas = listar_historial(limite=100, desplazamiento=(pagina - 1) * 100)
     except Exception:

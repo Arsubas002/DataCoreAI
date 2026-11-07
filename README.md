@@ -2,6 +2,9 @@
 
 ## Versión candidata para pruebas locales
 
+Interfaz grafito/ámbar con navegación, KPIs y paneles renovados. Consulta el
+[sistema visual y las capturas antes/después](docs/DISENO_PREMIUM.md).
+
 Aplicación de gestión comercial con seis pantallas integradas, reportes CSV/Excel/PDF
 y asistente comercial con explicación Groq opcional. La rama final parte de la PR #7
 y conserva sus commits y los desarrollos anteriores.

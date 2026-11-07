@@ -35,7 +35,7 @@ La comprobación de SQL Server Windows real permanece pendiente. Main conserva
 | Reportes | CSV UTF-8, Excel tipado y PDF paginado en memoria, con filtros, hora, alcance y límites |
 | Asistente | Cuatro preguntas permitidas, cálculos verificables, fuente/periodo y explicación Groq opcional |
 | Seguridad de revisión | DATACORE_READ_ONLY=1 bloquea las tres escrituras de negocio antes de conectar y deshabilita sus botones |
-| Interfaz | Tema oscuro, tarjetas, filtros y tablas con encabezados españoles, formatos monetarios, gráficos en cian y adaptación a anchuras pequeñas |
+| Interfaz | Tema oscuro, tarjetas, filtros y tablas con encabezados españoles, formatos monetarios, gráficos ámbar y adaptación a anchuras pequeñas |
 | Diagnóstico | Sin conexión por defecto; --sql opcional consulta solo nombres del esquema, sin filas comerciales ni escrituras |
 
 El modo de solo lectura conserva una confirmación incierta y su clave sin
@@ -62,7 +62,7 @@ La [lista de aceptación local](PRUEBAS_LOCALES_V1.md) sigue pendiente en tu equ
 ## Pruebas y reproducción
 
 Suite de partida #7: 59 descubiertas, 55 aprobadas, 4 SQL omitidas.
-Suite de estabilización local: **85 descubiertas, 81 aprobadas, 4 SQL omitidas, 0 fallos,
+Suite de estabilización local: **86 descubiertas, 82 aprobadas, 4 SQL omitidas, 0 fallos,
 0 errores, 0 intentos SQL real y 0 intentos HTTP real**, Python 3.13.17/Linux.
 
 ```powershell
@@ -128,3 +128,10 @@ Windows; el modelo no tiene acceso a esa conexión.
 
 No se modificaron ni eliminaron datos reales. No se ejecutaron scripts SQL,
 migraciones, cambios de permisos, despliegues ni fusiones a main.
+
+## Actualización visual
+
+La misma PR incorpora el [diseño premium grafito/ámbar](DISENO_PREMIUM.md),
+con navegación por botones e iconos, paneles equilibrados y KPIs adaptables.
+No modifica SQL ni servicios de negocio. Los indicadores proceden de las consultas
+existentes; no se presentan crecimientos sin comparación de periodos.
