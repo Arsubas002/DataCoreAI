@@ -346,3 +346,100 @@
   outline: 2px solid #DDB566;
   outline-offset: 3px;
 }
+
+
+/* Visual refinement v2: stronger hierarchy, depth and interaction without generated selectors. */
+:root {
+  --dc-gold:#e4b85e;
+  --dc-gold-soft:#f5d99e;
+  --dc-edge:#38342c;
+  --dc-panel:#191a1a;
+}
+.dc-brand-mark {
+  width:46px;
+  height:46px;
+  border-radius:14px;
+  box-shadow:0 8px 28px rgba(219,173,87,.15),inset 0 1px rgba(255,255,255,.28);
+}
+.dc-brand-name { font-size:23px;letter-spacing:-.9px; }
+.dc-eyebrow { letter-spacing:2.8px; }
+.dc-header h1 {
+  font-size:clamp(30px,3vw,45px);
+  font-weight:760;
+  letter-spacing:-1.8px;
+  line-height:1.1;
+}
+.dc-subtitle { font-size:14px;max-width:780px; }
+.dc-topline { border-bottom-color:#3c3427;padding-bottom:20px; }
+.st-key-navigation button {
+  border:1px solid transparent;
+  border-radius:11px;
+  padding:14px 17px;
+  transition:background .18s,border-color .18s,transform .18s;
+}
+.st-key-navigation button:hover {
+  background:#292722;
+  border-color:#4b402e;
+  transform:translateX(3px);
+}
+.st-key-nav_active button {
+  background:linear-gradient(90deg,#3c2f1b,#28251e)!important;
+  border-color:#69512d!important;
+  box-shadow:inset 3px 0 var(--dc-gold),0 4px 16px rgba(0,0,0,.12);
+}
+.st-key-panel_ventas,.st-key-panel_filtros,.st-key-panel_ingresos,.st-key-panel_stock,.st-key-panel_productos,.st-key-panel_alertas,.st-key-panel_catalogo,.st-key-panel_inventario,.st-key-panel_asistente,.st-key-panel_reportes {
+  background:linear-gradient(155deg,#20201f 0%,#181919 70%);
+  border:1px solid var(--dc-edge);
+  border-radius:18px;
+  padding:24px;
+  box-shadow:0 12px 34px rgba(0,0,0,.15),inset 0 1px rgba(255,255,255,.025);
+}
+.st-key-panel_filtros {
+  background:linear-gradient(100deg,#25231f,#1b1b1b);
+  border-color:#494032;
+  padding:18px 22px;
+}
+.dc-panel-heading h3 { font-size:17px;letter-spacing:-.4px;font-weight:720; }
+.dc-panel-heading span { letter-spacing:1.1px;text-transform:uppercase;color:#b5a184; }
+.st-key-kpi_income,.st-key-kpi_sales,.st-key-kpi_units,.st-key-kpi_alerts {
+  background:radial-gradient(circle at 90% 0%,rgba(221,181,102,.105),transparent 52%),linear-gradient(145deg,#29261f,#1b1b1b 78%);
+  border:1px solid #51432d;
+  border-radius:18px;
+  box-shadow:0 14px 28px rgba(0,0,0,.18),inset 0 1px rgba(255,255,255,.06);
+  padding:23px;
+  transition:transform .18s,box-shadow .18s,border-color .18s;
+}
+.st-key-kpi_income:hover,.st-key-kpi_sales:hover,.st-key-kpi_units:hover,.st-key-kpi_alerts:hover {
+  transform:translateY(-3px);
+  border-color:#9b783e;
+  box-shadow:0 18px 35px rgba(0,0,0,.25),0 0 0 1px rgba(221,181,102,.08);
+}
+.dc-kpi-icon { width:37px;height:37px;border:1px solid #66512f;background:#40331f; }
+.dc-kpi-icon svg { width:19px;height:19px; }
+.st-key-primary_action button {
+  background:linear-gradient(135deg,#f1cd84,#d9a64d);
+  border:1px solid #eac16e;
+  border-radius:10px;
+  box-shadow:0 7px 18px rgba(214,163,67,.16);
+}
+.st-key-primary_action button:hover {
+  background:linear-gradient(135deg,#ffe0a2,#e5b761);
+  box-shadow:0 9px 23px rgba(214,163,67,.25);
+}
+.dc-sidebar-note {
+  background:linear-gradient(145deg,#26241f,#1c1d1d);
+  border-color:#494031;
+  border-radius:14px;
+}
+.dc-empty { background:rgba(221,181,102,.035);padding:32px; }
+.dc-footer { margin-top:36px;padding-top:20px; }
+@media(max-width:760px) {
+  .dc-header h1 {font-size:30px;letter-spacing:-1.1px}
+  .st-key-panel_ventas,.st-key-panel_filtros,.st-key-panel_ingresos,.st-key-panel_stock,.st-key-panel_productos,.st-key-panel_alertas,.st-key-panel_catalogo,.st-key-panel_inventario,.st-key-panel_asistente,.st-key-panel_reportes {padding:15px;border-radius:14px}
+  .st-key-kpi_income,.st-key-kpi_sales,.st-key-kpi_units,.st-key-kpi_alerts {padding:18px;border-radius:14px}
+  .st-key-navigation button:hover {transform:none}
+}
+@media(prefers-reduced-motion:reduce) {
+  .st-key-navigation button,.st-key-kpi_income,.st-key-kpi_sales,.st-key-kpi_units,.st-key-kpi_alerts {transition:none}
+  .st-key-navigation button:hover,.st-key-kpi_income:hover,.st-key-kpi_sales:hover,.st-key-kpi_units:hover,.st-key-kpi_alerts:hover {transform:none}
+}
