@@ -14,6 +14,8 @@ COLUMNAS = {
 
 def csv_reporte(filas, tipo, inicio, fin, generado: datetime):
     """CSV UTF-8 BOM con metadatos y columnas estables incluso sin filas."""
+    if tipo not in COLUMNAS:
+        raise ValueError("Tipo de reporte no permitido.")
     columnas = COLUMNAS[tipo]
     salida = StringIO(newline="")
     escritor = csv.writer(salida)
@@ -22,7 +24,7 @@ def csv_reporte(filas, tipo, inicio, fin, generado: datetime):
         if isinstance(valor, Decimal):
             return format(valor, ".2f")
         if isinstance(valor, str) and (valor.lstrip().startswith(("=", "+", "-", "@"))
-                                       or any(c in valor for c in "\t\r\n")):
+                                       or "\ufeff" in valor or any(ord(c) < 32 for c in valor)):
             return "'" + valor
         return valor
 

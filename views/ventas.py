@@ -1,6 +1,7 @@
 """Carrito en sesión: solo el botón Confirmar venta realiza escrituras."""
 
 from copy import deepcopy
+from services.configuracion import solo_lectura
 from uuid import uuid4
 
 import streamlit as st
@@ -98,7 +99,7 @@ def mostrar_carrito():
                   for l in lineas], width="stretch", hide_index=True)
     st.metric("Total", f"S/ {total:.2f}")
     st.caption("Para cambiar un producto, elimínalo y agrega su reemplazo. El stock y los precios se validan nuevamente al confirmar.")
-    if st.button("Confirmar venta", type="primary"):
+    if st.button("Confirmar venta", type="primary", disabled=solo_lectura()):
         # La clave y la copia no cambian durante reintentos de resultado incierto.
         st.session_state.venta_pendiente = {"SolicitudID": str(uuid4()), "ClienteID": cliente_id,
                                            "Lineas": deepcopy(lineas)}
@@ -107,6 +108,9 @@ def mostrar_carrito():
 
 def confirmar_pendiente(ejecutar=False):
     pendiente = st.session_state.venta_pendiente
+    if solo_lectura():
+        st.warning("Modo de solo lectura: la confirmación pendiente se conserva sin reintentar. No pierdas su clave ni crees otra venta.")
+        return
     if ejecutar or st.button("Reintentar confirmación"):
         try:
             with st.spinner("Validando y registrando venta..."):

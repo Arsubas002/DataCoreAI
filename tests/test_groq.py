@@ -101,6 +101,11 @@ class GroqTests(TestCase):
                       respuesta("texto", tool_calls=[{"function": {"name": "DELETE"}}]),
                       respuesta_bytes(b"x" * (64 * 1024 + 1)),
                       respuesta_bytes(json.dumps({"choices": [{"finish_reason": "length", "message": {"content": "cortado"}}]}).encode())]
+        resultados.extend(respuesta_bytes(json.dumps(estructura).encode()) for estructura in (
+            None, [], {"choices": [None]}, {"choices": {"0": {}}},
+            {"choices": [{"finish_reason": "stop", "message": None}]},
+            {"choices": [{"finish_reason": "stop", "message": []}]},
+        ))
         with patch.dict(os.environ, ENTORNO):
             for resultado in resultados:
                 with self.subTest(resultado=resultado.status_code):

@@ -35,3 +35,19 @@ def tarjeta_metrica(columna, etiqueta, valor):
     with columna:
         with st.container(border=True):
             st.metric(etiqueta, valor)
+
+
+def tabla_comercial(filas):
+    """Encabezados y formatos legibles sin cambiar las claves ni los valores."""
+    st.dataframe(filas, hide_index=True, width="stretch", column_config={
+        "Codigo": st.column_config.TextColumn("Código"),
+        "Nombre": st.column_config.TextColumn("Producto"),
+        "Dia": st.column_config.DateColumn("Fecha", format="DD/MM/YYYY"),
+        "NumeroVentas": st.column_config.NumberColumn("Ventas", format="%d"),
+        "TotalVentas": st.column_config.NumberColumn("Ingresos (S/)", format="%.2f"),
+        "Ingresos": st.column_config.NumberColumn("Ingresos (S/)", format="%.2f"),
+        "Unidades": st.column_config.NumberColumn("Unidades vendidas", format="%d"),
+        "Existencias": st.column_config.NumberColumn("Disponibles", format="%d"),
+        "StockMinimo": st.column_config.NumberColumn("Stock mínimo", format="%d"),
+        "Estado": st.column_config.TextColumn("Estado"),
+    })

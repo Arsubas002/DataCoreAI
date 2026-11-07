@@ -4,7 +4,7 @@ from datetime import datetime
 import streamlit as st
 
 from database.dashboard import resumen_comercial
-from views.componentes import periodo
+from views.componentes import periodo, tabla_comercial
 from services.reportes import csv_reporte
 from services.exportaciones import excel_reporte, pdf_reporte
 
@@ -46,7 +46,7 @@ def mostrar_reportes():
         st.subheader(titulo)
         filas = datos[tipo]
         if filas:
-            st.dataframe(filas, hide_index=True, width="stretch")
+            tabla_comercial(filas)
         else:
             st.info("Sin resultados para este reporte.")
         clave = (tipo, formato)

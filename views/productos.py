@@ -2,6 +2,7 @@
 
 import streamlit as st
 from st_keyup import st_keyup
+from services.configuracion import solo_lectura
 
 from database.productos import (
     desactivar_producto, guardar_producto, listar_categorias, listar_productos,
@@ -69,7 +70,7 @@ def mostrar_productos():
                                      value=int(producto["Existencias"]) if producto else 0, step=1)
         minimo = st.number_input("Stock mínimo", min_value=0, max_value=2147483647,
                                 value=int(producto["StockMinimo"]) if producto else 5, step=1)
-        guardar = st.form_submit_button("Guardar producto", type="primary")
+        guardar = st.form_submit_button("Guardar producto", type="primary", disabled=solo_lectura())
     if guardar:
         try:
             guardar_producto(codigo, nombre, categoria, precio, existencias, minimo,
@@ -86,7 +87,7 @@ def mostrar_productos():
     if producto:
         with st.expander("Desactivar producto"):
             confirmar = st.checkbox("Confirmo que deseo desactivar este producto", key=f"confirmar_{seleccionado}")
-            if st.button("Desactivar", disabled=not confirmar, key=f"desactivar_{seleccionado}"):
+            if st.button("Desactivar", disabled=solo_lectura() or not confirmar, key=f"desactivar_{seleccionado}"):
                 try:
                     desactivar_producto(seleccionado, st.session_state[clave_version])
                 except ValueError as error:

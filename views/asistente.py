@@ -6,7 +6,7 @@ import json
 import streamlit as st
 
 from database.dashboard import resumen_comercial
-from views.componentes import periodo
+from views.componentes import periodo, tabla_comercial
 from services.asistente import PREGUNTAS, responder
 from services.groq import ErrorGroq, configuracion_desde_entorno, evidencia_permitida, explicar_con_groq
 
@@ -37,7 +37,7 @@ def mostrar_asistente():
         st.subheader(pregunta)
         st.write(texto)
         if filas:
-            st.dataframe(filas, hide_index=True, width="stretch")
+            tabla_comercial(filas)
         st.caption(f"Fuente: DataCoreAI · Periodo consultado: {inicio} a {fin}, inclusive · Consulta: {generado:%d/%m/%Y %H:%M %z}")
         st.caption("Fechas locales de SQL Server. Inventario actual. Vuelve a consultar para actualizar la respuesta; las consultas no forman una instantánea transaccional.")
         mostrar_opcion_groq(pregunta)

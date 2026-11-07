@@ -8,6 +8,7 @@ from uuid import UUID
 
 from database.connection import obtener_conexion
 from database.productos import consultar
+from services.configuracion import exigir_escritura
 
 MAX_IMPORTE = Decimal("9999999999.99")
 
@@ -64,6 +65,7 @@ def listar_historial():
 
 def registrar_venta(cliente_id, lineas, solicitud_id):
     """Reintentar siempre con la MISMA clave y contenido si el resultado es incierto."""
+    exigir_escritura()
     if type(cliente_id) is not int or cliente_id <= 0:
         raise ValueError("Selecciona un cliente válido.")
     solicitud_id = str(UUID(str(solicitud_id)))

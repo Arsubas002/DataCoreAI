@@ -13,6 +13,9 @@ class PruebasInterfazVentas(unittest.TestCase):
         productos = [{"ProductoID": 1, "Codigo": "P1", "Nombre": "Mouse",
                       "Precio": Decimal("8.50"), "Existencias": 10, "Activo": True}]
         parches = [
+            patch("views.dashboard.resumen_comercial", return_value={
+                "ventas": {"NumeroVentas": 0, "TotalVentas": 0},
+                "tendencia": [], "productos_vendidos": [], "inventario": []}),
             patch("views.ventas.listar_clientes", return_value=[
                 {"ClienteID": 1, "Nombre": "Cliente prueba", "Documento": "PRUEBA"}]),
             patch("views.ventas.listar_productos", return_value=productos),

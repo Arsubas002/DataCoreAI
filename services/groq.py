@@ -120,12 +120,21 @@ def explicar_con_groq(pregunta, datos):
     except ValueError:
         raise ErrorGroq("Groq devolvió una respuesta no válida.") from None
     try:
-        eleccion = contenido["choices"][0]
-        if eleccion.get("finish_reason") != "stop":
+        if not isinstance(contenido, dict):
             raise ValueError
-        mensaje = eleccion["message"]
-        texto = mensaje["content"]
-        if mensaje.get("tool_calls") or mensaje.get("function_call") or not isinstance(texto, str) or not texto.strip() or len(texto) > MAX_RESPUESTA or configuracion.api_key in texto:
+        elecciones = contenido.get("choices")
+        if not isinstance(elecciones, list) or len(elecciones) != 1:
+            raise ValueError
+        eleccion = elecciones[0]
+        if not isinstance(eleccion, dict) or eleccion.get("finish_reason") != "stop":
+            raise ValueError
+        mensaje = eleccion.get("message")
+        if not isinstance(mensaje, dict):
+            raise ValueError
+        texto = mensaje.get("content")
+        if (mensaje.get("tool_calls") or mensaje.get("function_call")
+                or not isinstance(texto, str) or not texto.strip()
+                or len(texto) > MAX_RESPUESTA or configuracion.api_key in texto):
             raise ValueError
     except (KeyError, IndexError, TypeError, ValueError):
         raise ErrorGroq("Groq devolvió una respuesta no válida.") from None

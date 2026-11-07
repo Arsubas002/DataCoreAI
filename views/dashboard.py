@@ -6,7 +6,7 @@ import plotly.express as px
 import streamlit as st
 
 from database.dashboard import resumen_comercial
-from views.componentes import periodo, tarjeta_metrica
+from views.componentes import periodo, tarjeta_metrica, tabla_comercial
 
 
 def _soles(valor):
@@ -53,11 +53,12 @@ def mostrar_dashboard():
         grafico = tabla.assign(Dia=tabla["Dia"].map(str), TotalVentas=tabla["TotalVentas"].map(float))
         figura = px.line(grafico, x="Dia", y="TotalVentas", markers=True,
                          labels={"Dia": "Fecha", "TotalVentas": "Ingresos (S/)"},
-                         template="plotly_dark")
-        figura.update_layout(margin=dict(l=10, r=10, t=15, b=10))
+                         template="plotly_dark", color_discrete_sequence=["#38BDF8"])
+        figura.update_layout(margin=dict(l=10, r=10, t=15, b=10), hovermode="x unified",
+                             paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
         st.plotly_chart(figura, width="stretch")
         with st.expander("Ver datos de ingresos"):
-            st.dataframe(tabla, hide_index=True, width="stretch")
+            tabla_comercial(tabla)
     else:
         st.info("No se registraron ventas en el periodo seleccionado.")
 
@@ -66,19 +67,20 @@ def mostrar_dashboard():
         tabla = pd.DataFrame(datos["productos_vendidos"])
         figura = px.bar(tabla, x="Unidades", y="Codigo", hover_name="Nombre", orientation="h",
                         labels={"Unidades": "Unidades vendidas", "Codigo": "Código de producto"},
-                        template="plotly_dark")
+                        template="plotly_dark", color_discrete_sequence=["#38BDF8"])
         figura.update_layout(yaxis={"categoryorder": "total ascending"},
-                             margin=dict(l=10, r=10, t=15, b=10))
+                             margin=dict(l=10, r=10, t=15, b=10),
+                             paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
         st.plotly_chart(figura, width="stretch")
         with st.expander("Ver detalle de productos vendidos"):
-            st.dataframe(tabla, hide_index=True, width="stretch")
+            tabla_comercial(tabla)
     else:
         st.caption("Todavía no hay productos vendidos en el periodo.")
 
     st.subheader("Alertas de inventario")
     if stock_bajo:
         st.warning(f"{len(stock_bajo)} producto(s) requieren revisión de existencias.")
-        st.dataframe(pd.DataFrame(stock_bajo), hide_index=True, width="stretch")
+        tabla_comercial(pd.DataFrame(stock_bajo))
     else:
         st.success("No hay productos activos con stock bajo o agotado.")
     st.caption("Las cifras se consultan en SQL Server; no se generan ventas ni se modifica el inventario.")

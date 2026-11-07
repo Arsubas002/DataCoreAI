@@ -19,13 +19,13 @@ DATOS = {"ventas": {"NumeroVentas": 1, "TotalVentas": Decimal("0.30")},
 class ReportesTests(TestCase):
     def test_csv_conserva_precision_y_neutraliza_formulas(self):
         filas = [{"Codigo": "001", "Nombre": nombre, "Unidades": 2, "Ingresos": Decimal("0.30")}
-                 for nombre in ("Árbol, Perú", "=1+1", "  @SUM(1)", "\ttexto", "a\nb")]
+                 for nombre in ("Árbol, Perú", "=1+1", "  @SUM(1)", "\ttexto", "a\nb", "\ufeff=SUM(A1)", "\x01+2")]
         contenido = csv_reporte(filas, "productos_vendidos", date(2026, 1, 1), date(2026, 1, 31), datetime(2026, 2, 1))
         filas_csv = list(csv.reader(StringIO(contenido.decode("utf-8-sig"))))
         self.assertEqual(filas_csv[6], ["001", "Árbol, Perú", "2", "0.30"])
         for fila in filas_csv[7:]:
             self.assertTrue(fila[1].startswith("'"))
-        self.assertEqual(filas_csv[3][-1], "5")
+        self.assertEqual(filas_csv[3][-1], "7")
 
     def test_csv_vacio_tiene_encabezados(self):
         contenido = csv_reporte([], "tendencia", date.today(), date.today(), datetime.now())

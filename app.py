@@ -1,6 +1,7 @@
-"""Interfaz inicial de DataCore AI. Ejecutar con streamlit run app.py."""
+"""Entrada de la interfaz comercial. Ejecutar con streamlit run app.py."""
 
 import streamlit as st
+from services.configuracion import solo_lectura
 
 from views.productos import mostrar_productos
 from views.inventario import mostrar_inventario
@@ -25,8 +26,11 @@ with st.sidebar:
     st.caption("ESPACIO DE TRABAJO")
     st.caption("Dashboard · Reportes · Asistente")
     st.caption("SQL Server · Autenticación de Windows")
+    st.caption("SOLO LECTURA" if solo_lectura() else "OPERACIÓN COMERCIAL")
 
 cabecera(pantalla)
+if solo_lectura():
+    st.info("Modo de solo lectura: puedes consultar y exportar. Guardar productos, desactivar y confirmar ventas están bloqueados.")
 
 if pantalla == "Dashboard":
     mostrar_dashboard()

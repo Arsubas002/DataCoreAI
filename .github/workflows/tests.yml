@@ -2,9 +2,17 @@ name: Pruebas aisladas
 on: [push, pull_request]
 permissions:
   contents: read
+concurrency:
+  group: pruebas-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
   unittest:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
     env:
       DATACORE_TEST_SQL: '0'
       DATACORE_GROQ_ENABLED: '0'
@@ -14,6 +22,18 @@ jobs:
         with:
           python-version: '3.13'
           cache: pip
-      - run: python -m pip install -r requirements-dev.txt
-      - run: python -m unittest discover -s tests -v
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+            constraints-tested.txt
+      - run: python -m pip install -c constraints-tested.txt -r requirements-dev.txt
+      - run: python -m pip check
+      - run: python scripts/pruebas_aisladas.py
+      - run: python -m compileall -q app.py database services views scripts tests
       - run: git diff --check
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pruebas-${{ matrix.os }}
+          path: test-results/resultado.json
+          if-no-files-found: warn

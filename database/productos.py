@@ -4,6 +4,7 @@ from contextlib import closing
 from decimal import Decimal, InvalidOperation
 
 from database.connection import obtener_conexion
+from services.configuracion import exigir_escritura
 
 
 def validar_producto(codigo, nombre, categoria_id, precio, existencias, stock_minimo):
@@ -62,6 +63,7 @@ def listar_productos(busqueda="", incluir_inactivos=False):
 
 def guardar_producto(codigo, nombre, categoria_id, precio, existencias, stock_minimo,
                      producto_id=None, version=None):
+    exigir_escritura()
     valores = validar_producto(codigo, nombre, categoria_id, precio, existencias, stock_minimo)
     with closing(obtener_conexion("DataCoreAI")) as conexion:
         try:
@@ -99,6 +101,7 @@ def guardar_producto(codigo, nombre, categoria_id, precio, existencias, stock_mi
 
 def desactivar_producto(producto_id, version):
     """Desactivación lógica: conserva el registro y sus referencias."""
+    exigir_escritura()
     with closing(obtener_conexion("DataCoreAI")) as conexion:
         try:
             cursor = conexion.cursor()
