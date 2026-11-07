@@ -3,44 +3,48 @@ on:
   workflow_dispatch:
     inputs:
       authorize_macos_minutes:
-        description: 'He revisado disponibilidad/costo y autorizo esta ejecución macOS sin firma'
+        description: 'Autorizo una ejecución macOS sin firma, máximo 30 minutos'
         required: true
         default: false
         type: boolean
-  pull_request:
-    types: [labeled]
+      authorized_sha:
+        description: 'SHA completo revisado y autorizado'
+        required: true
+        type: string
+  pull_request_review:
+    types: [submitted]
 permissions:
   contents: read
 concurrency:
-  group: ios-macos-${{ github.event.pull_request.number || github.ref }}
+  group: ios-first-build-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: false
 jobs:
   simulator:
-    # The label is an explicit spend authorization for this event, never reused on synchronize.
-    # Only the owner, same-repository code and the designated iOS branch may authorize it.
+    # Review submission is distinct from pull_request and is not suppressed by [skip ci].
+    # Owner posts exactly: AUTHORIZE_IOS_SIMULATOR <full head SHA> MAX_30_MINUTES
+    # No approval of one's own PR, label, new commit, default-branch change or rerun is needed.
     if: >-
-      github.actor == github.repository_owner &&
-      ((github.event_name == 'workflow_dispatch' && inputs.authorize_macos_minutes == true && github.ref == 'refs/heads/feature/datacore-ios') ||
-       (github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'ios-macos-cost-approved' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feature/datacore-ios'))
+      github.run_attempt == 1 && github.actor == github.repository_owner &&
+      ((github.event_name == 'workflow_dispatch' && inputs.authorize_macos_minutes == true && inputs.authorized_sha == github.sha && github.ref == 'refs/heads/feature/datacore-ios') ||
+       (github.event_name == 'pull_request_review' && github.event.action == 'submitted' && github.event.pull_request.number == 12 && github.event.review.user.login == github.repository_owner && github.event.review.state == 'commented' && github.event.review.commit_id == github.event.pull_request.head.sha && github.event.review.body == format('AUTHORIZE_IOS_SIMULATOR {0} MAX_30_MINUTES', github.event.pull_request.head.sha) && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feature/datacore-ios'))
     runs-on: macos-15
     timeout-minutes: 30
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+      DATACORE_EXPECTED_XCODE: '26.3'
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
-      - name: Verify selected Xcode exists (never silently substitute)
-        run: |
-          test -d "$DEVELOPER_DIR"
-          xcodebuild -version
-      - name: Test two iPhones, capture XCTest/logs and build unsigned Release
+      - name: Check real toolchain, test two iPhones and build unsigned Release
+        timeout-minutes: 25
         run: bash ios/tools/run_simulator_tests.sh
       - uses: actions/upload-artifact@v4
         if: always()
+        timeout-minutes: 4
         with:
           name: ios-simulator-evidence-${{ github.event.pull_request.head.sha || github.sha }}
           path: ios-evidence/
-          retention-days: 7
-          if-no-files-found: warn
+          retention-days: 1
+          if-no-files-found: error

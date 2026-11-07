@@ -49,6 +49,7 @@ public final class CommercialSession {
       snapshot = data
       snapshotRevision += 1
       self.error = nil
+    } catch let cancelled as URLError where cancelled.code == .cancelled {
     } catch is CancellationError {} catch {
       if token == generation && request == activeLoad {
         self.error = "No se pudieron cargar los datos. Puedes reintentar."
@@ -149,6 +150,7 @@ public final class CommercialSession {
       answers.removeAll { $0.question == question }
       answers.append(result)
       conversationRevision += 1
+    } catch let cancelled as URLError where cancelled.code == .cancelled {
     } catch is CancellationError {} catch {
       if token == generation {
         self.error = "No se pudo obtener la respuesta. Reintenta sin compartir información privada."

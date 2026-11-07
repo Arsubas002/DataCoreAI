@@ -68,7 +68,7 @@ private final class NoRedirects: NSObject, URLSessionTaskDelegate, @unchecked Se
   }
 }
 
-enum APIError: Error, LocalizedError {
+enum APIError: Error, LocalizedError, Equatable {
   case configuration, transport, response, tooLarge
   var errorDescription: String? {
     switch self {
@@ -85,14 +85,17 @@ actor APIDemoRepository: BusinessRepository {
   private let base: URL
   private let session: URLSession
   private let redirectDelegate: NoRedirects
-  init(base: URL) throws {
+  init(base: URL, protocolClasses: [AnyClass] = []) throws {
     guard base.scheme?.lowercased() == "https", base.host != nil, base.user == nil,
       base.password == nil,
       base.query == nil, base.fragment == nil, base.path.isEmpty || base.path == "/"
     else { throw APIError.configuration }
     self.base = base
     let config = URLSessionConfiguration.ephemeral
+    // Internal injection for URLProtocol tests; production keeps the system stack.
+    if !protocolClasses.isEmpty { config.protocolClasses = protocolClasses }
     config.urlCache = nil
+    config.urlCredentialStorage = nil
     config.httpCookieStorage = nil
     config.httpShouldSetCookies = false
     config.timeoutIntervalForRequest = 15
@@ -101,6 +104,7 @@ actor APIDemoRepository: BusinessRepository {
     redirectDelegate = delegate
     session = URLSession(configuration: config, delegate: delegate, delegateQueue: nil)
   }
+  deinit { session.invalidateAndCancel() }
   private enum Endpoint: String {
     case snapshot = "v1/snapshot"
     case assistant = "v1/assistant"
@@ -125,6 +129,8 @@ actor APIDemoRepository: BusinessRepository {
         data.append(byte)
       }
       return data
+    } catch let cancelled as URLError where cancelled.code == .cancelled {
+      throw CancellationError()
     } catch is CancellationError { throw CancellationError() } catch let error as APIError {
       throw error
     } catch { throw APIError.transport }

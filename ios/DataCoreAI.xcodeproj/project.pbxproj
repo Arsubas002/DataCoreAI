@@ -52,14 +52,14 @@
 		};
 		"12F40D98106F63D58DC9D948" = {
 			"isa" = "PBXGroup";
-			"children" = ("E65FEB5C31EC70AC31DCC784");
+			"children" = ("E65FEB5C31EC70AC31DCC784", "83CA4F031F8C96E72007CA8E");
 			"name" = "DataCoreAITests";
 			"sourceTree" = "<group>";
 		};
 		"14040ED3FE2EC8296BD9B0F5" = {
 			"isa" = "PBXSourcesBuildPhase";
 			"buildActionMask" = "2147483647";
-			"files" = ("E91D809A6FD2675683D1C771");
+			"files" = ("E91D809A6FD2675683D1C771", "1BA78907F3BD121FD3917F89");
 			"runOnlyForDeploymentPostprocessing" = "0";
 		};
 		"184B3880442F551874B7A134" = {
@@ -72,6 +72,10 @@
 			"includeInIndex" = "0";
 			"path" = "DataCoreAIUITests.xctest";
 			"sourceTree" = "BUILT_PRODUCTS_DIR";
+		};
+		"1BA78907F3BD121FD3917F89" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "83CA4F031F8C96E72007CA8E";
 		};
 		"1F0E6716811CC9A2F2521C5B" = {
 			"isa" = "PBXBuildFile";
@@ -227,6 +231,12 @@
 			"isa" = "PBXGroup";
 			"children" = ("586CBA9CD186396BB4EAF86D", "09D0AE97EB146CB4AF71E000", "BFAEC4D79E75B17BB3290046", "87F94EB6EACCFB21E54F09B1", "05AAE9655586C3F62FCF756E", "98984EEF2D13B674C829C0D1", "5430F456B5DCBCAD1A5BA7E6", "41596081D52D0B655D423971", "3FEEA7B886624C15F13CB43E");
 			"path" = "DataCoreAI/Sources";
+			"sourceTree" = "<group>";
+		};
+		"83CA4F031F8C96E72007CA8E" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "DataCoreAITests/NetworkTests.swift";
 			"sourceTree" = "<group>";
 		};
 		"83EECB30529AF7A80E8E4A1D" = {

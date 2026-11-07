@@ -7,6 +7,8 @@ private enum TestFailure: Error { case interrupted }
 private actor ControlledRepository: BusinessRepository {
   nonisolated let mode: RepositoryMode
   let demo = DemoRepository()
+  var answerError: URLError.Code?
+  func failAnswer(_ code: URLError.Code) { answerError = code }
   var shouldHold = false
   var snapshotCount = 0
   var continuations: [Int: CheckedContinuation<Snapshot, Error>] = [:]
@@ -62,7 +64,12 @@ private actor ControlledRepository: BusinessRepository {
     return sale
   }
   func answer(_ question: Question, period: Period) async throws -> AssistantAnswer {
-    try await demo.answer(question, period: period)
+    if let code = answerError {
+      answerError = nil
+      throw URLError(
+        code, userInfo: [NSLocalizedDescriptionKey: "fictional-sensitive-server-message"])
+    }
+    return try await demo.answer(question, period: period)
   }
 }
 
@@ -209,6 +216,32 @@ final class SessionTests: XCTestCase {
     await session.confirmDemoSale()
     XCTAssertEqual(session.snapshot?.sales.count, 8)
     XCTAssertNil(session.error)
+  }
+
+  func testNetworkCancellationIsQuietAndAllowsRetry() async throws {
+    let repository = ControlledRepository()
+    let session = CommercialSession()
+    await session.replaceRepository(repository)
+    await repository.failAnswer(.cancelled)
+    await session.ask(.revenue)
+    XCTAssertNil(session.error)
+    XCTAssertFalse(session.isAnswering)
+    XCTAssertFalse(session.isWorking)
+    await session.ask(.revenue)
+    XCTAssertEqual(session.answers.count, 1)
+  }
+  func testNetworkTimeoutDoesNotLeakServerDetailsOrFabricateAnswer() async throws {
+    let repository = ControlledRepository()
+    let session = CommercialSession()
+    await session.replaceRepository(repository)
+    await repository.failAnswer(.timedOut)
+    await session.ask(.revenue)
+    XCTAssertNotNil(session.error)
+    XCTAssertFalse(session.error!.contains("fictional-sensitive"))
+    XCTAssertTrue(session.answers.isEmpty)
+    XCTAssertFalse(session.isWorking)
+    await session.ask(.revenue)
+    XCTAssertEqual(session.answers.count, 1)
   }
 
 }
