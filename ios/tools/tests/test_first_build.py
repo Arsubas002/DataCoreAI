@@ -80,7 +80,8 @@ if name=='xcodebuild':
  if os.getenv('FAIL_DEVICE')=='1' and 'generic/platform=iOS' in args: print('SIMULATED device build failure');sys.exit(43)
  if '-showBuildSettings' in args:
   root=str(pathlib.Path.cwd()/'ios')
-  settings={'CONFIGURATION':'Debug','PLATFORM_NAME':'iphonesimulator','ONLY_ACTIVE_ARCH': 'NO' if os.getenv('BAD_ARCH_POLICY')=='1' else 'YES','ARCHS':'arm64','NATIVE_ARCH_ACTUAL':'arm64','SRCROOT':root,'CODE_SIGN_ENTITLEMENTS':root+'/Config/Simulator.entitlements','CODE_SIGNING_ALLOWED':'YES','CODE_SIGNING_REQUIRED':'YES','CODE_SIGN_IDENTITY':'-','CODE_SIGN_STYLE':'Manual','DEVELOPMENT_TEAM':'','PROVISIONING_PROFILE_SPECIFIER':''}
+  settings={'CONFIGURATION':'Debug','PLATFORM_NAME':'iphonesimulator','ONLY_ACTIVE_ARCH': 'NO' if os.getenv('BAD_ARCH_POLICY')=='1' else 'YES','ARCHS':'arm64','NATIVE_ARCH_ACTUAL':'arm64','SRCROOT':root,'CODE_SIGN_ENTITLEMENTS':root+'/Config/Simulator.entitlements','CODE_SIGNING_ALLOWED':'YES','CODE_SIGNING_REQUIRED':'YES','CODE_SIGN_IDENTITY':'-','CODE_SIGN_STYLE':'Manual'}
+  if os.getenv('BAD_SIGNING_POLICY')=='1': settings['CODE_SIGN_STYLE']='Automatic'
   payload=[{'target':'DataCoreAI','buildSettings':settings}]
   if os.getenv('BAD_PACKAGE_ENTITLEMENTS')=='1': payload.append({'target':'DataCoreDomain','buildSettings':{'CODE_SIGN_ENTITLEMENTS':'Config/Simulator.entitlements','SRCROOT':root+'/Packages/DataCoreDomain'}})
   print(json.dumps(payload));sys.exit(0)
@@ -116,6 +117,7 @@ class OrchestrationTests(TestCase):
         fail_device=False,
         bad_arch_policy=False,
         bad_package_entitlements=False,
+        bad_signing_policy=False,
     ):
         workspace = tempfile.TemporaryDirectory()
         self.addCleanup(workspace.cleanup)
@@ -141,6 +143,7 @@ class OrchestrationTests(TestCase):
             "FAIL_DEVICE": str(int(fail_device)),
             "BAD_ARCH_POLICY": str(int(bad_arch_policy)),
             "BAD_PACKAGE_ENTITLEMENTS": str(int(bad_package_entitlements)),
+            "BAD_SIGNING_POLICY": str(int(bad_signing_policy)),
         }
         result = subprocess.run(
             ["bash", str(TOOLS / "run_simulator_tests.sh")],
@@ -243,3 +246,16 @@ class OrchestrationTests(TestCase):
         self.assertIn(
             "DataCoreDomain", (output / "debug-architecture-settings.json").read_text()
         )
+
+    def test_signing_failure_preserves_values_before_compile(self):
+        result, manifest, output = self.run_fixture(bad_signing_policy=True)
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        self.assertEqual(manifest["last_phase"], "debug-architecture-settings")
+        self.assertFalse((output / "small-tests.log").exists())
+        report = json.loads((output / "debug-architecture-settings.json").read_text())
+        self.assertFalse(report["verified"])
+        self.assertIn("CODE_SIGN_STYLE", report["error"])
+        observed = report["observed_signing"][0]["settings"]
+        self.assertEqual(observed["CODE_SIGN_STYLE"]["value"], "Automatic")
+        self.assertFalse(observed["DEVELOPMENT_TEAM"]["present"])
+        self.assertTrue(observed["DEVELOPMENT_TEAM"]["matches"])

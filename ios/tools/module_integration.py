@@ -6,7 +6,7 @@ from pathlib import Path
 import re
 import sys
 
-from signing_policy import validate_resolved_signing
+from signing_policy import signing_snapshot, validate_resolved_signing
 
 
 class IntegrationError(ValueError):
@@ -162,20 +162,22 @@ def main():
     modes.add_argument("--log", type=Path)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
+    report = {}
     try:
-        payload = json.load(sys.stdin) if args.resolved_settings else None
-        report = (
-            {
-                "verified": True,
-                "targets": validate_resolved_settings(payload),
-                "signing": validate_resolved_signing(payload),
-            }
-            if args.resolved_settings
-            else diagnose_log(args.log.read_text(encoding="utf-8", errors="replace"))
-        )
+        if args.resolved_settings:
+            payload = json.load(sys.stdin)
+            # Capture allowlisted values before any guard can raise; raw JSON/env is never persisted.
+            report["observed_signing"] = signing_snapshot(payload)
+            report["targets"] = validate_resolved_settings(payload)
+            report["signing"] = validate_resolved_signing(payload)
+            report["verified"] = True
+        else:
+            report = diagnose_log(
+                args.log.read_text(encoding="utf-8", errors="replace")
+            )
         code = 0
     except (IntegrationError, ValueError, OSError, TypeError) as error:
-        report = {"verified": False, "error": str(error)}
+        report.update({"verified": False, "error": str(error)})
         code = 2
     args.output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report, indent=2))

@@ -11,6 +11,91 @@ SIMULATOR_SETTINGS = {
     "DEVELOPMENT_TEAM": "",
     "PROVISIONING_PROFILE_SPECIFIER": "",
 }
+EMPTY_SIGNING_SETTINGS = frozenset(
+    {"DEVELOPMENT_TEAM", "PROVISIONING_PROFILE_SPECIFIER"}
+)
+
+
+def effective_signing_value(values, key):
+    # xcodebuild may omit empty settings. Only selectors that must be unset can default to empty.
+    return values.get(key, "" if key in EMPTY_SIGNING_SETTINGS else None)
+
+
+def signing_snapshot(payload):
+    """Allowlisted diagnostics retained on failure; never copy arbitrary build environment values."""
+    observations = []
+    if not isinstance(payload, list):
+        return observations
+    for entry in payload:
+        if not isinstance(entry, dict) or not isinstance(
+            entry.get("buildSettings"), dict
+        ):
+            continue
+        values = entry["buildSettings"]
+        name = entry.get("target")
+        # Target names come from the project graph; unexpected names need not be logged verbatim.
+        safe_name = (
+            name
+            if name
+            in {
+                "DataCoreAI",
+                "DataCoreAITests",
+                "DataCoreAIUITests",
+                "DataCoreDomain",
+                "DataCoreDomain_DataCoreDomain",
+            }
+            else "<other target>"
+        )
+        settings = {}
+        for key, expected in SIMULATOR_SETTINGS.items():
+            raw = values.get(key)
+            allowed = {
+                "CODE_SIGNING_ALLOWED": {"YES", "NO"},
+                "CODE_SIGNING_REQUIRED": {"YES", "NO"},
+                "CODE_SIGN_STYLE": {"Manual", "Automatic"},
+                "CODE_SIGN_IDENTITY": {"-", ""},
+            }.get(key, {""})
+            safe = (
+                raw
+                if raw is None or isinstance(raw, str) and raw in allowed
+                else "<redacted unexpected value>"
+            )
+            settings[key] = {
+                "present": key in values,
+                "value": safe,
+                "expected": expected,
+                "matches": effective_signing_value(values, key) == expected,
+            }
+        path = values.get("CODE_SIGN_ENTITLEMENTS")
+        root = values.get("SRCROOT")
+        path_ok = (
+            isinstance(path, str)
+            and isinstance(root, str)
+            and Path(path) == Path(root) / "Config/Simulator.entitlements"
+        )
+        exists = None
+        if path_ok:
+            try:
+                exists = Path(path).is_file()
+            except (OSError, ValueError):
+                exists = False
+        settings["CODE_SIGN_ENTITLEMENTS"] = {
+            "present": "CODE_SIGN_ENTITLEMENTS" in values,
+            "value": "$(SRCROOT)/Config/Simulator.entitlements"
+            if path_ok
+            else ""
+            if path == ""
+            else None
+            if path is None
+            else "<redacted unexpected path>",
+            "absolute": isinstance(path, str) and Path(path).is_absolute(),
+            "matches_srcroot": path_ok,
+            "exists": exists,
+        }
+        observations.append({"target": safe_name, "settings": settings})
+    return observations
+
+
 ENTITLEMENTS = "$(SRCROOT)/Config/Simulator.entitlements"
 CONDITION = "[sdk=iphonesimulator*]"
 
@@ -90,17 +175,24 @@ def validate_resolved_signing(payload):
                 raise ValueError(
                     "App entitlements must resolve to an existing absolute SRCROOT file"
                 )
-            if any(
-                values.get(key) != value for key, value in SIMULATOR_SETTINGS.items()
-            ):
+            mismatches = [
+                key
+                for key, value in SIMULATOR_SETTINGS.items()
+                if effective_signing_value(values, key) != value
+            ]
+            if mismatches:
                 raise ValueError(
-                    "App effective Debug simulator ad hoc signing policy differs"
+                    "App effective Debug simulator ad hoc signing policy differs: "
+                    + ", ".join(mismatches)
                 )
             observations.append(
                 {
                     "target": name,
                     "CODE_SIGN_ENTITLEMENTS": entitlements,
-                    **{key: values[key] for key in SIMULATOR_SETTINGS},
+                    **{
+                        key: effective_signing_value(values, key)
+                        for key in SIMULATOR_SETTINGS
+                    },
                 }
             )
         elif entitlements:

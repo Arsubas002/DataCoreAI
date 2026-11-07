@@ -1,5 +1,9 @@
 # Cuarto run: entitlements de simulador limitados al target de la app
 
+> Histórico: el quinto run se detuvo en el guard de settings antes de compilar
+> la app. La revisión actual y las limitaciones de evidencia están en
+> [IOS_EFFECTIVE_SETTINGS_FIX.md](IOS_EFFECTIVE_SETTINGS_FIX.md).
+
 ## Evidencia y causa raíz
 
 Se continuó el HEAD local/remoto `1efc5956fa16a5af7262be15dc2b178778487a3b`,

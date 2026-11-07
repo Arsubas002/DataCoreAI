@@ -6,15 +6,16 @@ Para pruebas del paquete en Mac se requiere macOS 14+ por Observation.
 Usa Swift Charts, Foundation, UIKit/PDFKit y Security del sistema. No contiene
 WebView, CocoaPods, dependencias Swift remotas ni claves API.
 
-**Estado:** [firma por target tras el cuarto run](../docs/IOS_ENTITLEMENTS_SCOPE_FIX.md).
-El tercer run compiló y ejecutó la app (26 tests de paquete y 3 UI aprobados),
-pero falló Keychain. El cuarto falló antes de los tests nativos: un override global
-de entitlements se propagó a SwiftPM y resolvió una ruta inexistente.
-Se elimina ese override: Debug/simulador usa firma ad hoc por target nativo y
-solo la app recibe entitlements vía SRCROOT; Release/dispositivo no cambia.
-La corrección espera una quinta ejecución autorizada. Keychain real sigue pendiente.
-No hay IPA ni distribución. La app de revisiones previas sí se ejecutó; esta aún
-no está validada con Xcode.
+**Estado:** [verificación efectiva tras el quinto run](../docs/IOS_EFFECTIVE_SETTINGS_FIX.md).
+El quinto run aprobó los 26 tests del paquete y se detuvo en el guard de firma
+antes de tests app/UI. El verificador descartó los valores efectivos al fallar;
+no puede recuperarse la propiedad exacta del artefacto. Se corrige una comparación
+reproducible de selectores vacíos omitidos y se conservan diagnósticos filtrados
+incluso ante fallo. Firma obligatoria ad hoc, modo Manual y entitlements de app
+siguen estrictos. Sin cambios a la configuración por target, Release ni Keychain.
+Sexta ejecución preparada, no iniciada: requiere nueva autorización. La corrección
+no está validada con Xcode; el tercer run sí había compilado/ejecutado la app.
+Sin IPA ni distribución.
 
 ## Desde Windows
 
@@ -150,12 +151,13 @@ texto exacto y primer intento. No reusa autorización en pushes o re-runs. La
 ruta se contrastó con reglas oficiales y actionlint, y una review neutral permitió
 registrar el workflow con job omitido: runner nulo, 0 pasos y 0 ms facturables
 ([evidencia](https://github.com/Arsubas002/DataCoreAI/actions/runs/42379840879)).
-Después se ejecutaron cuatro jobs autorizados; el último, 42389527111, falló por
-entitlements globales propagados a SwiftPM. La quinta ejecución requiere una nueva
-review para el SHA actual tras revisar presupuesto. Mantiene firma **ad hoc local
-solo en targets nativos Debug/simulador**, sin certificados, cuenta Apple ni
-perfiles de dispositivo. Solo la app recibe entitlements explícitos. Release e
-iPhoneOS siguen sin firma en el script. Ver el [informe de alcance](../docs/IOS_ENTITLEMENTS_SCOPE_FIX.md).
+Después se ejecutaron cinco jobs autorizados; el último, 42390365613, se detuvo
+con exit 2 en el guard de firma efectiva. No conservó sus valores de entrada; la
+nueva revisión mantiene observaciones filtradas incluso al fallar. La sexta
+requiere nueva review para el SHA actual tras revisar costo/cuota. Mantiene firma
+ad hoc solo en targets nativos Debug/simulador y entitlements únicamente en la
+app; Release/iPhoneOS del script sigue sin firma. Ver el
+[informe del verificador](../docs/IOS_EFFECTIVE_SETTINGS_FIX.md).
 Dispatch no se da por disponible mientras no exista registro/condiciones de GitHub.
 No se cambia main. No envíes una review de autorización solo para probar el evento.
 
@@ -178,7 +180,7 @@ capturas reales si Xcode los genera, más build Release iPhoneOS sin firma. Ning
 es un IPA instalable. Retención de artefactos **1 día**; el job no
 firma ni produce IPA. Mainstep 25 min y job 30 min; no es garantía de costo fijo.
 
-No se ha ejecutado un quinto macOS con la corrección de alcance. La validación
+No se ha ejecutado un sexto macOS con la corrección del verificador. La validación
 nativa, el segundo tamaño y Release/iPhone físico siguen pendientes. El simulador puede usar un runtime posterior a iOS 17: sigue pendiente probar el mínimo real.
 
 ## TestFlight y App Store: pasos pendientes del propietario

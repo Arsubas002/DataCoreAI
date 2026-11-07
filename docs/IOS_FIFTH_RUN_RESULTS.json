@@ -1,0 +1,47 @@
+{
+  "failed_run": 42390365613,
+  "failed_commit": "2df8f3f0b552998ef71b01c0cfb50190c9e70ce2",
+  "artifact_id": 13581018834,
+  "artifact_zip_sha256": "0c58efe7953dce00c50276267f3b7d88538992fd0d7c415045786ab1424c1bf4",
+  "artifact_files_verified": 9,
+  "exit_code": 2,
+  "phase": "debug-architecture-settings",
+  "observed_failure": {
+    "verified": false,
+    "error": "App effective Debug simulator ad hoc signing policy differs"
+  },
+  "original_showBuildSettings_json_retained": false,
+  "exact_native_mismatched_setting_known": false,
+  "facts_implied_by_guard_order": {
+    "architecture_guard_passed": true,
+    "app_entitlements_existing_absolute_srcroot_path_check_passed": true,
+    "at_least_one_signing_comparison_failed": true
+  },
+  "macos_domain_tests_passed_before_guard": 26,
+  "app_ui_tests_executed": 0,
+  "reproduced_verifier_defect": {
+    "missing_empty_team_or_profile_rejected_by_old_predicate": true,
+    "omission_in_this_native_run_confirmed": false
+  },
+  "fix": {
+    "only_absent_DEVELOPMENT_TEAM_and_PROVISIONING_PROFILE_SPECIFIER_normalize_to_empty": true,
+    "explicit_null_still_rejected": true,
+    "required_identity_style_signing_flags_still_strict": true,
+    "failure_keeps_allowlisted_observations": true,
+    "project_generator_or_entitlements_changed": false
+  },
+  "free_validation": {
+    "swift_domain_passed": 26,
+    "api_passed": 21,
+    "tools_passed": 47,
+    "isolated_regression_passed": 86,
+    "total_passed": 180,
+    "sql_skipped": 4,
+    "real_sql_attempts": 0,
+    "real_http_attempts": 0
+  },
+  "sixth_macos_run_started": false,
+  "corrected_guard_verified_with_real_xcode": false,
+  "keychain_native_fix_confirmed": false,
+  "ipa_created": false
+}
