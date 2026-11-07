@@ -1,0 +1,51 @@
+{
+  "failed_run": 42386740095,
+  "failed_commit": "162e03e3d63f3c2fb4c09014932912e1087cda9a",
+  "artifact_id": 13580077038,
+  "artifact_zip_sha256": "891540cbb35712358fe306c4655c307ec05848299c06d58ad144f38249efdae5",
+  "small_tests_log_sha256": "dab32910f3f573579149608b42ca0b61e2c863fc13eed5a4a543c6358dc7564f",
+  "artifact_files_verified": 34,
+  "exit_code": 65,
+  "phase": "small-tests",
+  "first_error": {
+    "file": "ios/DataCoreAI/Sources/ReportExporter.swift",
+    "line": 43,
+    "column": 47,
+    "line_in_small_tests_log": 789,
+    "message": "ambiguous use of 'greatestFiniteMagnitude'"
+  },
+  "compiler_error_diagnostics_in_small_tests_log": 1,
+  "module_integration": {
+    "settings_verified": true,
+    "package_slices": [
+      "arm64"
+    ],
+    "consumer_architectures": {
+      "DataCoreAI": [
+        "arm64"
+      ],
+      "DataCoreAITests": [
+        "arm64"
+      ]
+    },
+    "missing_slices": []
+  },
+  "macos_package_tests_passed_before_build_failure": 26,
+  "executed_app_ui_tests": 0,
+  "real_app_captures": 0,
+  "free_validation": {
+    "swift_domain_passed": 26,
+    "api_passed": 21,
+    "tools_passed": 29,
+    "isolated_regression_passed": 86,
+    "total_passed": 162,
+    "sql_skipped": 4,
+    "real_sql_attempts": 0,
+    "real_http_attempts": 0,
+    "foundation_typecheck_reproduced_original_failure": true,
+    "foundation_typecheck_accepted_corrected_expression": true
+  },
+  "corrected_app_built_with_xcode": false,
+  "third_macos_run_started": false,
+  "ipa_created": false
+}

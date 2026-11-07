@@ -1,6 +1,6 @@
 # Entrega iOS: funcionalidades, evidencia y límites
 
-**Actualización:** ver [el primer fallo real y su corrección](IOS_MODULE_DEPENDENCY_FIX.md).
+**Actualización:** ver [el segundo fallo real y su corrección](IOS_SECOND_BUILD_FIX.md).
 Para el historial previo, consulta [la preparación actual](IOS_FIRST_BUILD.md) y
 [la auditoría posterior](IOS_AUDIT_2026_11.md) para
 los cambios y resultados actuales. Lo que sigue conserva la evidencia de la

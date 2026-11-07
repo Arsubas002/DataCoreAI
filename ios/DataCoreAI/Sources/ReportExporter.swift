@@ -40,7 +40,7 @@ enum ReportExporter {
             string: line,
             attributes: [.font: UIFont.systemFont(ofSize: 12), .foregroundColor: UIColor.black])
           let measured = text.boundingRect(
-            with: CGSize(width: 523, height: .greatestFiniteMagnitude),
+            with: CGSize(width: 523, height: CGFloat.greatestFiniteMagnitude),
             options: [.usesLineFragmentOrigin, .usesFontLeading], context: nil)
           let height = max(20, measured.height.rounded(.up))
           if y == 0 || y + height > 760 {

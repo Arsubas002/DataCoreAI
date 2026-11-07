@@ -1,5 +1,8 @@
 # Primer fallo real de Xcode: DataCoreDomain y arquitecturas
 
+> Informe histórico del primer fallo. La segunda ejecución confirmó el módulo
+> arm64 y avanzó hasta un error distinto; ver [estado actual](IOS_SECOND_BUILD_FIX.md).
+
 ## Ejecución investigada
 
 [GitHub Actions 42381387852](https://github.com/Arsubas002/DataCoreAI/actions/runs/42381387852),

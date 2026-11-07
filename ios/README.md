@@ -6,13 +6,14 @@ Para pruebas del paquete en Mac se requiere macOS 14+ por Observation.
 Usa Swift Charts, Foundation, UIKit/PDFKit y Security del sistema. No contiene
 WebView, CocoaPods, dependencias Swift remotas ni claves API.
 
-**Estado:** [corrección actual del primer build](../docs/IOS_MODULE_DEPENDENCY_FIX.md).
-La primera ejecución real con Xcode 26.3 falló por desacuerdo de arquitecturas
-Debug entre app y SwiftPM: paquete arm64, app también x86_64. El paquete pasó
-26 tests en macOS, pero la app no completó el build ni ejecutó tests UI.
-Se corrigió la política del proyecto y se prepara una segunda ejecución, pendiente
-de autorización. No hay IPA ni firma. Proyecto generado con Python sin XcodeGen;
-validación estructural/sintaxis no equivale a confirmar el build corregido.
+**Estado:** [corrección del segundo build real](../docs/IOS_SECOND_BUILD_FIX.md).
+La segunda ejecución Xcode 26.3 confirmó que el bloqueo de DataCoreDomain quedó
+superado (app y paquete arm64), pero falló en ReportExporter.swift:43:47 por
+ambigüedad entre CGFloat y Double. Se explicita CGFloat.greatestFiniteMagnitude.
+El paquete pasó 26 tests en ese Mac; app/UI no llegaron a ejecutar tests.
+La expresión corregida supera typecheck Foundation en Linux, no una compilación
+iOS. Tercera ejecución pendiente de autorización nueva. No hay IPA ni firma.
+Proyecto generado con Python sin XcodeGen; sintaxis/estructura no confirma Xcode.
 
 ## Desde Windows
 
@@ -148,9 +149,10 @@ texto exacto y primer intento. No reusa autorización en pushes o re-runs. La
 ruta se contrastó con reglas oficiales y actionlint, y una review neutral permitió
 registrar el workflow con job omitido: runner nulo, 0 pasos y 0 ms facturables
 ([evidencia](https://github.com/Arsubas002/DataCoreAI/actions/runs/42379840879)).
-Después se ejecutó un primer job real autorizado y falló el build (run
-42381387852). La corrección aún no se volvió a ejecutar; una segunda review debe
-autorizar el nuevo SHA tras revisar presupuesto. Ver el informe del módulo.
+Después se ejecutaron dos jobs reales autorizados: 42381387852 (módulo) y
+42386740095 (ambigüedad CGFloat/Double, módulo ya resuelto). La tercera ejecución
+requiere una nueva review para el SHA corregido tras revisar presupuesto. Ver el
+[informe del segundo fallo](../docs/IOS_SECOND_BUILD_FIX.md).
 Dispatch no se da por disponible mientras no exista registro/condiciones de GitHub.
 No se cambia main. No envíes una review de autorización solo para probar el evento.
 
@@ -173,7 +175,7 @@ capturas reales si Xcode los genera, más build Release iPhoneOS sin firma. Ning
 es un IPA instalable. Retención de artefactos **1 día**; el job no
 firma ni produce IPA. Mainstep 25 min y job 30 min; no es garantía de costo fijo.
 
-No se ha ejecutado un segundo macOS con la corrección. Los tests nativos y el
+No se ha ejecutado un tercer macOS con la corrección de ReportExporter. Los tests nativos y el
 iPhone físico siguen pendientes. El simulador puede usar un runtime posterior a iOS 17: sigue pendiente probar el mínimo real.
 
 ## TestFlight y App Store: pasos pendientes del propietario

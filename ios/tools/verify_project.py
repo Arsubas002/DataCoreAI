@@ -6,6 +6,7 @@ import json
 import plistlib
 import runpy
 from module_integration import validate_project
+from swift_source_checks import validate_numeric_limits
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -163,4 +164,11 @@ print(
 validate_project(generated["output"])
 print(
     "DataCoreDomain package/product/linkage and Debug/Release architecture policy: correct."
+)
+
+for source in ROOT.rglob("*.swift"):
+    if ".build" not in source.parts:
+        validate_numeric_limits(source.read_text(encoding="utf-8"), str(source))
+print(
+    "Swift floating-point limits use explicit scalar types (source guard, not SDK typechecking)."
 )
