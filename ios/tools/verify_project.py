@@ -1,6 +1,7 @@
 """Validación estructural real; no es una compilación Xcode."""
 
 from pathlib import Path
+import difflib
 import json
 import plistlib
 import runpy
@@ -11,9 +12,26 @@ project = ROOT / "DataCoreAI.xcodeproj/project.pbxproj"
 scheme = ROOT / "DataCoreAI.xcodeproj/xcshareddata/xcschemes/DataCoreAI.xcscheme"
 before = (project.read_bytes(), scheme.read_bytes())
 generated = runpy.run_path(str(ROOT / "tools/generate_project.py"))
-assert before == (project.read_bytes(), scheme.read_bytes()), (
-    "Regenera el proyecto y revisa el diff"
-)
+after = (project.read_bytes(), scheme.read_bytes())
+if before != after:
+    for label, original, actual in zip(
+        ["project.pbxproj", "DataCoreAI.xcscheme"], before, after
+    ):
+        if original != actual:
+            print(label, "bytes before/after:", len(original), len(actual))
+            print(
+                "".join(
+                    list(
+                        difflib.unified_diff(
+                            original.decode("utf-8").splitlines(True),
+                            actual.decode("utf-8").splitlines(True),
+                            fromfile="committed",
+                            tofile="generated",
+                        )
+                    )[:80]
+                )
+            )
+    raise AssertionError("Regenera el proyecto y revisa el diff")
 objects = generated["objects"]
 for value in objects.values():
     for field in [
