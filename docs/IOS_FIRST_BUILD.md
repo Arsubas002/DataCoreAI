@@ -42,7 +42,8 @@ xcresult reales o capturas de iPhone.
 | OpenAPI versionado, pip check, pip-audit | Contrato idéntico, dependencias compatibles, sin vulnerabilidades conocidas en la consulta |
 | Bash, actionlint, Ruff y git diff --check | Correctos |
 
-**147 tests aprobados, 4 SQL omitidos.** Los catorce tests Python incluyen cinco
+**147 tests aprobados, 4 SQL omitidos.**
+[Resumen verificable en JSON](IOS_FIRST_BUILD_RESULTS.json). Los catorce tests Python incluyen cinco
 pruebas del script con comandos falsos en carpetas temporales; prueban propagación
 de errores e inventario, no el compilador ni la UI. Trece tests nativos y tres
 recorridos UI están preparados para macOS, no incluidos entre los aprobados.
@@ -53,7 +54,7 @@ No hay Windows en este ejecutor; no se inició un runner facturable para repetir
 La evidencia [API/estructura anterior](https://github.com/Arsubas002/DataCoreAI/actions/runs/42373903278)
 y [regresión anterior](https://github.com/Arsubas002/DataCoreAI/actions/runs/42373903233)
 pertenece a 1ce1c74. No se afirma que valide el HEAD nuevo. La API y Streamlit no
-cambian. Los tests Python de preflight/manifest son portables; los cuatro de Bash
+cambian. Los tests Python de preflight/manifest son portables; los cinco de Bash
 se omiten expresamente en Windows, donde se validará el resto tras autorización.
 
 ## Resultado de la investigación de GitHub Actions
