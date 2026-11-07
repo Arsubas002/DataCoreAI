@@ -93,7 +93,9 @@ def mostrar_dashboard():
                 color_discrete_sequence=[color],
             )
             figura.update_traces(
-                # No suavizar: la curva spline puede crear picos que no existen\n                # en las ventas diarias observadas.\n                line=dict(width=3, shape="linear"),
+                # No suavizar: la curva spline puede crear picos que no existen
+                # en las ventas diarias observadas.
+                line=dict(width=3, shape="linear"),
                 marker=dict(size=7, line=dict(color="#FFFFFF", width=2)),
                 fillcolor="rgba(118,89,232,0.12)" if serie == "Ingresos"
                 else "rgba(9,157,173,0.12)",
