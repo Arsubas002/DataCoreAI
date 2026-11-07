@@ -6,6 +6,8 @@ from pathlib import Path
 import re
 import sys
 
+from signing_policy import validate_resolved_signing
+
 
 class IntegrationError(ValueError):
     pass
@@ -161,10 +163,12 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     try:
+        payload = json.load(sys.stdin) if args.resolved_settings else None
         report = (
             {
                 "verified": True,
-                "targets": validate_resolved_settings(json.load(sys.stdin)),
+                "targets": validate_resolved_settings(payload),
+                "signing": validate_resolved_signing(payload),
             }
             if args.resolved_settings
             else diagnose_log(args.log.read_text(encoding="utf-8", errors="replace"))

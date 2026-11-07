@@ -1,5 +1,9 @@
 # Tercer run real: Keychain, firma de simulador y diagnóstico seguro
 
+> Histórico: la cuarta ejecución detectó propagación global de entitlements antes
+> de iniciar tests. La corrección por target está en
+> [IOS_ENTITLEMENTS_SCOPE_FIX.md](IOS_ENTITLEMENTS_SCOPE_FIX.md).
+
 ## Evidencia revisada
 
 HEAD inicial local/remoto: `40f720ce7b5465be3b4a9e193db23b272a4e2e79`.

@@ -1,6 +1,6 @@
 # Entrega iOS: funcionalidades, evidencia y límites
 
-**Actualización:** ver [el tercer run real y la corrección de Keychain](IOS_KEYCHAIN_FIX.md).
+**Actualización:** ver [el cuarto run real y la corrección del alcance de firma](IOS_ENTITLEMENTS_SCOPE_FIX.md).
 Para el historial previo, consulta [la preparación actual](IOS_FIRST_BUILD.md) y
 [la auditoría posterior](IOS_AUDIT_2026_11.md) para
 los cambios y resultados actuales. Lo que sigue conserva la evidencia de la

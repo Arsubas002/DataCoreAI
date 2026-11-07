@@ -11,6 +11,13 @@
 			"baseConfigurationReference" = "29FC9BAA481F8B24232CAF68";
 			"buildSettings" = {
 				"PRODUCT_NAME" = "$(TARGET_NAME)";
+				"CODE_SIGNING_ALLOWED[sdk=iphonesimulator*]" = "YES";
+				"CODE_SIGNING_REQUIRED[sdk=iphonesimulator*]" = "YES";
+				"CODE_SIGN_IDENTITY[sdk=iphonesimulator*]" = "-";
+				"CODE_SIGN_STYLE[sdk=iphonesimulator*]" = "Manual";
+				"DEVELOPMENT_TEAM[sdk=iphonesimulator*]" = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphonesimulator*]" = "";
+				"CODE_SIGN_ENTITLEMENTS[sdk=iphonesimulator*]" = "$(SRCROOT)/Config/Simulator.entitlements";
 			};
 		};
 		"00F209874A1F7309F6DCEAA7" = {
@@ -385,6 +392,12 @@
 			"name" = "Debug";
 			"buildSettings" = {
 				"PRODUCT_NAME" = "$(TARGET_NAME)";
+				"CODE_SIGNING_ALLOWED[sdk=iphonesimulator*]" = "YES";
+				"CODE_SIGNING_REQUIRED[sdk=iphonesimulator*]" = "YES";
+				"CODE_SIGN_IDENTITY[sdk=iphonesimulator*]" = "-";
+				"CODE_SIGN_STYLE[sdk=iphonesimulator*]" = "Manual";
+				"DEVELOPMENT_TEAM[sdk=iphonesimulator*]" = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphonesimulator*]" = "";
 				"PRODUCT_BUNDLE_IDENTIFIER" = "org.example.datacoreai.datacoreaitests";
 				"GENERATE_INFOPLIST_FILE" = "YES";
 				"IPHONEOS_DEPLOYMENT_TARGET" = "17.0";
@@ -477,6 +490,12 @@
 			"name" = "Debug";
 			"buildSettings" = {
 				"PRODUCT_NAME" = "$(TARGET_NAME)";
+				"CODE_SIGNING_ALLOWED[sdk=iphonesimulator*]" = "YES";
+				"CODE_SIGNING_REQUIRED[sdk=iphonesimulator*]" = "YES";
+				"CODE_SIGN_IDENTITY[sdk=iphonesimulator*]" = "-";
+				"CODE_SIGN_STYLE[sdk=iphonesimulator*]" = "Manual";
+				"DEVELOPMENT_TEAM[sdk=iphonesimulator*]" = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphonesimulator*]" = "";
 				"PRODUCT_BUNDLE_IDENTIFIER" = "org.example.datacoreai.datacoreaiuitests";
 				"GENERATE_INFOPLIST_FILE" = "YES";
 				"IPHONEOS_DEPLOYMENT_TARGET" = "17.0";

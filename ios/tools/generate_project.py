@@ -163,6 +163,22 @@ for name, folder, product_type in [
     config_ids = []
     for config in ["Debug", "Release"]:
         settings = {"PRODUCT_NAME": "$(TARGET_NAME)"}
+        # Native Debug simulator targets only: never command-line overrides that leak into SwiftPM.
+        if config == "Debug":
+            settings.update(
+                {
+                    "CODE_SIGNING_ALLOWED[sdk=iphonesimulator*]": "YES",
+                    "CODE_SIGNING_REQUIRED[sdk=iphonesimulator*]": "YES",
+                    "CODE_SIGN_IDENTITY[sdk=iphonesimulator*]": "-",
+                    "CODE_SIGN_STYLE[sdk=iphonesimulator*]": "Manual",
+                    "DEVELOPMENT_TEAM[sdk=iphonesimulator*]": "",
+                    "PROVISIONING_PROFILE_SPECIFIER[sdk=iphonesimulator*]": "",
+                }
+            )
+            if is_app:
+                settings["CODE_SIGN_ENTITLEMENTS[sdk=iphonesimulator*]"] = (
+                    "$(SRCROOT)/Config/Simulator.entitlements"
+                )
         if is_app:
             config_ids.append(
                 obj(

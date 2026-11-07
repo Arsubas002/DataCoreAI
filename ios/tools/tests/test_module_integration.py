@@ -4,9 +4,11 @@ from copy import deepcopy
 import importlib.util
 from pathlib import Path
 import runpy
+import sys
 import unittest
 
 TOOLS = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(TOOLS))
 spec = importlib.util.spec_from_file_location(
     "module_integration", TOOLS / "module_integration.py"
 )

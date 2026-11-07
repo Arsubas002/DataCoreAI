@@ -79,7 +79,11 @@ if name=='xcodebuild':
  with (pathlib.Path(os.environ['DATACORE_EVIDENCE_DIR'])/'invocations.jsonl').open('a') as log: log.write(json.dumps(args)+'\\n')
  if os.getenv('FAIL_DEVICE')=='1' and 'generic/platform=iOS' in args: print('SIMULATED device build failure');sys.exit(43)
  if '-showBuildSettings' in args:
-  print(json.dumps([{'target':'DataCoreAI','buildSettings':{'CONFIGURATION':'Debug','PLATFORM_NAME':'iphonesimulator','ONLY_ACTIVE_ARCH': 'NO' if os.getenv('BAD_ARCH_POLICY')=='1' else 'YES','ARCHS':'arm64','NATIVE_ARCH_ACTUAL':'arm64'}}]));sys.exit(0)
+  root=str(pathlib.Path.cwd()/'ios')
+  settings={'CONFIGURATION':'Debug','PLATFORM_NAME':'iphonesimulator','ONLY_ACTIVE_ARCH': 'NO' if os.getenv('BAD_ARCH_POLICY')=='1' else 'YES','ARCHS':'arm64','NATIVE_ARCH_ACTUAL':'arm64','SRCROOT':root,'CODE_SIGN_ENTITLEMENTS':root+'/Config/Simulator.entitlements','CODE_SIGNING_ALLOWED':'YES','CODE_SIGNING_REQUIRED':'YES','CODE_SIGN_IDENTITY':'-','CODE_SIGN_STYLE':'Manual','DEVELOPMENT_TEAM':'','PROVISIONING_PROFILE_SPECIFIER':''}
+  payload=[{'target':'DataCoreAI','buildSettings':settings}]
+  if os.getenv('BAD_PACKAGE_ENTITLEMENTS')=='1': payload.append({'target':'DataCoreDomain','buildSettings':{'CODE_SIGN_ENTITLEMENTS':'Config/Simulator.entitlements','SRCROOT':root+'/Packages/DataCoreDomain'}})
+  print(json.dumps(payload));sys.exit(0)
  if args==['-version']: print('Xcode 26.3\\nBuild version FIXTURE');sys.exit(0)
  if '-resultBundlePath' in args:
   result=pathlib.Path(args[args.index('-resultBundlePath')+1])
@@ -111,6 +115,7 @@ class OrchestrationTests(TestCase):
         fail_export=False,
         fail_device=False,
         bad_arch_policy=False,
+        bad_package_entitlements=False,
     ):
         workspace = tempfile.TemporaryDirectory()
         self.addCleanup(workspace.cleanup)
@@ -135,6 +140,7 @@ class OrchestrationTests(TestCase):
             "FAIL_EXPORT": str(int(fail_export)),
             "FAIL_DEVICE": str(int(fail_device)),
             "BAD_ARCH_POLICY": str(int(bad_arch_policy)),
+            "BAD_PACKAGE_ENTITLEMENTS": str(int(bad_package_entitlements)),
         }
         result = subprocess.run(
             ["bash", str(TOOLS / "run_simulator_tests.sh")],
@@ -210,19 +216,30 @@ class OrchestrationTests(TestCase):
         tests = [args for args in commands if "test" in args]
         self.assertEqual(len(tests), 2)
         for args in tests:
-            for setting in [
-                "CODE_SIGNING_ALLOWED=YES",
-                "CODE_SIGNING_REQUIRED=YES",
-                "CODE_SIGN_IDENTITY=-",
-                "CODE_SIGN_STYLE=Manual",
-                "DEVELOPMENT_TEAM=",
-                "PROVISIONING_PROFILE_SPECIFIER=",
-                "CODE_SIGN_ENTITLEMENTS=Config/Simulator.entitlements",
-            ]:
-                self.assertIn(setting, args)
-            self.assertNotIn("CODE_SIGNING_ALLOWED=NO", args)
+            # Signing comes from native target configs, not global overrides inherited by packages.
+            self.assertFalse(
+                any(
+                    arg.startswith(
+                        (
+                            "CODE_SIGN",
+                            "DEVELOPMENT_TEAM=",
+                            "PROVISIONING_PROFILE_SPECIFIER=",
+                        )
+                    )
+                    for arg in args
+                )
+            )
         device = next(args for args in commands if "generic/platform=iOS" in args)
         self.assertIn("CODE_SIGNING_ALLOWED=NO", device)
         self.assertFalse(
             any(arg.startswith("CODE_SIGN_ENTITLEMENTS=") for arg in device)
+        )
+
+    def test_package_entitlements_stop_before_build(self):
+        result, manifest, output = self.run_fixture(bad_package_entitlements=True)
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        self.assertEqual(manifest["last_phase"], "debug-architecture-settings")
+        self.assertFalse((output / "small-tests.log").exists())
+        self.assertIn(
+            "DataCoreDomain", (output / "debug-architecture-settings.json").read_text()
         )

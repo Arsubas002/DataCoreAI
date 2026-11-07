@@ -7,6 +7,7 @@ import plistlib
 import runpy
 from module_integration import validate_project
 from swift_source_checks import validate_numeric_limits
+from signing_policy import validate_signing_scope
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -182,6 +183,11 @@ assert simulator_entitlements == {
 }
 for config in (ROOT / "Config").glob("*.xcconfig"):
     assert "Simulator.entitlements" not in config.read_text(), (
-        "Simulator signing must remain CLI-scoped"
+        "Simulator signing must remain target-scoped"
     )
-print("Simulator-only local identity is isolated from device/Release configuration.")
+validate_signing_scope(
+    generated["output"], ROOT, (ROOT / "tools/run_simulator_tests.sh").read_text()
+)
+print(
+    "Target-scoped Debug simulator signing; no entitlements inherited by Swift packages or Release."
+)

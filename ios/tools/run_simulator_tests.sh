@@ -55,15 +55,14 @@ SDK_VERSION="$(xcrun --sdk iphonesimulator --show-sdk-version)"
 python3 ios/tools/simulator_plan.py "$EVIDENCE_DIR/simulators.json" --sdk "$SDK_VERSION" > "$EVIDENCE_DIR/plan.json"
 SMALL_ID="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["small"]["udid"])' "$EVIDENCE_DIR/plan.json")"
 LARGE_ID="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["large"]["udid"])' "$EVIDENCE_DIR/plan.json")"
-# Simulator Keychain requires a signed identity/entitlements; ad hoc uses no Apple account.
-SIMULATOR_SIGNING=(CODE_SIGNING_ALLOWED=YES CODE_SIGNING_REQUIRED=YES CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM= PROVISIONING_PROFILE_SPECIFIER= CODE_SIGN_ENTITLEMENTS=Config/Simulator.entitlements)
+# Simulator signing is target-scoped in the project; no global settings may leak to SwiftPM.
 phase=debug-architecture-settings
 # Inspect actual settings without storing arbitrary build environment values.
-xcodebuild -quiet -project ios/DataCoreAI.xcodeproj -scheme DataCoreAI -configuration Debug -destination "platform=iOS Simulator,id=$SMALL_ID" -showBuildSettings -json "${SIMULATOR_SIGNING[@]}" 2> "$EVIDENCE_DIR/debug-settings-stderr.log" | python3 ios/tools/module_integration.py --resolved-settings --output "$EVIDENCE_DIR/debug-architecture-settings.json" | tee "$EVIDENCE_DIR/debug-architecture-settings.log"
+xcodebuild -quiet -project ios/DataCoreAI.xcodeproj -scheme DataCoreAI -configuration Debug -destination "platform=iOS Simulator,id=$SMALL_ID" -showBuildSettings -json 2> "$EVIDENCE_DIR/debug-settings-stderr.log" | python3 ios/tools/module_integration.py --resolved-settings --output "$EVIDENCE_DIR/debug-architecture-settings.json" | tee "$EVIDENCE_DIR/debug-architecture-settings.log"
 phase=small-tests
-xcodebuild test -project ios/DataCoreAI.xcodeproj -scheme DataCoreAI -configuration Debug -destination "platform=iOS Simulator,id=$SMALL_ID" -parallel-testing-enabled NO -resultBundlePath "$EVIDENCE_DIR/small.xcresult" "${SIMULATOR_SIGNING[@]}" 2>&1 | tee "$EVIDENCE_DIR/small-tests.log"
+xcodebuild test -project ios/DataCoreAI.xcodeproj -scheme DataCoreAI -configuration Debug -destination "platform=iOS Simulator,id=$SMALL_ID" -parallel-testing-enabled NO -resultBundlePath "$EVIDENCE_DIR/small.xcresult" 2>&1 | tee "$EVIDENCE_DIR/small-tests.log"
 phase=large-tests
-xcodebuild test -project ios/DataCoreAI.xcodeproj -scheme DataCoreAI -configuration Debug -destination "platform=iOS Simulator,id=$LARGE_ID" -parallel-testing-enabled NO -only-testing:DataCoreAIUITests -resultBundlePath "$EVIDENCE_DIR/large.xcresult" "${SIMULATOR_SIGNING[@]}" 2>&1 | tee "$EVIDENCE_DIR/large-tests.log"
+xcodebuild test -project ios/DataCoreAI.xcodeproj -scheme DataCoreAI -configuration Debug -destination "platform=iOS Simulator,id=$LARGE_ID" -parallel-testing-enabled NO -only-testing:DataCoreAIUITests -resultBundlePath "$EVIDENCE_DIR/large.xcresult" 2>&1 | tee "$EVIDENCE_DIR/large-tests.log"
 phase=release-build
 xcodebuild build -project ios/DataCoreAI.xcodeproj -scheme DataCoreAI -configuration Release -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO 2>&1 | tee "$EVIDENCE_DIR/release-build.log"
 phase=device-build
