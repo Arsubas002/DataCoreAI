@@ -78,21 +78,32 @@ def mostrar_dashboard():
                 Dia=tabla["Dia"].map(str), TotalVentas=tabla["TotalVentas"].map(float)
             )
             columna = "TotalVentas" if serie == "Ingresos" else "NumeroVentas"
-            figura = px.bar(
+            # Curva de actividad con área suave: usa exclusivamente datos reales.
+            color = "#7659E8" if serie == "Ingresos" else "#099DAD"
+            figura = px.area(
                 grafico,
                 x="Dia",
                 y=columna,
+                markers=True,
                 labels={
                     "Dia": "Fecha",
                     "TotalVentas": "Ingresos (S/)",
                     "NumeroVentas": "Ventas",
                 },
-                color_discrete_sequence=[
-                    "#7659E8" if serie == "Ingresos" else "#24C9C0"
-                ],
+                color_discrete_sequence=[color],
             )
-            figura.update_traces(marker_line_width=0, marker_cornerradius=4)
-            figura.update_layout(bargap=0.35, hovermode="x unified")
+            figura.update_traces(
+                line=dict(width=3, shape="spline", smoothing=0.55),
+                marker=dict(size=7, line=dict(color="#FFFFFF", width=2)),
+                fillcolor="rgba(118,89,232,0.12)" if serie == "Ingresos"
+                else "rgba(9,157,173,0.12)",
+            )
+            figura.update_layout(
+                hovermode="x unified",
+                showlegend=False,
+                xaxis=dict(showgrid=False, showline=False),
+                yaxis=dict(gridcolor="#E7EAF5", zeroline=False),
+            )
             st.plotly_chart(estilo_grafico(figura, 330), width="stretch")
             with st.expander("Ver datos de ingresos"):
                 tabla_comercial(tabla)

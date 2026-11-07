@@ -309,3 +309,91 @@
   border:0;
   padding:0
 }
+
+
+/* Visualización v4: decoraciones ligeras, sin imágenes remotas ni selectores generados. */
+.st-key-workspace {
+  position:relative;
+}
+.dc-pagehead {
+  position:relative;
+  overflow:hidden;
+  padding:25px 28px;
+  border:1px solid #E2E7F4;
+  border-radius:22px;
+  background:
+    radial-gradient(ellipse at 86% 12%,rgba(36,201,192,.17),transparent 35%),
+    radial-gradient(ellipse at 65% 95%,rgba(118,89,232,.12),transparent 42%),
+    linear-gradient(115deg,#FFFFFF,#F4F7FF);
+  box-shadow:0 14px 38px rgba(22,42,79,.055);
+}
+.dc-pagehead::after {
+  content:"";
+  position:absolute;
+  right:18%;
+  top:-68px;
+  width:180px;
+  height:180px;
+  border:1px solid rgba(118,89,232,.14);
+  border-radius:50%;
+  box-shadow:0 0 0 32px rgba(118,89,232,.035),0 0 0 66px rgba(36,201,192,.025);
+  pointer-events:none;
+}
+.dc-pagehead h1 {font-size:clamp(29px,3vw,42px);font-weight:760;letter-spacing:-1.4px}
+.st-key-hero_chart {
+  background:
+    radial-gradient(ellipse at 92% 8%,rgba(118,89,232,.085),transparent 42%),
+    #FFFFFF;
+  border-color:#DCDCF5;
+  box-shadow:0 14px 38px rgba(75,60,135,.075);
+}
+.st-key-stock_summary {
+  background:linear-gradient(145deg,#FFFFFF,#F4FCFC);
+}
+.st-key-top_products,.st-key-action_queue {
+  box-shadow:0 10px 28px rgba(22,42,79,.055);
+}
+.st-key-workspace details {
+  border:1px solid #DDE4F3;
+  border-radius:13px;
+  background:linear-gradient(120deg,#FFFFFF,#F7F8FF);
+  padding:3px 9px;
+  transition:border-color .16s,box-shadow .16s;
+}
+.st-key-workspace details[open] {
+  border-color:#A99AEF;
+  box-shadow:0 8px 25px rgba(118,89,232,.09);
+}
+.st-key-workspace details summary {
+  font-weight:650;
+  color:#263B60;
+  padding:9px 4px;
+}
+.st-key-sidebar_shell details {
+  border:1px solid #344763;
+  border-radius:12px;
+  padding:5px 8px;
+  background:#15253A;
+}
+.st-key-sidebar_shell details[open] {
+  border-color:#3D8E9C;
+  background:#1A2E45;
+}
+.st-key-sidebar_shell details summary {
+  color:#D5E9F6;
+  font-weight:650;
+}
+.st-key-workspace button {
+  border-radius:11px;
+  transition:box-shadow .16s,transform .16s;
+}
+.st-key-workspace button:hover:not(:disabled) {
+  box-shadow:0 6px 18px rgba(85,77,180,.13);
+}
+@media(max-width:760px) {
+  .dc-pagehead {padding:18px 16px;border-radius:16px}
+  .dc-pagehead::after {right:-60px;opacity:.45}
+}
+@media(prefers-reduced-motion:reduce) {
+  .st-key-workspace button,.st-key-workspace details {transition:none}
+}
