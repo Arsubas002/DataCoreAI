@@ -76,6 +76,7 @@ name=pathlib.Path(sys.argv[0]).name
 args=sys.argv[1:]
 if name=='swift': print('SIMULATED domain command');sys.exit(0)
 if name=='xcodebuild':
+ if os.getenv('FAIL_DEVICE')=='1' and 'generic/platform=iOS' in args: print('SIMULATED device build failure');sys.exit(43)
  if args==['-version']: print('Xcode 26.3\\nBuild version FIXTURE');sys.exit(0)
  if '-resultBundlePath' in args:
   result=pathlib.Path(args[args.index('-resultBundlePath')+1])
@@ -99,7 +100,9 @@ sys.exit(3)
     "Bash orchestration is for Linux/macOS; pure Python checks remain portable",
 )
 class OrchestrationTests(TestCase):
-    def run_fixture(self, *, missing=False, fail_build=False, fail_export=False):
+    def run_fixture(
+        self, *, missing=False, fail_build=False, fail_export=False, fail_device=False
+    ):
         workspace = tempfile.TemporaryDirectory()
         self.addCleanup(workspace.cleanup)
         root = Path(workspace.name)
@@ -121,6 +124,7 @@ class OrchestrationTests(TestCase):
             "DATACORE_EVIDENCE_DIR": str(output),
             "FAIL_BUILD": str(int(fail_build)),
             "FAIL_EXPORT": str(int(fail_export)),
+            "FAIL_DEVICE": str(int(fail_device)),
         }
         result = subprocess.run(
             ["bash", str(TOOLS / "run_simulator_tests.sh")],
@@ -153,6 +157,12 @@ class OrchestrationTests(TestCase):
         self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
         self.assertEqual(manifest["last_phase"], "evidence-export")
 
+    def test_unsigned_device_build_failure_is_preserved(self):
+        result, manifest, output = self.run_fixture(fail_device=True)
+        self.assertEqual(result.returncode, 43, result.stdout + result.stderr)
+        self.assertEqual(manifest["last_phase"], "device-build")
+        self.assertTrue((output / "small-summary.json").exists())
+
     def test_command_plan_and_inventory_complete_with_doubles(self):
         result, manifest, output = self.run_fixture()
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
@@ -165,5 +175,6 @@ class OrchestrationTests(TestCase):
             "large-summary.json",
             "small-captures/fixture.png",
             "large-captures/fixture.png",
+            "device-build.log",
         ]:
             self.assertIn(expected, paths)

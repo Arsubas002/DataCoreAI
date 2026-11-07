@@ -36,13 +36,13 @@ xcresult reales o capturas de iPhone.
 | --- | --- |
 | Swift 6.2.4 Linux, dominio y CommercialSession | **26 aprobadas**, incluidos stock, concurrencia, UUID, recuperación, CSV, fechas, ranking y errores de red |
 | API Python 3.13 | **21 aprobadas**, incluidas OpenAPI, stock, preview sin persistir, límites, autorización demo y errores |
-| Herramientas Python | **13 aprobadas**: plan de simuladores, versión/SDK, hash de archivos y orquestación/errores con dobles explícitos |
+| Herramientas Python | **14 aprobadas**: plan de simuladores, versión/SDK, hash de archivos y orquestación/errores con dobles explícitos |
 | Regresión aislada Streamlit | **90 descubiertas, 86 aprobadas y 4 SQL omitidas**; cero intentos SQL/HTTP reales |
 | Sintaxis Swift UI/tests, grafo Xcode, esquema/plists | Aceptados/consistentes; no es typecheck de frameworks Apple |
 | OpenAPI versionado, pip check, pip-audit | Contrato idéntico, dependencias compatibles, sin vulnerabilidades conocidas en la consulta |
 | Bash, actionlint, Ruff y git diff --check | Correctos |
 
-**146 tests aprobados, 4 SQL omitidos.** Los trece tests Python incluyen cuatro
+**147 tests aprobados, 4 SQL omitidos.** Los catorce tests Python incluyen cinco
 pruebas del script con comandos falsos en carpetas temporales; prueban propagación
 de errores e inventario, no el compilador ni la UI. Trece tests nativos y tres
 recorridos UI están preparados para macOS, no incluidos entre los aprobados.
@@ -170,7 +170,7 @@ Apple; no requiere membresía Apple para esta compilación de simulador.
 ## Evidencia y descarga
 
 El script genera preflight/toolchain, estructura, Swift, plan de simuladores,
-logs de tests pequeños/grandes y Release, dos `.xcresult`, dos summaries JSON y
+logs de tests pequeños/grandes, Release de simulador y Release iPhoneOS sin firma, dos `.xcresult`, dos summaries JSON y
 adjuntos reales producidos por XCUITest. Los tests recorren seis pantallas en
 apariencia normal y oscuro/AX3, dos tamaños, venta e historial. No equivalen a una
 prueba manual VoiceOver/contraste o a un iPhone físico.
@@ -199,7 +199,9 @@ si falla, Actions lo marca como error. No se generaron imágenes iPhone simulada
 ## Firma, TestFlight e información que falta
 
 [Lista exacta del propietario](IOS_TESTFLIGHT_CHECKLIST.md). La compilación Release
-**de simulador** no es una app de dispositivo y no produce un IPA instalable.
+**de simulador** no es una app de dispositivo. Se prepara también build Release
+iPhoneOS sin firma para comprobar la arquitectura física dentro del mismo job;
+tampoco produce un IPA firmado ni una app instalable. Ambos builds siguen sin ejecutarse.
 Instalar vía TestFlight requiere después un archive iPhoneOS Release firmado,
 cuenta Apple Developer Program/roles correctos, App Store Connect y build procesado.
 El iPhone necesita iOS 17+; para TestFlight no se pide UDID ni Developer Mode.

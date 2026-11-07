@@ -1,7 +1,8 @@
 # Datos y pasos para instalar por TestFlight
 
 **Estado:** no hay archive, IPA, firma, build en App Store Connect ni app instalable.
-La primera ejecución preparada solo construye/prueba simuladores, sin cuenta Apple.
+La primera ejecución preparada prueba simuladores y compila Release iPhoneOS
+sin firma; no hace archive ni produce IPA y no necesita cuenta Apple.
 No recoge credenciales ni distribuye. Ver [primera compilación](IOS_FIRST_BUILD.md).
 
 ## Información no secreta que decide el propietario

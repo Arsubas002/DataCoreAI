@@ -58,4 +58,7 @@ phase=large-tests
 xcodebuild test -project ios/DataCoreAI.xcodeproj -scheme DataCoreAI -configuration Debug -destination "platform=iOS Simulator,id=$LARGE_ID" -parallel-testing-enabled NO -only-testing:DataCoreAIUITests -resultBundlePath "$EVIDENCE_DIR/large.xcresult" CODE_SIGNING_ALLOWED=NO 2>&1 | tee "$EVIDENCE_DIR/large-tests.log"
 phase=release-build
 xcodebuild build -project ios/DataCoreAI.xcodeproj -scheme DataCoreAI -configuration Release -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO 2>&1 | tee "$EVIDENCE_DIR/release-build.log"
+phase=device-build
+# Also typecheck/link the shipping architecture; this remains unsigned and non-installable.
+xcodebuild build -project ios/DataCoreAI.xcodeproj -scheme DataCoreAI -configuration Release -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO 2>&1 | tee "$EVIDENCE_DIR/device-build.log"
 phase=completed

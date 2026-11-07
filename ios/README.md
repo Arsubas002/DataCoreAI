@@ -166,7 +166,8 @@ El inventario del runner anuncia Xcode 26.3, pero la VM real debe superar un
 preflight que comprueba directorio, versión real y SDK 26+. No hay sustitución
 silenciosa ni descargas. El script exige carpeta de evidencia vacía y dos iPhone
 compatibles; conserva logs al fallar y produce hashes, JSON XCTest, xcresult y
-capturas reales si Xcode los genera. Retención de artefactos **1 día**; el job no
+capturas reales si Xcode los genera, más build Release iPhoneOS sin firma. Ninguno
+es un IPA instalable. Retención de artefactos **1 día**; el job no
 firma ni produce IPA. Mainstep 25 min y job 30 min; no es garantía de costo fijo.
 
 No se han ejecutado macOS, tests nativos ni un iPhone en esta revisión. El simulador
