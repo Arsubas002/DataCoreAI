@@ -8,6 +8,7 @@ from uuid import UUID
 
 from database.connection import obtener_conexion
 from database.productos import consultar
+from services.configuracion import exigir_escritura
 
 MAX_IMPORTE = Decimal("9999999999.99")
 
@@ -32,7 +33,7 @@ def preparar_carrito(lineas):
     total = Decimal("0.00")
     for linea in lineas:
         identificador, cantidad = linea["ProductoID"], linea["Cantidad"]
-        if type(identificador) is not int or identificador <= 0:
+        if type(identificador) is not int or not 1 <= identificador <= 2147483647:
             raise ValueError("Producto inválido.")
         if identificador in usados:
             raise ValueError("Cada producto debe aparecer una sola vez en el carrito.")
@@ -51,20 +52,29 @@ def listar_clientes():
     return consultar("SELECT ClienteID, Documento, Nombre FROM dbo.Clientes WHERE Activo=1 ORDER BY Nombre")
 
 
-def listar_historial():
-    # Una fila por detalle; Fecha, cliente y total se agrupan en la pantalla.
+def listar_historial(limite=100, desplazamiento=0):
+    """Pagina cabeceras antes del JOIN para conservar todos sus detalles."""
+    if type(limite) is not int or not 1 <= limite <= 500:
+        raise ValueError("El tamaño de página debe estar entre 1 y 500 ventas.")
+    if type(desplazamiento) is not int or not 0 <= desplazamiento <= 2147483647:
+        raise ValueError("El desplazamiento del historial no es válido.")
     return consultar("""SELECT v.VentaID, v.Fecha, c.Nombre AS Cliente, v.Total,
                         p.Codigo, p.Nombre AS Producto, d.Cantidad,
                         d.PrecioUnitario, d.Subtotal
-                 FROM dbo.Ventas v JOIN dbo.Clientes c ON c.ClienteID=v.ClienteID
+                 FROM (SELECT VentaID, ClienteID, Fecha, Total FROM dbo.Ventas
+                       ORDER BY Fecha DESC, VentaID DESC
+                       OFFSET ? ROWS FETCH NEXT ? ROWS ONLY) v
+                 JOIN dbo.Clientes c ON c.ClienteID=v.ClienteID
                  JOIN dbo.DetalleVentas d ON d.VentaID=v.VentaID
                  JOIN dbo.Productos p ON p.ProductoID=d.ProductoID
-                 ORDER BY v.Fecha DESC, v.VentaID DESC, d.DetalleVentaID""")
+                 ORDER BY v.Fecha DESC, v.VentaID DESC, d.DetalleVentaID""",
+                     (desplazamiento, limite))
 
 
 def registrar_venta(cliente_id, lineas, solicitud_id):
     """Reintentar siempre con la MISMA clave y contenido si el resultado es incierto."""
-    if type(cliente_id) is not int or cliente_id <= 0:
+    exigir_escritura()
+    if type(cliente_id) is not int or not 1 <= cliente_id <= 2147483647:
         raise ValueError("Selecciona un cliente válido.")
     solicitud_id = str(UUID(str(solicitud_id)))
     carrito, total = preparar_carrito(lineas)

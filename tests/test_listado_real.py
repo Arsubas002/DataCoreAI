@@ -41,7 +41,7 @@ class PruebasListadoReal(unittest.TestCase):
         # su valor; las consultas y el renderizado de la tabla son reales.
         with patch("views.productos.st_keyup", return_value="") as entrada:
             app = AppTest.from_file(str(Path(__file__).resolve().parents[1] / "app.py")).run()
-            app.sidebar.radio[0].set_value("Productos").run()
+            next(b for b in app.sidebar.button if b.label == "Productos").click().run()
             self.assertEqual(len(app.exception), 0)
             self.assertEqual(len(app.dataframe[0].value), len(listar_productos("")))
             entrada.return_value = "Mouse"

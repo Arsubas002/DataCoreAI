@@ -1,0 +1,60 @@
+"""Exportaciones en memoria; conservan Decimal y neutralizan fórmulas CSV."""
+import csv
+from datetime import datetime
+from decimal import Decimal
+from io import StringIO
+import math
+
+
+COLUMNAS = {
+    "tendencia": ("Dia", "NumeroVentas", "TotalVentas"),
+    "productos_vendidos": ("Codigo", "Nombre", "Unidades", "Ingresos"),
+    "inventario": ("Codigo", "Nombre", "Existencias", "StockMinimo", "Estado"),
+}
+
+
+MAX_BYTES = 10 * 1024 * 1024
+MAX_FILAS_CSV = 100000
+
+
+def validar_numero(valor):
+    if ((isinstance(valor, Decimal) and not valor.is_finite())
+            or (isinstance(valor, float) and not math.isfinite(valor))):
+        raise ValueError("El reporte contiene un número no finito.")
+
+
+def csv_reporte(filas, tipo, inicio, fin, generado: datetime):
+    """CSV UTF-8 BOM con metadatos y columnas estables incluso sin filas."""
+    if tipo not in COLUMNAS:
+        raise ValueError("Tipo de reporte no permitido.")
+    if len(filas) > MAX_FILAS_CSV:
+        raise ValueError("CSV admite hasta 100.000 filas. Reduce el conjunto del reporte.")
+    columnas = COLUMNAS[tipo]
+    salida = StringIO(newline="")
+    escritor = csv.writer(salida)
+
+    def segura(valor):
+        validar_numero(valor)
+        if isinstance(valor, Decimal):
+            return format(valor, ".2f")
+        if isinstance(valor, str) and (valor.lstrip().startswith(("=", "+", "-", "@"))
+                                       or "\ufeff" in valor or any(ord(c) < 32 for c in valor)):
+            return "'" + valor
+        return valor
+
+    escritor.writerow(["Reporte", tipo])
+    escritor.writerow(["Generado", generado.isoformat(timespec="seconds")])
+    escritor.writerow(["Desde inclusive", inicio.isoformat(), "Hasta inclusive", fin.isoformat()])
+    escritor.writerow(["Moneda", "PEN (S/)", "Filas", len(filas)])
+    escritor.writerow(["Alcance", "Inventario actual" if tipo == "inventario" else
+                        "Ventas del periodo; nombres actuales; ranking limitado a 8 productos" if tipo == "productos_vendidos" else
+                        "Ventas del periodo; fechas locales de SQL Server sin zona horaria"])
+    escritor.writerow(columnas)
+    for fila in filas:
+        escritor.writerow([segura(fila[columna]) for columna in columnas])
+        if salida.tell() > MAX_BYTES:
+            raise ValueError("El CSV supera 10 MiB. Reduce el conjunto del reporte.")
+    contenido = salida.getvalue().encode("utf-8-sig")
+    if len(contenido) > MAX_BYTES:
+        raise ValueError("El CSV supera 10 MiB. Reduce el conjunto del reporte.")
+    return contenido

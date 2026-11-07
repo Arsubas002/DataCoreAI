@@ -1,6 +1,7 @@
 """Carrito en sesión: solo el botón Confirmar venta realiza escrituras."""
 
 from copy import deepcopy
+from services.configuracion import solo_lectura
 from uuid import uuid4
 
 import streamlit as st
@@ -49,11 +50,13 @@ def mostrar_carrito():
                               format_func=lambda i: f"{clientes_por_id[i]['Nombre']} · {clientes_por_id[i]['Documento']}")
     productos_por_id = {p["ProductoID"]: p for p in productos}
     if productos:
+        if st.session_state.get("producto_activo_venta") not in productos_por_id:
+            st.session_state.pop("producto_activo_venta", None)
         with st.form("agregar_al_carrito"):
-            producto_id = st.selectbox("Producto activo", list(productos_por_id),
+            producto_id = st.selectbox("Producto activo", list(productos_por_id), key="producto_activo_venta",
                                       format_func=lambda i: f"{productos_por_id[i]['Codigo']} · {productos_por_id[i]['Nombre']} · S/ {productos_por_id[i]['Precio']:.2f} · Stock: {productos_por_id[i]['Existencias']}")
             cantidad = st.number_input("Cantidad para agregar", min_value=1, max_value=2147483647, value=1, step=1)
-            agregar = st.form_submit_button("Agregar al carrito")
+            agregar = st.form_submit_button("Agregar al carrito", icon=":material/add_shopping_cart:")
         if agregar:
             producto = productos_por_id[producto_id]
             acumulado = carrito.get(producto_id, {}).get("Cantidad", 0) + cantidad
@@ -95,10 +98,10 @@ def mostrar_carrito():
         return
     st.dataframe([{"Producto": carrito[l["ProductoID"]]["Nombre"], "Cantidad": l["Cantidad"],
                    "Precio": f"S/ {l['Precio']:.2f}", "Subtotal": f"S/ {l['Subtotal']:.2f}"}
-                  for l in lineas], use_container_width=True, hide_index=True)
+                  for l in lineas], width="stretch", hide_index=True)
     st.metric("Total", f"S/ {total:.2f}")
     st.caption("Para cambiar un producto, elimínalo y agrega su reemplazo. El stock y los precios se validan nuevamente al confirmar.")
-    if st.button("Confirmar venta", type="primary"):
+    if st.button("Confirmar venta", type="primary", disabled=solo_lectura()):
         # La clave y la copia no cambian durante reintentos de resultado incierto.
         st.session_state.venta_pendiente = {"SolicitudID": str(uuid4()), "ClienteID": cliente_id,
                                            "Lineas": deepcopy(lineas)}
@@ -107,6 +110,9 @@ def mostrar_carrito():
 
 def confirmar_pendiente(ejecutar=False):
     pendiente = st.session_state.venta_pendiente
+    if solo_lectura():
+        st.warning("Modo de solo lectura: la confirmación pendiente se conserva sin reintentar. No pierdas su clave ni crees otra venta.")
+        return
     if ejecutar or st.button("Reintentar confirmación"):
         try:
             with st.spinner("Validando y registrando venta..."):
@@ -128,14 +134,17 @@ def confirmar_pendiente(ejecutar=False):
 
 def mostrar_historial():
     st.subheader("Historial de ventas")
-    st.button("Actualizar historial")
+    pagina = st.number_input("Página del historial", min_value=1, max_value=21474836,
+                             value=1, step=1, key="pagina_historial")
+    st.caption("Hasta 100 ventas por página, de más recientes a antiguas. Cada venta conserva todos sus detalles.")
+    st.button("Actualizar historial", icon=":material/refresh:")
     try:
-        filas = listar_historial()
+        filas = listar_historial(limite=100, desplazamiento=(pagina - 1) * 100)
     except Exception:
         st.error("No se pudo cargar el historial. Revisa la conexión.")
         return
     if not filas:
-        st.info("Todavía no hay ventas registradas.")
+        st.info("No hay ventas en esta página del historial. Vuelve a una página anterior si corresponde.")
         return
     resumen = {}
     for fila in filas:
@@ -143,4 +152,4 @@ def mostrar_historial():
                     "Cliente": fila["Cliente"], "Productos": [], "Total": f"S/ {fila['Total']:.2f}"})
         venta["Productos"].append(f"{fila['Cantidad']} × {fila['Producto']} (S/ {fila['Subtotal']:.2f})")
     st.dataframe([{**venta, "Productos": "; ".join(venta["Productos"])} for venta in resumen.values()],
-                 use_container_width=True, hide_index=True)
+                 width="stretch", hide_index=True)

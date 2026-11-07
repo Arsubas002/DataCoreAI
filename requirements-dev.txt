@@ -1,0 +1,3 @@
+-r requirements.txt
+# Lectura y verificación independiente del PDF generado.
+pypdf>=6,<7

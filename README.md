@@ -1,11 +1,20 @@
 # DataCore AI
 
-## Inicio rápido (versión actual: etapa 3)
+## Versión candidata para pruebas locales
 
-Aplicación de gestión comercial con Productos, Inventario y Ventas. Dashboard,
-Reportes y Asistente IA mantienen funciones iniciales. El código se prepara para
-el repositorio privado `https://github.com/Arsubas002/DataCoreAI.git`.
-La preparación local no publica archivos ni configura la visibilidad en GitHub.
+Interfaz grafito/ámbar con navegación, KPIs y paneles renovados. Consulta el
+[sistema visual y las capturas antes/después](docs/DISENO_PREMIUM.md).
+
+Aplicación de gestión comercial con seis pantallas integradas, reportes CSV/Excel/PDF
+y asistente comercial con explicación Groq opcional. La rama final parte de la PR #7
+y conserva sus commits y los desarrollos anteriores.
+El desarrollo se publica mediante PR en `Arsubas002/DataCoreAI`; no se fusiona
+a main ni se despliega automáticamente.
+
+Consulta la [guía completa de Windows y SQL Server Express](docs/INSTALACION_WINDOWS.md)
+y el [informe final de integración](docs/INFORME_FINAL.md).
+La [auditoría v1.0](docs/AUDITORIA_V1.md) registra correcciones y límites;
+la [lista de aceptación local](docs/PRUEBAS_LOCALES_V1.md) detalla lo pendiente en tu equipo.
 
 ### Instalar y ejecutar
 
@@ -16,19 +25,59 @@ acceso para el usuario de Windows que ejecuta la aplicación.
 Desde PowerShell, en la carpeta del proyecto:
 
 ```powershell
-python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
-$env:DATACORE_DATABASE = "DataCoreAI"
+py -3.13 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -c constraints-tested.txt -r requirements.txt
+$env:DATACORE_READ_ONLY = "1"
+$env:DATACORE_GROQ_ENABLED = "0"
 .\.venv\Scripts\python.exe -m streamlit run app.py
 ```
 
 Abre `http://localhost:8501`. No se necesita activar el entorno virtual.
-La aplicación usa autenticación integrada de Windows: no requiere contraseñas,
-tokens ni claves API. `DATACORE_DATABASE` selecciona la base para la prueba del
-Dashboard; Productos, Inventario y Ventas utilizan `DataCoreAI` explícitamente.
+El inicio recomendado usa solo lectura: permite consultar/exportar y bloquea
+escrituras en productos y ventas antes de conectar. La interfaz se enlaza solo a
+127.0.0.1 y no recopila estadísticas de uso. No es un despliegue multiusuario.
+La conexión SQL usa autenticación integrada de Windows, sin claves API.
+Groq es opcional y requiere una clave segura separada. El dashboard comercial, Reportes, Productos, Inventario y Ventas utilizan
+`DataCoreAI` explícitamente. `DATACORE_DATABASE` solo afecta a llamadas de
+conexión sin base explícita.
 Los archivos `.env` no se cargan automáticamente: usa variables del proceso.
 La instancia está definida en `database/connection.py`; si tu instalación usa
 otra instancia, adapta ese valor sin incorporar credenciales al código.
+
+### Dashboard y reportes
+
+Dashboard presenta ventas del periodo y existencias actuales. Reportes permite
+seleccionar un intervalo inclusivo y generar CSV, Excel o PDF de: ingresos diarios,
+los ocho productos más vendidos e inventario actual. Las fechas de ventas son
+locales de SQL Server (DATETIME2 sin zona). Los nombres son los actuales.
+Los importes permanecen en Decimal; solo la representación gráfica usa float.
+Las descargas conservan el periodo y la hora de generación visibles hasta
+solicitar otro reporte. No hay caché compartida ni archivos persistentes.
+Los CSV incluyen metadatos antes de la tabla y neutralizan fórmulas en texto.
+Para conservar ceros iniciales al abrir un CSV, importa códigos como texto.
+Consulta [formatos, límites y pruebas de exportación](docs/EXPORTACIONES.md).
+Excel/PDF se generan en memoria con openpyxl y ReportLab, sin fuentes remotas.
+Las consultas separadas del resumen
+no garantizan una instantánea consistente ante ventas concurrentes.
+
+Consulta [la revisión de PR #1 y #2](docs/REVISION_PR_1_2.md) para hallazgos,
+validación y límites. La [consolidación](docs/CONSOLIDACION.md) integra las PR #1–#4 en una rama
+revisable, sin fusionar main.
+
+### Asistente de consultas
+
+Asistente IA ofrece un modo guiado con cuatro preguntas: ingresos, ticket
+promedio, productos más vendidos y alertas de stock. Consulta únicamente al
+pulsar su botón, muestra periodo, fuente y hora, y conserva la respuesta hasta
+otra consulta. El ticket usa Decimal con redondeo monetario HALF_UP; sin ventas
+se presenta como no definido. El stock siempre es actual.
+El modo guiado no envía datos externos. La [integración opcional con Groq](docs/GROQ.md)
+está desactivada por defecto; con configuración segura permite explicar únicamente
+agregados de preguntas permitidas, tras autorización y envío explícitos. El modelo
+no tiene acceso a SQL ni a herramientas de escritura. Su texto se muestra separado
+de los resultados verificados. No se han realizado llamadas reales en las pruebas.
+
+Consulta las [capturas de validación visual con datos sintéticos](docs/VALIDACION_VISUAL.md).
 
 ### Preparar SQL Server
 
@@ -47,12 +96,15 @@ Consulta [ETAPA_3.md](ETAPA_3.md) para el comportamiento de ventas y reintentos.
 ### Pruebas y archivos privados
 
 ```powershell
-$env:DATACORE_TEST_SQL = "0"
-.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+.\.venv\Scripts\python.exe -m pip install -c constraints-tested.txt -r requirements-dev.txt
+.\.venv\Scripts\python.exe scripts/pruebas_aisladas.py
 ```
 
-Con esa variable en `0`, las pruebas de SQL real quedan desactivadas; las demás
-usan simulaciones. No actives `DATACORE_TEST_SQL=1` para la comprobación aislada.
+Instala `requirements-dev.txt` para incluir el lector PDF usado en las pruebas.
+El ejecutor desactiva SQL real/Groq y falla ante cualquier intento SQL/HTTP real
+o cero tests. Guarda un resumen en test-results/resultado.json (excluido de Git).
+GitHub Actions lo ejecuta en Linux y Windows con Python 3.13; ninguna de esas
+pruebas demuestra conexión a SQL Server Express o Groq reales.
 
 Conserva en Git los archivos Python, SQL, tests, `requirements.txt`, la
 documentación y `.streamlit/config.toml` (solo tema y configuración pública).
@@ -198,7 +250,7 @@ No se instalan dependencias automáticamente.
 Set-Location E:\DataCoreAI
 python --version
 python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m pip install -c constraints-tested.txt -r requirements.txt
 .\.venv\Scripts\python.exe -m streamlit run app.py
 ```
 

@@ -13,6 +13,9 @@ class PruebasInterfazVentas(unittest.TestCase):
         productos = [{"ProductoID": 1, "Codigo": "P1", "Nombre": "Mouse",
                       "Precio": Decimal("8.50"), "Existencias": 10, "Activo": True}]
         parches = [
+            patch("views.dashboard.resumen_comercial", return_value={
+                "ventas": {"NumeroVentas": 0, "TotalVentas": 0},
+                "tendencia": [], "productos_vendidos": [], "inventario": []}),
             patch("views.ventas.listar_clientes", return_value=[
                 {"ClienteID": 1, "Nombre": "Cliente prueba", "Documento": "PRUEBA"}]),
             patch("views.ventas.listar_productos", return_value=productos),
@@ -24,7 +27,7 @@ class PruebasInterfazVentas(unittest.TestCase):
         self.registro = patch("views.ventas.registrar_venta", return_value=25).start()
         self.addCleanup(patch.stopall)
         self.app = AppTest.from_file(str(Path(__file__).resolve().parents[1] / "app.py")).run()
-        self.app.sidebar.radio[0].set_value("Ventas").run()
+        next(b for b in self.app.sidebar.button if b.label == "Ventas").click().run()
 
     def pulsar(self, texto):
         next(b for b in self.app.button if b.label == texto).click().run()

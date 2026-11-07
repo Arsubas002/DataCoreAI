@@ -74,3 +74,6 @@ logs/
 *.swp
 *.swo
 *~
+
+# Informes de pruebas locales; CI los conserva como artefactos
+/test-results/
