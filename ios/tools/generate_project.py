@@ -402,9 +402,9 @@ ET.SubElement(
     revealArchiveInOrganizer="YES",
 )
 ET.indent(scheme)
-ET.ElementTree(scheme).write(
-    ROOT / "DataCoreAI.xcodeproj/xcshareddata/xcschemes/DataCoreAI.xcscheme",
-    encoding="utf-8",
-    xml_declaration=True,
+# ElementTree.write(filename) uses a text writer and translates LF to CRLF on
+# Windows. Serialize to bytes so all platforms generate the identical scheme.
+(ROOT / "DataCoreAI.xcodeproj/xcshareddata/xcschemes/DataCoreAI.xcscheme").write_bytes(
+    ET.tostring(scheme, encoding="utf-8", xml_declaration=True)
 )
 print("Proyecto y esquema generados; no compilados.")

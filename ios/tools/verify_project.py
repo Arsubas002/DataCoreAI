@@ -13,6 +13,7 @@ scheme = ROOT / "DataCoreAI.xcodeproj/xcshareddata/xcschemes/DataCoreAI.xcscheme
 before = (project.read_bytes(), scheme.read_bytes())
 generated = runpy.run_path(str(ROOT / "tools/generate_project.py"))
 after = (project.read_bytes(), scheme.read_bytes())
+assert all(b"\r\n" not in content for content in after), "Los artefactos deben usar LF"
 if before != after:
     for label, original, actual in zip(
         ["project.pbxproj", "DataCoreAI.xcscheme"], before, after

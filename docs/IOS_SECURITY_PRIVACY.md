@@ -83,7 +83,7 @@ propietario antes de publicar.
 
 La demo no permite crear cuentas, por lo que no muestra un falso botón de borrado.
 Si la versión futura crea cuentas: implementar borrado dentro de la app según
-reglas vigentes de Apple, revocación de sesión, eliminación/anominización verificable
+reglas vigentes de Apple, revocación de sesión, eliminación/anonimización verificable
 en backend y tratamiento de obligaciones de conservación. Definir también acceso
 y portabilidad si corresponde. Si se usan proveedores externos de login, revisar
 la aplicabilidad de Sign in with Apple. Nada de ello está implementado aquí.

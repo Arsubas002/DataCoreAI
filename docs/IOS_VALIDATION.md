@@ -31,6 +31,10 @@ API y regresión Streamlit, más cuatro SQL omitidas. No incluyen los tests Xcod
 preparados ni confunden el mensaje adicional “0 tests” de Swift Testing (sin casos
 registrados allí) con los 15 XCTest que sí se ejecutaron.
 
+Se corrigió la traducción automática LF→CRLF de ElementTree al generar el
+esquema en Windows. El generador ahora escribe XML como bytes y la comprobación
+exige artefactos idénticos con LF en las tres plataformas.
+
 ## Evidencia visual disponible
 
 - [Captura real de documentación API en Chromium](imagenes/ios/api-openapi-demo.png).
