@@ -7,7 +7,7 @@ ROOT=Path(__file__).resolve().parents[1]
 
 class PWASmokeTests(unittest.TestCase):
     def test_manifest_and_install_icons(self):
-        manifest=json.loads((ROOT/'manifest.webmanifest').read_text())
+        manifest=json.loads((ROOT/'manifest.webmanifest').read_text(encoding='utf-8'))
         self.assertEqual(manifest['display'],'standalone')
         self.assertEqual(manifest['start_url'],'./index.html')
         self.assertTrue({'192x192','512x512'} <= {i['sizes'] for i in manifest['icons']})
@@ -16,24 +16,24 @@ class PWASmokeTests(unittest.TestCase):
         self.assertTrue((ROOT/'assets/apple-touch-icon.png').is_file())
 
     def test_offline_shell_covers_all_runtime_modules_and_assets(self):
-        sw=(ROOT/'sw.js').read_text()
-        for file in ['index.html','styles.css','manifest.webmanifest','icon.svg']+[str(p.relative_to(ROOT)) for p in (ROOT/'js').glob('*.js')]:
+        sw=(ROOT/'sw.js').read_text(encoding='utf-8')
+        for file in ['index.html','styles.css','manifest.webmanifest','icon.svg']+[p.relative_to(ROOT).as_posix() for p in (ROOT/'js').glob('*.js')]:
             self.assertIn('./'+file,sw)
         self.assertIn("url.pathname.startsWith('/api/')",sw)
         self.assertIn("key.startsWith('datacore-')",sw)
 
     def test_entrypoint_assets_exist_and_public_code_has_no_provider_key(self):
-        html=(ROOT/'index.html').read_text()
+        html=(ROOT/'index.html').read_text(encoding='utf-8')
         for path in re.findall(r'(?:src|href)="(\./[^"]+)"',html):
             self.assertTrue((ROOT/path.split('?',1)[0]).is_file(),path)
-        scripts='\n'.join(p.read_text() for p in (ROOT/'js').glob('*.js'))
+        scripts='\n'.join(p.read_text(encoding='utf-8') for p in (ROOT/'js').glob('*.js'))
         for token in ('api.groq.com','SQLEXPRESS','GROQ_API_KEY','Authorization: Bearer'):
             self.assertNotIn(token,scripts)
         self.assertIn('datos ficticios',html.lower())
         self.assertIn('viewport-fit=cover',html)
 
     def test_deployment_excludes_private_repository(self):
-        ignore=(ROOT.parent/'.vercelignore').read_text()
+        ignore=(ROOT.parent/'.vercelignore').read_text(encoding='utf-8')
         self.assertTrue(ignore.startswith('# Deploy'))
         self.assertIn('**/*',ignore)
         self.assertNotIn('!database/',ignore)

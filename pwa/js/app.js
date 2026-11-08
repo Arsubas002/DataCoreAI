@@ -7,15 +7,15 @@ import {
   exportRows,
   toCsv,
   snapshot,
-} from './data.js?v=editorial-search-v2';
-import { icon, pages } from './icons.js?v=editorial-search-v2';
-import { chart, bindCharts } from './charts.js?v=editorial-search-v2';
+} from './data.js?v=future-workspace-v3';
+import { icon, pages } from './icons.js?v=future-workspace-v3';
+import { chart, bindCharts } from './charts.js?v=future-workspace-v3';
 import {
   setupSheet,
   reducedMotion,
   spring,
-} from './motion.js?v=editorial-search-v2';
-import { ask } from './assistant.js?v=editorial-search-v2';
+} from './motion.js?v=future-workspace-v3';
+import { ask } from './assistant.js?v=future-workspace-v3';
 const view = document.querySelector('#view'),
   dialog = document.querySelector('#sheet'),
   sheet = setupSheet(dialog);
@@ -64,9 +64,7 @@ const delta = (value) =>
 const navLink = (id) =>
   `<a href="#${id}" data-nav="${id}" ${page === id ? 'aria-current="page"' : ''}>${icon(id)}<span>${pages[id]}</span>${id === 'inventario' ? '<small>2</small>' : ''}</a>`;
 function navigation() {
-  document.querySelector('#desktop-nav').innerHTML = Object.keys(pages)
-    .map(navLink)
-    .join('');
+  document.querySelector('#desktop-nav').innerHTML = `<div class="nav-cluster">${navLink('inicio')}</div><div class="nav-cluster"><p class="nav-group-label">OPERACIÓN</p>${['productos','ventas','inventario'].map(navLink).join('')}</div><div class="nav-cluster"><p class="nav-group-label">INTELIGENCIA</p>${['reportes','asistente'].map(navLink).join('')}</div>`;
   document.querySelector('#mobile-nav').innerHTML =
     ['inicio', 'productos', 'ventas', 'asistente'].map(navLink).join('') +
     `<button id="more-nav" ${['inventario', 'reportes'].includes(page) ? 'aria-current="page"' : ''}>${icon('more')}<span>Más</span></button>`;
@@ -105,19 +103,19 @@ function recent(rows) {
 function start() {
   return (
     heading(
-      'PERSPECTIVA / 07 NOV 2026',
-      'Tu negocio.<br><span>En una sola mirada.</span>',
-      'Las señales que importan. El espacio para decidir.',
+      'WORKSPACE / VISIÓN GENERAL',
+      'El pulso de tu negocio<span class="heading-dot">.</span>',
+      'Conecta las señales. Encuentra tu próximo movimiento.',
       filters(),
     ) +
     `
-  <section class="business-canvas" aria-label="Resumen ejecutivo">
-    <div class="canvas-intro"><span class="section-kicker">01 / Ingresos del período</span><div class="hero-value">${money(data.revenue)}</div><p>${delta(data.delta)} <span>vs. período anterior</span></p><div class="canvas-baseline"><span>Antes</span><strong>${money(data.priorRevenue)}</strong></div><a class="text-link" href="#ventas">Entender la tendencia ${icon('arrow')}</a></div>
-    <div class="canvas-chart">${chart(data, 'home')}</div>
+  <div class="workspace-strip"><span><i></i>Vista de demostración</span><span>07 NOV 2026 <b> / </b> ${state.days} DÍAS</span><a href="#reportes">Explorar reportes ${icon('arrow')}</a></div><section class="business-canvas" aria-label="Resumen ejecutivo">
+    <div class="canvas-intro"><span class="section-kicker">INGRESOS DEL PERÍODO</span><div class="hero-value">${money(data.revenue)}</div><p>${delta(data.delta)} <span>vs. período anterior</span></p><div class="canvas-baseline"><span>Antes</span><strong>${money(data.priorRevenue)}</strong></div><a class="text-link" href="#ventas">Entender la tendencia ${icon('arrow')}</a></div>
+    <div class="canvas-chart"><div class="signal-heading"><span>01 / FLUJO DE INGRESOS</span><span class="signal-light">Datos ficticios</span></div>${chart(data, 'home')}</div>
     <div class="canvas-footer"><div><span>Operaciones</span><strong>${number(data.orders)}</strong></div><div><span>Ticket promedio</span><strong>${money(data.ticket)}</strong></div><div><span>Unidades vendidas</span><strong>${number(data.units)}</strong></div><p>Una vista de ${state.days} días.<br>Solo datos ficticios.</p></div>
   </section>
-  <a class="attention-ribbon" href="#inventario"><span class="attention-count">02</span><span><strong>Un poco de atención, más disponibilidad.</strong><small>Jean clásico y Casaca urbana necesitan reposición.</small></span><span class="ribbon-action">Revisar stock ${icon('arrow')}</span></a>
-  <div class="editorial-grid"><section class="performance-column">${sectionHead('Lo esencial se reconoce.', '02 / Productos por ingresos', `<a class="text-link" href="#productos">Explorar catálogo ${icon('arrow')}</a>`)}${bars(data.ranking.slice(0, 4))}</section><section class="movement-column">${sectionHead('El negocio no se detiene.', '03 / Últimos movimientos', `<a class="text-link" href="#ventas">Ver ventas ${icon('arrow')}</a>`)}${recent(data.current.slice(0, 4))}</section></div>`
+  <a class="attention-ribbon" href="#inventario"><span class="attention-count">02</span><span><strong>Inventario bajo observación.</strong><small>Jean clásico y Casaca urbana necesitan reposición.</small></span><span class="ribbon-action">Revisar stock ${icon('arrow')}</span></a>
+  <div class="editorial-grid"><section class="performance-column">${sectionHead('Productos que impulsan tu negocio', '02 / Productos por ingresos', `<a class="text-link" href="#productos">Explorar catálogo ${icon('arrow')}</a>`)}${bars(data.ranking.slice(0, 4))}</section><section class="movement-column">${sectionHead('Actividad reciente', '03 / Últimos movimientos', `<a class="text-link" href="#ventas">Ver ventas ${icon('arrow')}</a>`)}${recent(data.current.slice(0, 4))}</section></div>`
   );
 }
 function catalogue() {
@@ -368,7 +366,7 @@ function render() {
         { opacity: 0.6, transform: 'translateY(6px)' },
         { opacity: 1, transform: 'translateY(0)' },
       ],
-      { duration: 180, easing: 'ease-out' },
+      { duration: 280, easing: 'cubic-bezier(.2,.7,.2,1)' },
     );
   document.querySelector('#period')?.addEventListener('change', (e) => {
     state.days = Number(e.target.value);
@@ -381,6 +379,12 @@ function render() {
     document.querySelector('#branch').focus();
   });
   bindCharts(view, data);
+  if (!reducedMotion()) {
+    view.querySelectorAll('.canvas-intro, .canvas-chart, .canvas-footer > div, .editorial-grid > section, .product, .inventory-row, .sales-summary > div').forEach((el, i) => {
+      el.animate([{opacity:0, transform:'translateY(14px)'},{opacity:1, transform:'translateY(0)'}],{duration:480,delay:Math.min(i,7)*45,easing:'cubic-bezier(.2,.7,.2,1)',fill:'backwards'});
+    });
+    view.querySelectorAll('.data-line').forEach(el => el.animate([{strokeDasharray:'1',strokeDashoffset:'1'},{strokeDasharray:'1',strokeDashoffset:'0'}],{duration:1000,easing:'ease-out'}));
+  }
   bindProducts();
   if (page === 'productos') {
     renderProducts();
@@ -462,7 +466,7 @@ document.querySelector('#sheet-close').innerHTML = icon('close');
 document.querySelector('#sheet-close').onclick = sheet.close;
 function setTheme(theme) {
   document.documentElement.dataset.theme = theme;
-  storage.set('datacore-theme', theme);
+  storage.set('datacore-orbit-theme', theme);
   const toggle = document.querySelector('#theme-toggle');
   toggle.innerHTML = icon(theme === 'dark' ? 'sun' : 'moon');
   toggle.setAttribute(
@@ -470,12 +474,12 @@ function setTheme(theme) {
     theme === 'dark' ? 'Activar modo claro' : 'Activar modo oscuro',
   );
   document.querySelector('meta[name="theme-color"]').content =
-    theme === 'dark' ? '#0e121c' : '#f0f2f6';
+    theme === 'dark' ? '#080f19' : '#eef4f7';
 }
 setTheme(
   storage.get(
-    'datacore-theme',
-    matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
+    'datacore-orbit-theme',
+    'dark',
   ),
 );
 document.querySelector('#theme-toggle').onclick = () =>

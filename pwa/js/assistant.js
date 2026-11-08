@@ -1,4 +1,4 @@
-import { products, money, number } from './data.js?v=editorial-search-v2';
+import { products, money, number } from './data.js?v=future-workspace-v3';
 // Honest deterministic demo, deliberately distinct from a connected model.
 export function demoAnswer(question, data) {
   const q = question

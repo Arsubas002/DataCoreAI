@@ -1,4 +1,25 @@
-# DataCore AI · Perspective 02
+# DataCore AI · Orbit 03
+
+Revisión futurista sobre Perspective 02, en `design/futuristic-workspace`.
+Fondo azul profundo, superficies instrumentales y acento turquesa. Navegación
+agrupada en Inicio, Operación e Inteligencia; acceso secundario al asistente.
+El gráfico sigue siendo el instrumento principal: conserva datos, escalas,
+comparaciones y controles. Nuevo encabezado compacto, métricas integradas,
+franja de reposición y paneles inferiores. Tema oscuro inicial con alternativa clara.
+
+Movimiento: entrada escalonada de paneles, trazado de líneas, revelado de barras,
+órbitas decorativas del asistente y respuesta al pasar el puntero. Todas las
+animaciones nuevas respetan `prefers-reduced-motion`. Sin dependencias nuevas.
+Release y caché: `future-workspace-v3`.
+
+Validación: build público de 14 archivos; 4 pruebas Node de datos y límites de
+API y 4 pruebas Python de empaquetado aprobadas. Se corrigió portabilidad de
+las pruebas Python (UTF-8 y rutas web). Revisión manual de las seis rutas a
+1440 y 390 px sin desbordamiento horizontal; búsqueda de stock, filtros de
+período, alternancia a barras y tema claro comprobados. Sin validación de
+dispositivo Safari real ni conexión con datos comerciales.
+
+## Referencia anterior: Perspective 02
 
 Corrección del rediseño en `design/global-search-editorial-v2`, sobre `design/apple-pwa-experience`. Skill obligatoria: [apple-design en 5206a950](https://github.com/emilkowalski/skills/tree/5206a950b715e0cabe7043ea0b2304332b91494e/skills/apple-design). Revisión de respuesta inmediata, manipulación directa, resortes interrumpibles, materiales, tipografía y accesibilidad. La carpeta de esa skill no contiene referencias adicionales en ese commit.
 

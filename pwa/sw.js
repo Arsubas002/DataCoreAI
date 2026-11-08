@@ -1,4 +1,4 @@
-const CACHE = 'datacore-editorial-search-v2';
+const CACHE = 'datacore-future-workspace-v3';
 const ASSETS = [
   './',
   './index.html',
