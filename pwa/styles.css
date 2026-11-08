@@ -2512,17 +2512,17 @@ dialog::backdrop {
 }
 /* Orbit: a commercial control room. Charts remain the primary instrument. */
 :root {
-  --paper: #eef4f7; --surface: #fff; --ink: #142c3d; --muted: #536c7c;
-  --soft: #e2edf2; --line: #cbdce5; --accent: #08746d; --accent-soft: #dbf4ef;
-  --glass: #eef4f7ed; --nav-glass: #fffffff2; --radius: 1.25rem;
-  --orbit-violet: #6757b9; --orbit-glow: #08746d12; --orbit-edge: #08746d32;
+  --paper: #fff1fb; --surface: #fff; --ink: #1a1033; --muted: #685573;
+  --soft: #f3e1f4; --line: #dec9e5; --accent: #8b2582; --accent-soft: #fae0f7;
+  --glass: #fff1fbed; --nav-glass: #fffffff2; --radius: 1.25rem;
+  --orbit-violet: #7936b0; --orbit-glow: #8b258212; --orbit-edge: #8b258232;
 }
 :root[data-theme='dark'] {
-  --paper: #080f19; --surface: #101c2a; --ink: #edf6ff; --muted: #94aabd;
-  --soft: #17293a; --line: #24384b; --accent: #6aefd4; --accent-soft: #133c3b;
+  --paper: #1a1033; --surface: #24183f; --ink: #fff1fb; --muted: #baa9cd;
+  --soft: #30214e; --line: #483461; --accent: #ff4fd8; --accent-soft: #472043;
   --amber: #f0c78b; --amber-soft: #332c23;
-  --glass: #080f19ed; --nav-glass: #101c2af5;
-  --orbit-violet: #b1a4ff; --orbit-glow: #6aefd412; --orbit-edge: #6aefd433;
+  --glass: #1a1033ed; --nav-glass: #24183ff5;
+  --orbit-violet: #b45cff; --orbit-glow: #ff4fd812; --orbit-edge: #ff4fd833;
   --shadow: 0 24px 70px #0006;
 }
 body { background: radial-gradient(ellipse at 80% 0, var(--orbit-glow), transparent 48%),var(--paper); }
@@ -2643,3 +2643,18 @@ h2 { font-size:1.12rem; letter-spacing:-.025em; }
   .mobile-nav { border:1px solid var(--line); background:var(--nav-glass); box-shadow:0 10px 45px #0005; border-radius:1.1rem; }.mobile-nav [aria-current] { color:var(--accent); background:var(--accent-soft); border-radius:.7rem; }
 }
 @media print { .workspace-strip,.signal-heading { display:none; } .business-canvas,.editorial-grid>section,.report-lead,.trend-section { box-shadow:none; border-color:#ccc; } }
+
+/* Reference palette: deep violet / pink / ultraviolet / cyan / rose white. */
+:root { --chart-accent:#087d98; --chart-previous:#7936b0; --chart-glow:#087d9824; }
+:root[data-theme='dark'] { --chart-accent:#4be3ff; --chart-previous:#b45cff; --chart-glow:#4be3ff32; }
+.data-line { stroke:var(--chart-accent); filter:drop-shadow(0 0 4px var(--chart-glow)); }
+.chart-bars,.chart-cursor circle { fill:var(--chart-accent); }
+.previous-line { stroke:var(--chart-previous); opacity:.85; }
+.chart-legend i { background:var(--chart-accent); }
+.chart-legend .previous { background:var(--chart-previous); }
+.signal-light { color:var(--chart-accent); }
+.signal-light::before { background:var(--chart-accent); box-shadow:0 0 10px var(--chart-glow); }
+.orbital-core i { border-color:var(--orbit-violet); }
+.brand-mark span,.brand-ai { color:var(--orbit-violet); }
+.business-canvas::before { background:linear-gradient(90deg,var(--accent),var(--orbit-violet),var(--chart-accent)); }
+.canvas-intro .delta:not(.negative) { color:var(--chart-accent); background:var(--soft); }

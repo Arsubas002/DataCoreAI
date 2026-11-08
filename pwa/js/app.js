@@ -7,15 +7,15 @@ import {
   exportRows,
   toCsv,
   snapshot,
-} from './data.js?v=future-workspace-v3';
-import { icon, pages } from './icons.js?v=future-workspace-v3';
-import { chart, bindCharts } from './charts.js?v=future-workspace-v3';
+} from './data.js?v=orbit-spectrum-v4';
+import { icon, pages } from './icons.js?v=orbit-spectrum-v4';
+import { chart, bindCharts } from './charts.js?v=orbit-spectrum-v4';
 import {
   setupSheet,
   reducedMotion,
   spring,
-} from './motion.js?v=future-workspace-v3';
-import { ask } from './assistant.js?v=future-workspace-v3';
+} from './motion.js?v=orbit-spectrum-v4';
+import { ask } from './assistant.js?v=orbit-spectrum-v4';
 const view = document.querySelector('#view'),
   dialog = document.querySelector('#sheet'),
   sheet = setupSheet(dialog);
@@ -474,7 +474,7 @@ function setTheme(theme) {
     theme === 'dark' ? 'Activar modo claro' : 'Activar modo oscuro',
   );
   document.querySelector('meta[name="theme-color"]').content =
-    theme === 'dark' ? '#080f19' : '#eef4f7';
+    theme === 'dark' ? '#1a1033' : '#fff1fb';
 }
 setTheme(
   storage.get(

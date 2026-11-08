@@ -1,3 +1,9 @@
+## Paleta Spectrum
+
+Referencia del usuario: #1A1033, #FF4FD8, #B45CFF, #4BE3FF, #FFF1FB.
+Fondo violeta, acciones fucsia, detalles ultravioletas, gráficos cian y texto blanco rosado.
+Variantes oscuras de acentos en modo claro para contraste.
+
 # DataCore AI · Orbit 03
 
 Revisión futurista sobre Perspective 02, en `design/futuristic-workspace`.
