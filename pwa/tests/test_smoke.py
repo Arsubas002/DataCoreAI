@@ -25,7 +25,7 @@ class PWASmokeTests(unittest.TestCase):
     def test_entrypoint_assets_exist_and_public_code_has_no_provider_key(self):
         html=(ROOT/'index.html').read_text()
         for path in re.findall(r'(?:src|href)="(\./[^"]+)"',html):
-            self.assertTrue((ROOT/path).is_file(),path)
+            self.assertTrue((ROOT/path.split('?',1)[0]).is_file(),path)
         scripts='\n'.join(p.read_text() for p in (ROOT/'js').glob('*.js'))
         for token in ('api.groq.com','SQLEXPRESS','GROQ_API_KEY','Authorization: Bearer'):
             self.assertNotIn(token,scripts)

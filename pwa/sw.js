@@ -1,4 +1,4 @@
-const CACHE = 'datacore-quiet-v1';
+const CACHE = 'datacore-editorial-search-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -15,8 +15,16 @@ const ASSETS = [
   './assets/icon-512.png',
   './assets/apple-touch-icon.png',
 ];
+self.addEventListener('message', (event) => {
+  if (event.data === 'ACTIVATE_UPDATE') self.skipWaiting();
+});
 self.addEventListener('install', (event) =>
-  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(ASSETS))),
+  event.waitUntil(
+    caches
+      .open(CACHE)
+      .then((cache) => cache.addAll(ASSETS))
+      .then(() => self.skipWaiting()),
+  ),
 );
 self.addEventListener('activate', (event) =>
   event.waitUntil(
@@ -50,7 +58,7 @@ self.addEventListener('fetch', (event) => {
     return;
   event.respondWith(
     caches.open(CACHE).then(async (cache) => {
-      const cached = await cache.match(event.request);
+      const cached = await cache.match(event.request, { ignoreSearch: true });
       if (cached) return cached;
       try {
         return await fetch(event.request);

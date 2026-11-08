@@ -43,8 +43,30 @@ try {
       );
       count++;
     }
+  for (const theme of ['light', 'dark']) {
+    await page.goto(
+      (process.env.BASE_URL || 'http://127.0.0.1:8080') + '/#inicio',
+    );
+    await page.locator('#global-search').fill('stock');
+    await page.evaluate(
+      (theme) => (document.documentElement.dataset.theme = theme),
+      theme,
+    );
+    const result = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+      .analyze();
+    assert.deepEqual(
+      result.violations.map((v) => ({
+        id: v.id,
+        targets: v.nodes.map((n) => n.target),
+      })),
+      [],
+      theme + '/global-search-open',
+    );
+    count++;
+  }
   console.log(
-    `PASS: Axe WCAG A/AA checks across ${count} mobile view/theme combinations. This is not a complete accessibility audit.`,
+    `PASS: Axe WCAG A/AA checks across ${count} mobile view/theme/search combinations. This is not a complete accessibility audit.`,
   );
 } finally {
   await browser.close();

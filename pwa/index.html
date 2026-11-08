@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content"
     />
-    <meta name="theme-color" content="#101719" />
+    <meta name="theme-color" content="#0e121c" />
     <meta
       name="description"
       content="DataCore AI. Una perspectiva clara de tu negocio. Demostración con datos ficticios."
@@ -19,7 +19,8 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles.css?v=editorial-search-v2" />
+    <meta name="datacore-release" content="editorial-search-v2" />
     <title>Inicio · DataCore AI</title>
   </head>
   <body>
@@ -55,6 +56,38 @@
         <div class="breadcrumb">
           Mi negocio <span>/</span> <strong id="breadcrumb">Inicio</strong>
         </div>
+        <div class="global-search" role="search" aria-label="Búsqueda global">
+          <label for="global-search" class="sr-only"
+            >Buscar productos, inventario y secciones</label
+          >
+          <div class="global-search-field">
+            <span id="search-symbol" aria-hidden="true"></span
+            ><input
+              id="global-search"
+              type="search"
+              placeholder="Buscar productos, stock, ventas…"
+              autocomplete="off"
+              aria-controls="global-results"
+            /><kbd>⌘ K</kbd
+            ><button
+              id="search-clear"
+              type="button"
+              aria-label="Cerrar búsqueda"
+              hidden
+            >
+              ×
+            </button>
+          </div>
+          <section
+            id="global-results"
+            class="global-results"
+            aria-label="Resultados de búsqueda"
+            hidden
+          >
+            <p id="search-status" role="status"></p>
+            <div id="search-matches"></div>
+          </section>
+        </div>
         <div class="toolbar-actions">
           <span class="demo-label"><i></i>Datos ficticios</span
           ><span id="network-status" role="status"></span
@@ -68,7 +101,7 @@
       <main id="view" tabindex="-1"></main>
       <footer class="page-footer">
         <span>Hecho para ver más allá de los números.</span
-        ><span>DataCore AI · Demo</span>
+        ><span>DataCore AI · Demo · <small>Edición 02</small></span>
       </footer>
     </div>
     <nav id="mobile-nav" class="mobile-nav" aria-label="Navegación móvil"></nav>
@@ -85,6 +118,6 @@
       <div id="sheet-body"></div>
     </dialog>
     <div class="toast" id="toast" role="status"></div>
-    <script type="module" src="./js/app.js"></script>
+    <script type="module" src="./js/app.js?v=editorial-search-v2"></script>
   </body>
 </html>

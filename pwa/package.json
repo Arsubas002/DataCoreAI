@@ -7,7 +7,9 @@
     "test": "node --test tests/*.test.mjs",
     "test:browser": "node tests/browser.mjs",
     "test:a11y": "node tests/a11y.mjs",
-    "build": "node build.mjs"
+    "build": "node build.mjs",
+    "test:revision": "node tests/revision.mjs",
+    "test:deployed": "node tests/deployed.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.11.1",

@@ -7,11 +7,15 @@ import {
   exportRows,
   toCsv,
   snapshot,
-} from './data.js';
-import { icon, pages } from './icons.js';
-import { chart, bindCharts } from './charts.js';
-import { setupSheet, reducedMotion } from './motion.js';
-import { ask } from './assistant.js';
+} from './data.js?v=editorial-search-v2';
+import { icon, pages } from './icons.js?v=editorial-search-v2';
+import { chart, bindCharts } from './charts.js?v=editorial-search-v2';
+import {
+  setupSheet,
+  reducedMotion,
+  spring,
+} from './motion.js?v=editorial-search-v2';
+import { ask } from './assistant.js?v=editorial-search-v2';
 const view = document.querySelector('#view'),
   dialog = document.querySelector('#sheet'),
   sheet = setupSheet(dialog);
@@ -25,6 +29,7 @@ const state = {
   inventory: 'Todos',
   messages: [],
   busy: false,
+  interacted: false,
 };
 const storage = {
   get(key, fallback) {
@@ -100,24 +105,19 @@ function recent(rows) {
 function start() {
   return (
     heading(
-      'TU NEGOCIO, EN PERSPECTIVA',
-      'Cada detalle cuenta.',
-      'Una mirada tranquila a lo que está pasando.',
+      'PERSPECTIVA / 07 NOV 2026',
+      'Tu negocio.<br><span>En una sola mirada.</span>',
+      'Las señales que importan. El espacio para decidir.',
       filters(),
     ) +
     `
-<section class="overview"><div class="overview-main"><span class="section-kicker">Ingresos del período</span><div class="hero-value">${money(data.revenue)}</div><p>${delta(data.delta)} <span>frente a ${money(data.priorRevenue)} del período anterior</span></p></div><div class="overview-secondary"><div><span>Operaciones</span><strong>${number(data.orders)}</strong><small>ventas de demostración</small></div><div><span>Ticket promedio</span><strong>${money(data.ticket)}</strong><small>por operación</small></div><div><span>Unidades vendidas</span><strong>${number(data.units)}</strong><small>en ${state.days} días</small></div></div></section>
-<section class="trend-section">${sectionHead('El pulso de tus ventas', `${dateLabel(data.dates[0])} — ${dateLabel(snapshot)} · ${state.branch === 'Todas' ? 'Todas las sucursales' : state.branch}`, `<a class="text-link" href="#ventas">Explorar ${icon('arrow')}</a>`)}${chart(data, 'home')}</section>
-<div class="editorial-grid"><section>${sectionHead('Lo que mueve tu negocio', 'Productos por ingresos', `<a class="text-link" href="#productos">Ver catálogo ${icon('arrow')}</a>`)}${bars(data.ranking.slice(0, 4))}</section><aside class="insight-panel"><span class="eyebrow">REQUIEREN TU ATENCIÓN</span><div class="insight-number">02<span>productos por reponer</span></div><p>Un pequeño ajuste hoy.<br> Más disponibilidad mañana.</p><div class="stock-mini">${products
-      .filter((p) => p.stock <= p.min)
-      .map(
-        (p) =>
-          `<button data-product="${p.id}"><span>${p.name}</span><strong>${p.stock} uds.</strong>${icon('chevron')}</button>`,
-      )
-      .join(
-        '',
-      )}</div><a href="#inventario" class="text-link">Revisar inventario ${icon('arrow')}</a></aside></div>
-<section class="activity-section">${sectionHead('Los últimos movimientos', 'Cada operación, en contexto.', `<a class="text-link" href="#ventas">Ver todos ${icon('arrow')}</a>`)}${recent(data.current)}</section>`
+  <section class="business-canvas" aria-label="Resumen ejecutivo">
+    <div class="canvas-intro"><span class="section-kicker">01 / Ingresos del período</span><div class="hero-value">${money(data.revenue)}</div><p>${delta(data.delta)} <span>vs. período anterior</span></p><div class="canvas-baseline"><span>Antes</span><strong>${money(data.priorRevenue)}</strong></div><a class="text-link" href="#ventas">Entender la tendencia ${icon('arrow')}</a></div>
+    <div class="canvas-chart">${chart(data, 'home')}</div>
+    <div class="canvas-footer"><div><span>Operaciones</span><strong>${number(data.orders)}</strong></div><div><span>Ticket promedio</span><strong>${money(data.ticket)}</strong></div><div><span>Unidades vendidas</span><strong>${number(data.units)}</strong></div><p>Una vista de ${state.days} días.<br>Solo datos ficticios.</p></div>
+  </section>
+  <a class="attention-ribbon" href="#inventario"><span class="attention-count">02</span><span><strong>Un poco de atención, más disponibilidad.</strong><small>Jean clásico y Casaca urbana necesitan reposición.</small></span><span class="ribbon-action">Revisar stock ${icon('arrow')}</span></a>
+  <div class="editorial-grid"><section class="performance-column">${sectionHead('Lo esencial se reconoce.', '02 / Productos por ingresos', `<a class="text-link" href="#productos">Explorar catálogo ${icon('arrow')}</a>`)}${bars(data.ranking.slice(0, 4))}</section><section class="movement-column">${sectionHead('El negocio no se detiene.', '03 / Últimos movimientos', `<a class="text-link" href="#ventas">Ver ventas ${icon('arrow')}</a>`)}${recent(data.current.slice(0, 4))}</section></div>`
   );
 }
 function catalogue() {
@@ -129,7 +129,7 @@ function catalogue() {
       `<button class="button secondary" id="compare-open">${icon('productos')} Comparar <span id="compare-count">${state.compare.size}</span></button>`,
     ) +
     `
-<div class="catalog-tools"><label class="search-field">${icon('search')}<input type="search" id="product-search" placeholder="Buscar un producto…" aria-label="Buscar productos" value="${escape(state.query)}"></label><label class="select-label"><span class="sr-only">Ordenar productos</span><select id="product-sort"><option value="name">Nombre</option><option value="price">Menor precio</option><option value="stock">Menor stock</option></select></label></div><div class="chips" role="group" aria-label="Filtrar categoría">${['Todos', 'Textil', 'Moda', 'Calzado', 'Accesorios'].map((c) => `<button data-category="${c}" aria-pressed="${state.category === c}">${c}</button>`).join('')}</div><p id="catalog-count" class="results-count" aria-live="polite"></p><div id="product-grid" class="product-grid"></div>`
+<div class="catalog-tools"><p>Usa la búsqueda superior para encontrar una referencia o consultar su stock.</p><label class="select-label"><span class="sr-only">Ordenar productos</span><select id="product-sort"><option value="name">Nombre</option><option value="price">Menor precio</option><option value="stock">Menor stock</option></select></label></div><div class="chips" role="group" aria-label="Filtrar categoría">${['Todos', 'Textil', 'Moda', 'Calzado', 'Accesorios'].map((c) => `<button data-category="${c}" aria-pressed="${state.category === c}">${c}</button>`).join('')}</div><p id="catalog-count" class="results-count" aria-live="polite"></p><div id="product-grid" class="product-grid"></div>`
   );
 }
 function renderProducts() {
@@ -207,7 +207,7 @@ function reportsPage() {
       'Del detalle a la visión completa.',
       filters(),
     ) +
-    `<section class="report-lead"><div><span class="eyebrow">RESUMEN DEL PERÍODO</span><h2>${money(data.revenue)}<br><span>en ${number(data.orders)} operaciones.</span></h2><p>${delta(data.delta)} frente al período anterior.</p></div><div class="report-export"><button class="button primary" id="export-csv">${icon('down')} Exportar CSV</button><button class="button secondary" id="print-report">Guardar como PDF ${icon('arrow')}</button><small>Solo datos ficticios del filtro actual.<br>PDF mediante el diálogo de impresión.</small></div></section><section class="trend-section">${sectionHead('Actual frente a anterior', 'Misma duración. Una comparación más útil.')}${chart(data, 'reports')}</section><div class="editorial-grid"><section>${sectionHead('Participación por categoría', 'Distribución de ingresos del período')}<div class="category-breakdown">${[
+    `<section class="report-lead"><div><span class="eyebrow">RESUMEN DEL PERÍODO</span><h2>${money(data.revenue)}<br><span>en ${number(data.orders)} operaciones.</span></h2><p>${delta(data.delta)} frente al período anterior.</p></div><div class="report-export"><button class="button primary" id="export-csv">${icon('down')} Exportar CSV</button><button class="button secondary" id="print-report">Guardar como PDF ${icon('arrow')}</button><small>Solo datos ficticios del filtro actual.<br> PDF mediante el diálogo de impresión.</small></div></section><section class="trend-section">${sectionHead('Actual frente a anterior', 'Misma duración. Una comparación más útil.')}${chart(data, 'reports')}</section><div class="editorial-grid"><section>${sectionHead('Participación por categoría', 'Distribución de ingresos del período')}<div class="category-breakdown">${[
       'Textil',
       'Moda',
       'Calzado',
@@ -238,7 +238,7 @@ function renderConversation() {
             `<article class="message ${m.role}"><span class="message-label">${m.role === 'user' ? 'Tú' : 'DataCore · Demo'}</span><p>${escape(m.text)}</p></article>`,
         )
         .join('')
-    : `<div class="conversation-intro"><div class="assistant-orb">${icon('asistente')}</div><h2>Una buena decisión<br>empieza con una pregunta.</h2><p>Explora tu catálogo, compara precios o revisa las ventas.<br>La pregunta la eliges tú.</p><div class="suggestions">${['¿Qué productos necesitan reposición?', 'Compara el polo y el jean', '¿Cómo van las ventas?'].map((q) => `<button data-prompt="${q}">${q}${icon('arrow')}</button>`).join('')}</div></div>`;
+    : `<div class="conversation-intro"><div class="assistant-orb">${icon('asistente')}</div><h2>Una buena decisión<br>empieza con una pregunta.</h2><p>Explora tu catálogo, compara precios o revisa las ventas.<br> La pregunta la eliges tú.</p><div class="suggestions" ${state.interacted ? 'hidden' : ''}>${['¿Qué productos necesitan reposición?', 'Compara el polo y el jean', '¿Cómo van las ventas?'].map((q) => `<button data-prompt="${q}">${q}${icon('arrow')}</button>`).join('')}</div></div>`;
   if (state.busy)
     log.insertAdjacentHTML(
       'beforeend',
@@ -252,6 +252,7 @@ async function send(question) {
   if (state.busy || !question.trim()) return;
   const input = document.querySelector('#chat-input');
   const q = question.trim().slice(0, 2000);
+  state.interacted = true;
   state.messages.push({ role: 'user', text: q });
   state.busy = true;
   input.value = '';
@@ -272,12 +273,10 @@ async function send(question) {
     renderConversation();
     document.querySelector('.send-button')?.removeAttribute('disabled');
     document.querySelector('#clear-chat')?.removeAttribute('disabled');
-    document
-      .querySelector('.message:last-child')
-      ?.scrollIntoView({
-        block: 'nearest',
-        behavior: reducedMotion() ? 'instant' : 'smooth',
-      });
+    document.querySelector('.message:last-child')?.scrollIntoView({
+      block: 'nearest',
+      behavior: reducedMotion() ? 'instant' : 'smooth',
+    });
   }
 }
 function openSheet(title, context, body) {
@@ -385,10 +384,6 @@ function render() {
   bindProducts();
   if (page === 'productos') {
     renderProducts();
-    document.querySelector('#product-search').oninput = (e) => {
-      state.query = e.target.value;
-      renderProducts();
-    };
     document.querySelector('#product-sort').value = state.sort;
     document.querySelector('#product-sort').onchange = (e) => {
       state.sort = e.target.value;
@@ -424,7 +419,15 @@ function render() {
       e.preventDefault();
       send(input.value);
     };
+    input.onfocus = () => {
+      state.interacted = true;
+      document.querySelector('.suggestions')?.setAttribute('hidden', '');
+    };
     input.oninput = () => {
+      if (input.value.trim()) {
+        state.interacted = true;
+        document.querySelector('.suggestions')?.setAttribute('hidden', '');
+      }
       input.style.height = 'auto';
       input.style.height = Math.min(input.scrollHeight, 140) + 'px';
     };
@@ -436,6 +439,7 @@ function render() {
     };
     document.querySelector('#clear-chat').onclick = () => {
       state.messages = [];
+      state.interacted = false;
       renderConversation();
       input.focus();
     };
@@ -466,7 +470,7 @@ function setTheme(theme) {
     theme === 'dark' ? 'Activar modo claro' : 'Activar modo oscuro',
   );
   document.querySelector('meta[name="theme-color"]').content =
-    theme === 'dark' ? '#101719' : '#f7f8f6';
+    theme === 'dark' ? '#0e121c' : '#f0f2f6';
 }
 setTheme(
   storage.get(
@@ -504,3 +508,141 @@ if ('serviceWorker' in navigator)
     .catch(() =>
       toast('No se pudo activar el modo offline. Puedes seguir navegando.'),
     );
+
+const searchInput = document.querySelector('#global-search');
+const searchPanel = document.querySelector('#global-results');
+const searchMatches = document.querySelector('#search-matches');
+const searchMotion = spring(
+  (y) => (searchPanel.style.transform = `translateY(${y}px)`),
+  0,
+);
+document.querySelector('#search-symbol').innerHTML = icon('search');
+function closeSearch() {
+  searchPanel.hidden = true;
+  document.querySelector('#search-clear').hidden = !searchInput.value;
+}
+function searchGlobal() {
+  const normalize = (value) =>
+    value
+      .toLocaleLowerCase('es')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+  const query = normalize(searchInput.value.trim());
+  document.querySelector('#search-clear').hidden = !query;
+  if (!query) {
+    closeSearch();
+    return;
+  }
+  const stockQuery = /stock|inventario|repon|repos|agot/.test(query);
+  const words = query
+    .split(/\s+/)
+    .filter(
+      (w) =>
+        w.length > 2 &&
+        ![
+          'que',
+          'del',
+          'los',
+          'las',
+          'con',
+          'hay',
+          'stock',
+          'inventario',
+          'productos',
+          'producto',
+          'cuanto',
+          'cual',
+          'precio',
+          'reposicion',
+        ].includes(w),
+    );
+  let matched = products.filter((p) =>
+    words.length
+      ? words.every((w) => normalize(p.name + ' ' + p.category).includes(w))
+      : stockQuery,
+  );
+  if (/repon|repos|agot/.test(query))
+    matched = matched.filter((p) => p.stock <= p.min);
+  const links = Object.entries(pages).filter(
+    ([id, label]) =>
+      normalize(label + ' ' + id).includes(query) ||
+      (stockQuery && id === 'inventario'),
+  );
+  document.querySelector('#search-status').textContent =
+    `${matched.length} productos · ${links.length} secciones · Datos ficticios`;
+  searchMatches.innerHTML =
+    matched
+      .map(
+        (p) =>
+          `<button type="button" class="search-result" data-search-product="${p.id}">${productArt(p)}<span><strong>${p.name}</strong><small>${p.category} · ${money(p.price)} · ${p.stock} unidades${p.stock <= p.min ? ' · Reponer' : ''}</small></span>${icon('arrow')}</button>`,
+      )
+      .join('') +
+    links
+      .map(
+        ([id, label]) =>
+          `<a class="search-result search-route" href="#${id}">${icon(id)}<span><strong>${label}</strong><small>Abrir sección</small></span>${icon('arrow')}</a>`,
+      )
+      .join('') +
+    (!matched.length && !links.length
+      ? '<div class="search-empty">Sin coincidencias. Prueba “jean”, “stock” o “ventas”.</div>'
+      : '');
+  const opening = searchPanel.hidden;
+  searchPanel.hidden = false;
+  if (opening) {
+    searchMotion.set(-8);
+    searchMotion.to(0);
+  }
+  searchMatches.querySelectorAll('[data-search-product]').forEach(
+    (button) =>
+      (button.onclick = () => {
+        closeSearch();
+        searchInput.blur();
+        showProduct(Number(button.dataset.searchProduct));
+      }),
+  );
+  searchMatches.querySelectorAll('a').forEach((a) => (a.onclick = closeSearch));
+}
+searchInput.addEventListener('input', searchGlobal);
+searchInput.addEventListener('focus', () => {
+  if (searchInput.value) searchGlobal();
+});
+document.querySelector('#search-clear').onclick = () => {
+  searchInput.value = '';
+  closeSearch();
+  searchInput.focus();
+};
+searchInput.addEventListener('keydown', (event) => {
+  if (event.key === 'ArrowDown') {
+    event.preventDefault();
+    searchMatches.querySelector('button,a')?.focus();
+  }
+  if (event.key === 'Escape') {
+    closeSearch();
+    searchInput.blur();
+  }
+});
+searchPanel.addEventListener('keydown', (event) => {
+  const items = [...searchMatches.querySelectorAll('button,a')],
+    index = items.indexOf(document.activeElement);
+  if (event.key === 'Escape') {
+    searchInput.focus();
+    closeSearch();
+  }
+  if (['ArrowDown', 'ArrowUp'].includes(event.key)) {
+    event.preventDefault();
+    items[
+      (index + (event.key === 'ArrowDown' ? 1 : -1) + items.length) %
+        items.length
+    ]?.focus();
+  }
+});
+document.addEventListener('pointerdown', (event) => {
+  if (!event.target.closest('.global-search')) closeSearch();
+});
+document.addEventListener('keydown', (event) => {
+  if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+    event.preventDefault();
+    searchInput.focus();
+  }
+});
+window.addEventListener('hashchange', closeSearch);

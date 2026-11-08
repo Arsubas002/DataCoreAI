@@ -1,36 +1,31 @@
-# DataCore AI · Quiet intelligence
+# DataCore AI · Perspective 02
 
-## Base y alcance
+Corrección del rediseño en `design/global-search-editorial-v2`, sobre `design/apple-pwa-experience`. Skill obligatoria: [apple-design en 5206a950](https://github.com/emilkowalski/skills/tree/5206a950b715e0cabe7043ea0b2304332b91494e/skills/apple-design). Revisión de respuesta inmediata, manipulación directa, resortes interrumpibles, materiales, tipografía y accesibilidad. La carpeta de esa skill no contiene referencias adicionales en ese commit.
 
-Base: `feature/datacore-pwa-demo` (`96fa831`). Implementación en `design/apple-pwa-experience`. La rama main aún no contenía `/pwa`. Solo se reconstruye la demo PWA; no se cambia Streamlit, SQL, SwiftUI ni datos reales.
+## Composición nueva
 
-Skill aplicada: [apple-design, commit 5206a950](https://github.com/emilkowalski/skills/tree/5206a950b715e0cabe7043ea0b2304332b91494e/skills/apple-design). En ese commit la carpeta contiene únicamente SKILL.md, sin referencias adicionales. También se revisaron la skill local interface-design y las reglas del proyecto.
+Inicio se reconstruye como una página editorial: titular de dos tonos, controles por período/sucursal, superficie analítica integrada con cifra y gráfico, métricas en el pie de esa superficie, franja horizontal de reposición y columnas diferenciadas de rendimiento/movimientos. Sustituye la composición anterior de indicador, gráfico independiente y panel de alertas.
 
-## Arquitectura visual
+La nueva paleta usa tinta azul, papel frío, ultramarino funcional y ámbar para reposición. Fuentes de sistema, tracking por tamaño, números tabulares y jerarquía por peso/escala. El catálogo cambia de mosaico de ilustraciones grandes a referencias horizontales. Inventario es una lista de existencias; Reportes distingue lectura ejecutiva, análisis y distribución. No hay gradientes decorativos. La profundidad corresponde al buscador, la hoja modal y la navegación flotante, no a cada dato.
 
-La persona responsable de una pequeña tienda necesita entender ingresos, encontrar una referencia y detectar reposiciones desde el teléfono. La experiencia prioriza calma y confianza, con una lectura editorial en vez de una colección de tarjetas. Vocabulario: referencias, existencias, reposición, períodos, operaciones, ticket y catálogo. Paleta: tinta petróleo, papel frío, lino, índigo, verde salvia y ámbar de alerta.
+## Una sola búsqueda, en la cabecera
 
-La firma es la continuidad entre el pulso comercial y el catálogo: cada barra de rendimiento abre la misma ficha de producto que catálogo e inventario. Se evitan rejillas de KPI equivalentes, donuts decorativos y superficies con degradados. Los únicos gradientes son el relleno informativo bajo la serie temporal.
+Hay exactamente un input search y vive en la toolbar persistente. En escritorio está dentro de la barra superior; en móvil ocupa una fila compacta debajo del encabezado. No hay campos ni resultados de búsqueda en aside. El catálogo remite al mismo buscador.
 
-- Inicio: una cifra protagonista, tres métricas secundarias, tendencia, ranking, reposición y movimientos.
-- Productos: composiciones de producto con ilustraciones SVG locales, búsqueda, categorías, ordenación, comparación de dos o tres referencias y ficha de detalle.
-- Ventas: comparación de períodos, ingresos, ranking y operaciones.
-- Inventario: lista ordenada por stock, estados textuales, mínimo y filtros.
-- Reportes: comparación, participación por categoría, detalle diario, CSV e impresión a PDF.
-- Asistente: conversación libre, mensajes diferenciados, ejemplos opcionales y cálculo local identificado como demostración.
+Busca nombres/categorías, reconoce consultas de stock y reposición, muestra precio/existencias, abre fichas y permite saltar a secciones. Resultados alineados debajo del campo; nunca en una columna lateral. Teclado: Cmd/Ctrl K, flechas, Escape, Tab y Enter. Sin resultados se explica cómo reformular. La apertura usa un resorte amortiguado con origen superior.
 
-En escritorio la navegación lateral mantiene las seis rutas visibles. En móvil, Inicio, Productos, Ventas y Asistente ocupan la barra inferior; Más abre Inventario y Reportes en una hoja modal. Las áreas seguras usan env(safe-area-inset-*). El compositor se adapta a visualViewport y oculta la barra inferior al detectar el teclado.
+## Visualizaciones e interacción
 
-## Movimiento y accesibilidad
+Todos los gráficos temporales usan un módulo nuevo, con conmutador Tendencia/Por día y comparación de períodos opcional. Tooltips jerarquizan fecha, valor actual y anterior. El dedo o puntero mueve el cursor directamente; las flechas exploran los valores. Tres referencias de escala, líneas ligeras y ausencia de fondos ornamentales.
 
-La hoja usa un resorte críticamente amortiguado con posición y velocidad persistentes, capture de Pointer Events, seguimiento 1:1, resistencia superior y proyección de velocidad al soltar. El mismo recorrido sirve para abrir/cerrar; se puede agarrar durante la transición. El navegador gestiona foco modal y Escape. Los controles responden en :active, sin retraso artificial.
+La navegación móvil es una isla flotante, separada de los bordes y respetuosa con safe-area. Las hojas conservan tracking 1:1, resistencia y proyección de velocidad con resortes interrumpibles. No se bloquean controles durante transiciones. Se respetan movimiento reducido, transparencia reducida y contraste aumentado.
 
-La navegación no bloquea entradas durante el cambio. Los gráficos responden a puntero, toque y flechas de teclado y reportan valores en output. La tabla diaria ofrece alternativa textual. Movimiento reducido desactiva desplazamientos y resortes, transparencia reducida usa superficies opacas y contraste aumentado refuerza líneas/texto. No hay animaciones constantes.
+## Conversación a página completa
 
-## Datos y seguridad
+El asistente ocupa la vista principal, sin paneles laterales de búsqueda o sugerencias. Las preguntas opcionales viven dentro de la conversación (carrusel horizontal en móvil) y desaparecen al primer texto introducido, incluso antes de enviarlo. El usuario puede preguntar libremente; el adaptador local identifica explícitamente sus cálculos como demostración sin IA conectada. Historial conservado al navegar durante la sesión; errores visibles y compositor adaptado a visualViewport.
 
-Todas las cifras proceden de ventas ficticias deterministas compartidas. Importes sumados en céntimos enteros; comparación con el período inmediatamente anterior de igual duración. Existencias son una instantánea, no movimientos históricos. El CSV representa exactamente el período y sucursal seleccionados y neutraliza prefijos de fórmulas en texto.
+## Versión y publicación
 
-El asistente no es una IA conectada. El adaptador local reconoce consultas simples y declara sus límites ante preguntas no interpretables. `/api/assistant` es un límite de servidor que responde 503: no tiene claves, llamadas al proveedor ni acceso a datos. Activarlo requerirá autenticación, autorización, cuotas, fuente de datos de solo lectura y secretos exclusivamente del servidor. Una clave por sí sola no debe habilitarlo.
+El shell lleva `meta[name=datacore-release]=editorial-search-v2`; CSS, entrada JS e imports usan esa versión en sus URL. Service worker con caché `datacore-editorial-search-v2`, precarga completa y activación tras completar la precarga; la nueva caché admite las URL versionadas sin perder offline. No se cachea API. El build publica una lista explícita de 14 assets, con SQL, tests, documentación y secretos fuera de la salida.
 
-Service worker: shell completo por versión; nunca almacena `/api/`; solo elimina cachés con prefijo datacore-. Sin recursos externos en runtime. El manifiesto conserva standalone e incorpora iconos PNG 192/512 y apple-touch-icon.
+`tests/deployed.mjs` requiere una URL HTTPS real: verifica el marcador, la búsqueda, hashes SHA-256 de los 14 assets y recarga con service worker. Es una verificación pendiente hasta disponer de credenciales/acceso de despliegue; un build local no la sustituye.

@@ -69,10 +69,14 @@ try {
     await page.locator('.product').first().waitFor();
     assert.equal(await page.locator('.product').count(), 6);
     checks++;
-    await page.locator('#product-search').fill('zz_sin_coincidencias');
-    assert.equal(await page.locator('.product').count(), 0);
-    await page.getByRole('button', { name: 'Limpiar filtros' }).click();
-    assert.equal(await page.locator('.product').count(), 6);
+    assert.equal(await page.locator('aside input[type="search"]').count(), 0);
+    assert.equal(await page.locator('input[type="search"]').count(), 1);
+    await page.locator('#global-search').fill('zz_sin_coincidencias');
+    assert.match(
+      await page.locator('#search-matches').textContent(),
+      /Sin coincidencias/,
+    );
+    await page.locator('#search-clear').click();
     checks++;
     await page.getByRole('button', { name: 'Textil', exact: true }).click();
     assert.equal(await page.locator('.product').count(), 2);
@@ -154,6 +158,7 @@ try {
     await page
       .locator('#chat-input')
       .fill('¿Qué productos necesitan reposición?');
+    assert.equal(await page.locator('.suggestions').isVisible(), false);
     await page.getByRole('button', { name: 'Enviar pregunta' }).click();
     await page.locator('.message.assistant').waitFor();
     assert.match(

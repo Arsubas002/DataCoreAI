@@ -40,3 +40,20 @@ La arquitectura futura de servidor está documentada en `DESIGN.md`. El endpoint
 La solicitud actual autoriza publicar únicamente la demo. `vercel.json` configura build/salida, cabeceras de seguridad y no-cache para sw.js. `.vercelignore` excluye el resto del repositorio, tests, documentación y node_modules. Para mayor aislamiento se puede preparar una carpeta temporal con solo `pwa/{index.html,styles.css,sw.js,manifest.webmanifest,icon.svg,js/,assets/}`, `api/assistant.mjs` `pwa/build.mjs` y `vercel.json`, y desplegarla con Vercel. Nunca publiques el resto del repositorio.
 
 Para una cuenta conectada: `vercel deploy` desde esa carpeta. La CLI también permite `vercel deploy --temporary` sin iniciar sesión; la URL y su caducidad deben confirmarse en el resultado. No se debe afirmar que está publicado solo por tener la configuración preparada.
+
+## Edición 02: corrección del rediseño
+
+Búsqueda global superior en las seis secciones, sin buscadores laterales ni campo duplicado en Productos. Encuentra nombres/categorías, muestra precio/stock y abre fichas o secciones. En escritorio: Cmd/Ctrl K; flechas para recorrer resultados y Escape para cerrar. En iPhone: debajo de la cabecera, con navegación inferior flotante.
+
+Inicio usa una composición analítica nueva, los gráficos permiten alternar tendencia/barras y comparación, y las sugerencias del asistente desaparecen al empezar a escribir. El modo demo permanece explícito.
+
+Validación adicional (servidor HTTP activo):
+
+```sh
+npm run test:revision --prefix pwa
+node pwa/tests/visual.mjs
+# Solo después de tener una URL HTTPS real:
+DEPLOYMENT_URL=https://URL_REAL npm run test:deployed --prefix pwa
+```
+
+No se ha obtenido URL pública en este entorno. VERCEL_TOKEN continúa ausente y la conexión actual a api.vercel.com fue rechazada con 403. Los requisitos ya guardados en el borrador deben completarse y aplicarse desde ajustes seguros; no deben enviarse valores al chat ni al código.
