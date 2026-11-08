@@ -1,0 +1,18 @@
+# Deploy only the public demo and its disabled server boundary.
+**/*
+!pwa/
+!pwa/**
+!api/
+!api/assistant.mjs
+!vercel.json
+pwa/tests/**
+pwa/AGENTS.md
+pwa/README.md
+pwa/VALIDACION_PREPUBLICACION.md
+pwa/DESIGN.md
+pwa/node_modules/**
+pwa/package.json
+pwa/package-lock.json
+pwa/.gitignore
+pwa/test-results/**
+pwa/playwright-report/**

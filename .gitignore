@@ -77,3 +77,7 @@ logs/
 
 # Informes de pruebas locales; CI los conserva como artefactos
 /test-results/
+
+# PWA deployment output and local Vercel metadata
+/public-demo/
+.vercel/

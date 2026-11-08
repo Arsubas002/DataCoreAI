@@ -1,1 +1,64 @@
-const CACHE='datacore-demo-v3';const ASSETS=['./','./index.html','./manifest.webmanifest','./icon.svg'];self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS))));self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))));self.addEventListener('fetch',e=>{if(e.request.method!=='GET'||new URL(e.request.url).origin!==self.location.origin)return;e.respondWith(fetch(e.request).then(r=>{if(r.ok){const copy=r.clone();caches.open(CACHE).then(c=>c.put(e.request,copy))}return r}).catch(()=>caches.match(e.request)))})
+const CACHE = 'datacore-quiet-v1';
+const ASSETS = [
+  './',
+  './index.html',
+  './styles.css',
+  './js/app.js',
+  './js/data.js',
+  './js/icons.js',
+  './js/charts.js',
+  './js/motion.js',
+  './js/assistant.js',
+  './manifest.webmanifest',
+  './icon.svg',
+  './assets/icon-192.png',
+  './assets/icon-512.png',
+  './assets/apple-touch-icon.png',
+];
+self.addEventListener('install', (event) =>
+  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(ASSETS))),
+);
+self.addEventListener('activate', (event) =>
+  event.waitUntil(
+    caches
+      .keys()
+      .then((keys) =>
+        Promise.all(
+          keys
+            .filter((key) => key.startsWith('datacore-') && key !== CACHE)
+            .map((key) => caches.delete(key)),
+        ),
+      )
+      .then(() => self.clients.claim()),
+  ),
+);
+self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+  // API data and credentials must never enter the offline cache.
+  if (
+    event.request.method !== 'GET' ||
+    url.origin !== self.location.origin ||
+    url.pathname.startsWith('/api/')
+  )
+    return;
+  if (
+    !ASSETS.some(
+      (asset) =>
+        new URL(asset, self.registration.scope).pathname === url.pathname,
+    )
+  )
+    return;
+  event.respondWith(
+    caches.open(CACHE).then(async (cache) => {
+      const cached = await cache.match(event.request);
+      if (cached) return cached;
+      try {
+        return await fetch(event.request);
+      } catch {
+        return event.request.mode === 'navigate'
+          ? cache.match('./index.html')
+          : Response.error();
+      }
+    }),
+  );
+});

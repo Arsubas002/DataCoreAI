@@ -1,24 +1,31 @@
-# Validación previa a despliegue de la demo PWA
+# Validación de la demo PWA
 
-Fecha: 2026-11-07. Rama: `feature/datacore-pwa-demo`.
+Fecha: 8 de noviembre de 2026. Rama: `design/apple-pwa-experience`.
 
-## Comprobaciones estáticas realizadas
-- Seis rutas visibles en HTML: Dashboard, Productos, Ventas, Inventario, Reportes, Asistente IA.
-- Manifest JSON parseable, `display: standalone`, ruta de inicio y referencia al icono SVG existente.
-- Service worker incluye shell offline y recuperación de caché.
-- El HTML no contiene conexión directa a SQL Server ni Groq; los indicadores se presentan como datos ficticios.
-- Descarga CSV de ejemplo y ausencia de scripts de terceros.
-- Se corrigió la navegación hash para evitar cambios redundantes.
+## Ejecutado en este entorno
 
-**Estas comprobaciones se hicieron sobre contenido recuperado de GitHub.** No se ha ejecutado todavía `unittest` en un runner, ni pruebas E2E, Lighthouse, Safari iPhone ni auditoría completa de accesibilidad.
+- Pruebas Python de empaquetado: 4 aprobadas. Manifiesto, iconos, assets, caché y exclusión de archivos privados.
+- Pruebas Node: 4 aprobadas. Conciliación de indicadores/períodos, CSV, catálogo/asistente y endpoint desactivado.
+- Chromium con Playwright: 52 comprobaciones funcionales aprobadas en escritorio 1440×1000 y móvil 393×852 / 375×812. Navegación real de seis secciones, temas persistidos, búsqueda vacía, filtros, comparación, detalles, ingresos por sucursal, tooltips por teclado, descarga CSV, conversación sin inyección HTML, historial entre rutas, recarga offline y movimiento reducido. Sin errores JavaScript observados.
+- Comprobaciones adicionales aprobadas: arrastre 1:1 y cierre por proyección, reapertura del panel y error HTTP del asistente. Incluidas en las 52 comprobaciones del runner reproducible.
+- Axe WCAG A/AA: cero infracciones detectadas en seis vistas × dos temas móviles después de reforzar contraste. No sustituye una auditoría manual completa.
+- Capturas de ambas composiciones y revisión visual local en `/tmp/datacore-artifacts`.
 
-## Limitaciones pendientes
-- Faltan iconos PNG 192/512 y `apple-touch-icon` para experiencia iOS consistente; SVG es un fallback.
-- Sin datos reales, persistencia, autenticación, SQL, Groq ni reportes PDF.
-- No existe despliegue HTTPS confirmado ni URL pública.
-- No publicar contenido privado del repositorio. `vercel.json` establece solo `pwa/` como salida estática, pero antes de conectar un hosting hay que revisar que no se suban archivos del resto del repositorio a la salida.
+Se corrigió la interpretación de “reposición” detectada por la prueba de conversación y se añadió una regresión. Se revisó que ninguna operación consulte SQL ni modifique datos reales.
 
-## Publicación
-Configuración estática de Vercel en `vercel.json`. Para publicar, el propietario debe conectar la cuenta de Vercel al repositorio privado y autorizar la importación/despliegue. La publicación de **la demo estática** está autorizada por el propietario, pero no autoriza revelar código privado, base de datos, tokens o contenido fuera de `pwa/`.
+## Distribución revisada
 
-No inventar un enlace de producción: verificar el dominio HTTPS real tras despliegue.
+Carpeta temporal de publicación con 17 archivos revisados: shell, estilos, seis módulos JS, manifiesto/iconos, endpoint desactivado y configuración/script de build Vercel. El build produce exactamente 14 assets públicos en public-demo/. Excluye Git, documentación, tests, node_modules, Python, scripts SQL y cualquier secreto. CSP limita recursos y conexiones al mismo origen. La API no entra en caché.
+
+## Despliegue pendiente
+
+Vercel CLI no encontró sesión ni token. El intento de despliegue temporal fue rechazado con `login_required`; no se obtuvo una URL publicada. Se solicitó configurar VERCEL_TOKEN de forma segura y se guardó únicamente ese requisito en el borrador del entorno, con destino api.vercel.com. Guardar el requisito no aporta su valor ni activa el acceso.
+
+## Límites
+
+- No probado en un iPhone físico ni Safari real. La descarga de WebKit fue denegada por la política de red para cdn.playwright.dev y playwright.download.prss.microsoft.com. El viewport móvil de Chromium no es Safari.
+- Instalación iOS, teclado real y áreas seguras requieren comprobación final en dispositivo.
+- PDF depende de la impresión del sistema. No hay exportación Excel ni motor PDF dedicado.
+- Asistente: solo cálculo local ficticio; sin modelo, cuentas, backend de datos o acceso al negocio real. Endpoint devuelve 503 hasta implementar los requisitos de seguridad.
+- La conversación se conserva al navegar, no al recargar o cerrar la página. Los datos son estáticos y ficticios.
+- No se afirma publicación, dominio HTTPS ni validación remota hasta obtener y probar una URL real.

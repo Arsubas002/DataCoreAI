@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "buildCommand": null,
-  "outputDirectory": "pwa",
+  "buildCommand": "node pwa/build.mjs",
+  "outputDirectory": "public-demo",
   "framework": null,
   "cleanUrls": false,
   "headers": [
@@ -24,6 +24,14 @@
         {
           "key": "Referrer-Policy",
           "value": "no-referrer"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
         }
       ]
     }

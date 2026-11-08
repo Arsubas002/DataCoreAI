@@ -1,23 +1,42 @@
 # DataCore AI · PWA de demostración
 
-Prototipo móvil **estático** y **sin datos reales**. No conecta SQL Server, Groq, API ni autenticación. Las seis pantallas muestran datos ficticios; Ventas no efectúa operaciones reales. Reportes ofrece una descarga CSV de ejemplo sin consultar servicios externos.
+Experiencia responsive reconstruida para iPhone y escritorio. Seis secciones, modos claro/oscuro, gráficos táctiles, catálogo con comparación, inventario, CSV y conversación local. **Todos los datos son ficticios. No hay SQL, autenticación ni IA conectada.**
 
-## Probar desde Windows
-```powershell
-py -m http.server 8080 --directory pwa --bind 127.0.0.1
-```
-Abrir http://127.0.0.1:8080 en el PC. El service worker se registra en HTTPS; para probar instalación y caché en iPhone, publicar bajo una URL HTTPS **solo después de autorizar el despliegue**. No publicar la app Streamlit ni la instancia SQL local.
+## Ejecutar
 
-## Instalación en iPhone
-Abrir la URL HTTPS en Safari > Compartir > Añadir a pantalla de inicio. La compatibilidad de iconos SVG varía según iOS: generar iconos PNG de 192 y 512 y apple-touch-icon antes de considerar la PWA terminada. Verificar manualmente instalación, navegación y modo sin conexión.
+Desde la raíz del repositorio:
 
-## Pendiente
-Pruebas en Safari real, PNG de iconos, exportaciones, UX accesible, datos persistentes, autenticación y backend seguro. No hay URL pública todavía.
-
-## Verificación rápida
-
-```powershell
-py -m unittest discover -s pwa/tests -v
+```sh
+python3 -m http.server 8080 --directory pwa --bind 127.0.0.1
 ```
 
-Estas pruebas comprueban archivos y contenido estático; **no sustituyen** una prueba real en Safari. El proyecto todavía no tiene iconos PNG de 192/512 ni apple-touch-icon, y la instalación final sigue pendiente.
+No requiere dependencias de producción. El build de distribución copia una lista explícita de 14 assets públicos, sin transformar el código. Los módulos ES se sirven por HTTP; no abras index.html como file://. Para Vercel se ejecuta `node pwa/build.mjs` desde la raíz y se usa la salida `public-demo/` y el endpoint desactivado `api/assistant.mjs`.
+
+## Validación
+
+```sh
+python3 -m unittest discover -s pwa/tests -v
+npm ci --prefix pwa
+npm test --prefix pwa
+# Con el servidor anterior activo y Chromium instalado:
+npm run test:browser --prefix pwa
+npm run test:a11y --prefix pwa
+```
+
+`CHROMIUM_PATH` permite seleccionar el navegador. `BASE_URL` permite probar otra URL. Las capturas se guardan en `/tmp/datacore-artifacts` o `ARTIFACTS_DIR`. El test automatizado comprueba escritorio 1440px, móvil 393/375px, navegación, temas, búsqueda/filtros, comparación, gráficos, chat, exportación, offline y movimiento reducido. No equivale a Safari en un iPhone físico.
+
+## PWA
+
+Safari > Compartir > Añadir a pantalla de inicio, bajo HTTPS. Incluye manifest standalone, iconos PNG y apple-touch-icon. Abre una vez con conexión y espera el registro del service worker antes de probar offline. La actualización conserva la versión anterior hasta cerrar sus pestañas; el siguiente arranque usa el shell nuevo de forma coherente. Cada entrega que cambie assets debe incrementar CACHE en sw.js.
+
+## Exportaciones y asistente
+
+CSV usa el período/sucursal seleccionados. Guardar como PDF abre el diálogo de impresión: elegir PDF depende del sistema; no se incorpora un motor PDF o Excel. El chat conserva la conversación al navegar durante la sesión, no tras cerrar o recargar. Las respuestas locales se identifican como demo; no se presentan como inferencias de un modelo.
+
+La arquitectura futura de servidor está documentada en `DESIGN.md`. El endpoint rechaza métodos/entradas inválidos y responde 503 mientras no exista una integración segura. Ninguna variable de clave se envía al cliente.
+
+## Despliegue
+
+La solicitud actual autoriza publicar únicamente la demo. `vercel.json` configura build/salida, cabeceras de seguridad y no-cache para sw.js. `.vercelignore` excluye el resto del repositorio, tests, documentación y node_modules. Para mayor aislamiento se puede preparar una carpeta temporal con solo `pwa/{index.html,styles.css,sw.js,manifest.webmanifest,icon.svg,js/,assets/}`, `api/assistant.mjs` `pwa/build.mjs` y `vercel.json`, y desplegarla con Vercel. Nunca publiques el resto del repositorio.
+
+Para una cuenta conectada: `vercel deploy` desde esa carpeta. La CLI también permite `vercel deploy --temporary` sin iniciar sesión; la URL y su caducidad deben confirmarse en el resultado. No se debe afirmar que está publicado solo por tener la configuración preparada.
