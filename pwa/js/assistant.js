@@ -1,4 +1,4 @@
-import { products, money, number } from './data.js?v=orbit-spectrum-v4';
+import { products, money, number } from './data.js?v=orbit-noir-v5';
 // Honest deterministic demo, deliberately distinct from a connected model.
 export function demoAnswer(question, data) {
   const q = question

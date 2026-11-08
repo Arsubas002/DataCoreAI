@@ -7,15 +7,15 @@ import {
   exportRows,
   toCsv,
   snapshot,
-} from './data.js?v=orbit-spectrum-v4';
-import { icon, pages } from './icons.js?v=orbit-spectrum-v4';
-import { chart, bindCharts } from './charts.js?v=orbit-spectrum-v4';
+} from './data.js?v=orbit-noir-v5';
+import { icon, pages } from './icons.js?v=orbit-noir-v5';
+import { chart, bindCharts } from './charts.js?v=orbit-noir-v5';
 import {
   setupSheet,
   reducedMotion,
   spring,
-} from './motion.js?v=orbit-spectrum-v4';
-import { ask } from './assistant.js?v=orbit-spectrum-v4';
+} from './motion.js?v=orbit-noir-v5';
+import { ask } from './assistant.js?v=orbit-noir-v5';
 const view = document.querySelector('#view'),
   dialog = document.querySelector('#sheet'),
   sheet = setupSheet(dialog);
@@ -474,7 +474,7 @@ function setTheme(theme) {
     theme === 'dark' ? 'Activar modo claro' : 'Activar modo oscuro',
   );
   document.querySelector('meta[name="theme-color"]').content =
-    theme === 'dark' ? '#1a1033' : '#fff1fb';
+    theme === 'dark' ? '#101113' : '#f2f2f4';
 }
 setTheme(
   storage.get(

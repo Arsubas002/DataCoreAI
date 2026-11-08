@@ -2658,3 +2658,15 @@ h2 { font-size:1.12rem; letter-spacing:-.025em; }
 .brand-mark span,.brand-ai { color:var(--orbit-violet); }
 .business-canvas::before { background:linear-gradient(90deg,var(--accent),var(--orbit-violet),var(--chart-accent)); }
 .canvas-intro .delta:not(.negative) { color:var(--chart-accent); background:var(--soft); }
+
+/* Neutral stage; spectrum is reserved for controls, signals and visualizations. */
+:root { --paper:#f2f2f4; --surface:#ffffff; --ink:#202124; --muted:#62646d; --soft:#e8e8ed; --line:#d6d6dd; --glass:#f2f2f4ed; --nav-glass:#fffffff5; }
+:root[data-theme='dark'] { --paper:#101113; --surface:#1c1d21; --ink:#fff1fb; --muted:#b1b2bd; --soft:#28292f; --line:#37383f; --glass:#101113f2; --nav-glass:#1c1d21f5; }
+body { background:var(--paper); }
+body::before { display:none; }
+.sidebar { background:var(--paper); }
+.business-canvas,.workspace,.editorial-grid>section,.report-note,.trend-section,.sales-summary,.report-lead,.inventory-top,.attention-ribbon { background:var(--surface); }
+.orbital-core { background:transparent; }
+.business-canvas::before { width:7rem; box-shadow:none; }
+.canvas-chart { position:relative; }
+.brand-mark { background:var(--accent-soft); }

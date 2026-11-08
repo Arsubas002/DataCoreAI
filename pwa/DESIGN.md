@@ -1,3 +1,9 @@
+## Noir / revisión de fondo
+
+Fondo #101113, paneles #1C1D21, superficies auxiliares #28292F y bordes #37383F.
+Se conserva la paleta del usuario solo en controles, iconos, gráficas y detalles.
+Sin baño violeta sobre el fondo. Release: orbit-noir-v5.
+
 ## Paleta Spectrum
 
 Referencia del usuario: #1A1033, #FF4FD8, #B45CFF, #4BE3FF, #FFF1FB.
