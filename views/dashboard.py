@@ -107,7 +107,7 @@ def mostrar_dashboard():
                 yaxis=dict(gridcolor="#E7EAF5", zeroline=False, rangemode="tozero"),
             )
             st.plotly_chart(estilo_grafico(figura, 330), width="stretch")
-            with st.expander("Ver datos de ingresos"):
+            with st.expander(f"Ver datos de {serie.lower()}"):
                 tabla_comercial(tabla)
         else:
             st.info("No se registraron ventas en el periodo seleccionado.")
