@@ -1,4 +1,4 @@
-import { products, money, number } from './data.js?v=orbit-noir-v5';
+import { products, customers, money, number } from './data.js?v=orbit-data-v6';
 // Honest deterministic demo, deliberately distinct from a connected model.
 export function demoAnswer(question, data) {
   const q = question
@@ -8,6 +8,7 @@ export function demoAnswer(question, data) {
   const mentioned = products.filter((p) =>
     q.includes(p.name.toLowerCase().split(' ')[0]),
   );
+  if (/cliente/.test(q)) return `Clientes ficticios recuperados del catálogo SQL\n\n${customers.map(c=>c.id + ' · ' + c.name).join('\n')}\n\nNo se encontró una relación cliente–venta. No se atribuyen compras a estos clientes.`;
   if (/compar|diferencia/.test(q)) {
     const list = mentioned.length >= 2 ? mentioned : data.ranking.slice(0, 2);
     return `Comparación del catálogo ficticio\n\n${list.map((p) => `${p.name}: ${money(p.price)} · ${p.stock} unidades disponibles.`).join('\n')}\n\nLos valores son de demostración; no representan una recomendación generada por IA.`;

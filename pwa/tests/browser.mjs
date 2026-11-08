@@ -35,6 +35,8 @@ try {
       false,
     );
     checks++;
+    await page.evaluate(() => { localStorage.setItem('datacore-orbit-theme','light'); document.documentElement.dataset.theme='light'; });
+    await page.reload();
     const before = await page.locator('.hero-value').textContent();
     await page.selectOption('#period', '7');
     assert.notEqual(await page.locator('.hero-value').textContent(), before);
@@ -67,7 +69,7 @@ try {
       .getByRole('link', { name: 'Productos', exact: true })
       .click();
     await page.locator('.product').first().waitFor();
-    assert.equal(await page.locator('.product').count(), 6);
+    assert.equal(await page.locator('.product').count(), 32);
     checks++;
     assert.equal(await page.locator('aside input[type="search"]').count(), 0);
     assert.equal(await page.locator('input[type="search"]').count(), 1);
@@ -126,7 +128,7 @@ try {
     await page
       .getByRole('button', { name: 'Por reponer', exact: true })
       .click();
-    assert.equal(await page.locator('.inventory-row').count(), 2);
+    assert.equal(await page.locator('.inventory-row').count(), 11);
     checks++;
     if (mobile) {
       await page.locator('#more-nav').click();
@@ -264,7 +266,7 @@ try {
     .getByRole('link', { name: 'Productos', exact: true })
     .click();
   await page.locator('.product').first().waitFor();
-  assert.equal(await page.locator('.product').count(), 6);
+  assert.equal(await page.locator('.product').count(), 32);
   await page
     .getByRole('button', { name: 'Ver detalles de Polo algodón', exact: true })
     .click();

@@ -26,7 +26,7 @@ test('all periods reconcile to integer-cent sales, ranking and previous periods'
       );
       assert.ok(d.prior.every((s) => !d.dates.includes(s.date)));
       assert.equal(exportRows(d).length, d.current.length + 1);
-      assert.equal(d.orders, d.current.length);
+      assert.equal(d.orders, new Set(d.current.map(s=>s.orderId || s.id)).size);
     }
 });
 test('CSV quotes strings, newlines and spreadsheet formula prefixes', () => {
@@ -43,7 +43,7 @@ test('inventory and demo replies are sourced and never claim connected AI', () =
       'Casaca urbana: 2',
     ),
   );
-  assert.equal(products.filter((p) => p.stock <= p.min).length, 2);
+  assert.equal(products.filter((p) => p.stock <= p.min).length, 11);
   assert.equal(new Set(sales.map((s) => s.id)).size, sales.length);
   const d = analytics();
   assert.ok(demoAnswer('stock', d).includes('Casaca urbana: 2'));

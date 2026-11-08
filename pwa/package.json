@@ -9,7 +9,8 @@
     "test:a11y": "node tests/a11y.mjs",
     "build": "node build.mjs",
     "test:revision": "node tests/revision.mjs",
-    "test:deployed": "node tests/deployed.mjs"
+    "test:deployed": "node tests/deployed.mjs",
+    "test:integration": "node tests/integration-browser.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.11.1",

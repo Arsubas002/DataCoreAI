@@ -1,4 +1,4 @@
-const CACHE = 'datacore-orbit-noir-v5';
+const CACHE = 'datacore-orbit-data-v6';
 const ASSETS = [
   './',
   './index.html',
