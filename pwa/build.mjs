@@ -1,5 +1,5 @@
 /** Build an explicit public allowlist. Repository files never become web assets. */
-import {cp,mkdir,readdir,rm} from 'node:fs/promises';
+import {cp,mkdir,readdir,rm,readFile,writeFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 const source=fileURLToPath(new URL('./',import.meta.url));
@@ -13,6 +13,11 @@ for(const name of files)await cp(path.join(source,name),path.join(output,name));
 for(const [folder,names] of [['js',modules],['assets',icons]]){
   await mkdir(path.join(output,folder));
   for(const name of names)await cp(path.join(source,folder,name),path.join(output,folder,name));
+}
+// Canonical text bytes keep Windows local builds identical to Linux deployments.
+for (const name of [...files,...modules.map(n=>'js/'+n)]) {
+  const target=path.join(output,name);
+  await writeFile(target,(await readFile(target,'utf8')).replaceAll('\r\n','\n'));
 }
 const count=(await readdir(output,{recursive:true,withFileTypes:true})).filter(entry=>entry.isFile()).length;
 if(count!==14)throw new Error('Unexpected public asset count');

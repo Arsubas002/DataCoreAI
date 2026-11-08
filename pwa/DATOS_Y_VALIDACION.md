@@ -26,3 +26,8 @@ No se probó Safari en iPhone físico, instalación real iOS, SQL Server ni IA g
 
 ## Reproducir
 En pwa: npm ci; npm test. Desde raíz: node pwa/build.mjs y python -m http.server 8080 --directory public-demo. Establecer CHROMIUM_PATH al navegador disponible y ejecutar los scripts browser.mjs, revision.mjs, integration-browser.mjs y a11y.mjs. Para prueba pública: DEPLOYMENT_URL con la URL HTTPS y node pwa/tests/deployed.mjs; verifica hashes de los 14 archivos sin credenciales.
+
+## Publicación verificada
+URL: https://datacore-ai-demo.vercel.app/ · Vercel production READY. Integración autorizada, sin introducir tokens. Acceso anónimo HTTP 200; release orbit-data-v6; SHA-256 de los 14 activos idéntico al build local, incluida recarga con service worker. Se normalizan únicamente saltos de línea de texto en el build para reproducibilidad Windows/Linux. Cuarenta comprobaciones de integración adicionales ejecutadas contra la URL pública. Código revisable en PR #18; main permanece sin cambios.
+
+Instalar en iPhone: abrir la URL en Safari, Compartir, Añadir a pantalla de inicio y Añadir. Si aparece Abrir como app web, activarlo. La instalación física no se ejecutó desde esta sesión.
