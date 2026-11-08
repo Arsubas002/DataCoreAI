@@ -1,4 +1,4 @@
-import { money, dateLabel } from './data.js?v=orbit-noir-v5';
+import { money, dateLabel } from './data.js?v=orbit-data-v6';
 export function chart(data, id = 'revenue') {
   const mobile = globalThis.matchMedia?.('(max-width:760px)').matches;
   const width = mobile ? 420 : 860,

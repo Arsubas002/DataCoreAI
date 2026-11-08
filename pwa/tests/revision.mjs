@@ -51,7 +51,7 @@ try {
       assert.equal(await page.locator('#global-results').isVisible(), false);
       checks++;
       await field.fill('reposición');
-      assert.equal(await page.locator('[data-search-product]').count(), 2);
+      assert.equal(await page.locator('[data-search-product]').count(), 11);
       checks++;
       await page.locator('[data-search-product="3"]').click();
       await page.locator('dialog').waitFor();

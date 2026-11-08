@@ -2,6 +2,8 @@
 import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
 import { readFile, readdir } from 'node:fs/promises';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import path from 'node:path';
 import { createHash } from 'node:crypto';
 const base = process.env.DEPLOYMENT_URL;
 if (!base || !base.startsWith('https://'))
@@ -15,11 +17,11 @@ const context = await browser.newContext({
 });
 try {
   const page = await context.newPage();
-  const response = await page.goto(base + '/?verify=editorial-search-v2');
+  const response = await page.goto(base + '/?verify=orbit-data-v6');
   assert.equal(response.status(), 200);
   assert.equal(
     await page.locator('meta[name="datacore-release"]').getAttribute('content'),
-    'editorial-search-v2',
+    'orbit-data-v6',
   );
   await page.locator('#global-search').fill('jean');
   await page.locator('[data-search-product="2"]').waitFor();
@@ -28,14 +30,11 @@ try {
   let checked = 0;
   for (const entry of entries) {
     if (!entry.isFile()) continue;
-    const file = new URL(
-      entry.name,
-      new URL(entry.parentPath.replace(/\/$/, '') + '/', 'file://'),
-    );
-    const relative = file.href.slice(root.href.length);
+    const file = pathToFileURL(path.join(entry.parentPath, entry.name));
+    const relative = path.relative(fileURLToPath(root), fileURLToPath(file)).split(path.sep).join('/');
     const remote = await context.request.get(
       new URL(relative, base.endsWith('/') ? base : base + '/').href +
-        '?verify=editorial-search-v2',
+        '?verify=orbit-data-v6',
       { headers: { 'Cache-Control': 'no-cache' } },
     );
     assert.equal(remote.status(), 200, relative);
@@ -53,10 +52,10 @@ try {
   await page.reload();
   assert.equal(
     await page.locator('meta[name="datacore-release"]').getAttribute('content'),
-    'editorial-search-v2',
+    'orbit-data-v6',
   );
   console.log(
-    `PASS: public HTTPS deployment serves editorial-search-v2; ${checked} assets match SHA-256, including after reload with service worker.`,
+    `PASS: public HTTPS deployment serves orbit-data-v6; ${checked} assets match SHA-256, including after reload with service worker.`,
   );
 } finally {
   await browser.close();

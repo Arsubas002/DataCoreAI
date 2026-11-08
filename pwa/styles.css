@@ -2670,3 +2670,8 @@ body::before { display:none; }
 .business-canvas::before { width:7rem; box-shadow:none; }
 .canvas-chart { position:relative; }
 .brand-mark { background:var(--accent-soft); }
+
+/* Keep small trend text readable on the light neutral surface. */
+:root:not([data-theme='dark']) .canvas-intro .delta:not(.negative) { color:#006479; }
+
+.report-note, .report-note .eyebrow, .report-note .text-link { color:var(--ink); }
