@@ -35,7 +35,9 @@ Build con exactamente **18 assets permitidos**. No incluye SQL, Python, backend 
 
 ## Publicación y límites
 
-La candidata está preparada para reemplazar la demo anterior mediante la API autorizada del proyecto Vercel existente, sin modificar su producción principal ni las protecciones globales. Se registrarán el deployment y alias cuando Vercel confirme READY.
+Vercel confirmó **READY** para `dpl_CGRiZm677SiriXjbS7b81LPtucSz`, release `original-v2`, código `8ae96bda02fd58c2e706198168fdaf3cb085aa27`. Alias nuevo: **https://datacore-original.vercel.app**. El alias anterior **https://datacore-atlas-sql.vercel.app** también apunta a este deployment. La API confirmó ambos destinos y las funciones compiladas `out/api/data` y `out/api/assistant`. La producción principal conserva su deployment anterior y no se modificaron sus protecciones.
+
+Los 22 archivos enviados coinciden exactamente con el commit de código. Manifiesto SHA-256 de fuentes: `c5192489df75dfba6f00bb0fe77b21bc865aabcefd232754ca8fb008b620e325`. Los commits posteriores documentan la entrega y no modifican recursos de ejecución. El alias nuevo utiliza un origen distinto del de la demo previa; su respuesta HTTP y caché todavía no se presentan como verificadas desde este entorno.
 
 El acceso del entorno sigue limitado a api.vercel.com. El usuario aplazó la aplicación de permisos para GitHub API y el dominio público. Por ello crear la PR y verificar HTTP anónimo/caché/hashes públicos siguen pendientes; no se presentan como pruebas ejecutadas. El verificador remoto preparado exige release original-v2, 18 hashes, búsqueda y API anónima bloqueada:
 

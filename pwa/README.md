@@ -45,4 +45,6 @@ CSV conserva filtro y procedencia y neutraliza fórmulas. Guardar como PDF utili
 
 La [API privada](../backend/README.md) mantiene RS256/scopes, ODBC parametrizado y límites. El puente Vercel requiere Bearer y un backend HTTPS configurado en el servidor; permanece sin origen configurado. Ninguna API se guarda en service worker. La demo no afirma conexión SQL ni IA real. No se expone el equipo local a Internet.
 
+Candidata Vercel confirmada READY mediante API: https://datacore-original.vercel.app . El alias anterior de la demo también se actualizó; la producción principal se conserva. La comprobación HTTP pública sigue pendiente del permiso de red aplazado.
+
 Estado de publicación, pruebas y límites: [VALIDACION_PREPUBLICACION.md](VALIDACION_PREPUBLICACION.md). Safari físico e instalación iOS requieren verificación manual; Chromium emulado no los sustituye. Desde Safari HTTPS: Compartir → Añadir a pantalla de inicio.
