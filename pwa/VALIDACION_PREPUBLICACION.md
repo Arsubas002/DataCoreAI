@@ -33,7 +33,11 @@ La API de Vercel permite consultar el proyecto existente `datacore-ai-demo`; est
 
 Los dos despliegues automáticos de Git revisados (`c0f565d` y `5e38ea7`) figuraban BLOCKED, sin un motivo específico en sus campos de error o eventos. El autor declarado coincide con la identidad Git existente; no se ha verificado su pertenencia/permisos de cuenta Vercel y no se atribuye el bloqueo a una causa no demostrada. No se reescribió identidad ni historial.
 
-La publicación de esta candidata se preparará mediante la API autorizada del proyecto existente y un alias separado, sin sustituir producción. Se actualizará aquí el identificador al confirmar READY.
+La API autorizada del proyecto existente confirmó **READY** para `dpl_HW9wNQaKoK4cdSdVhpT6FE1N5RTw` y asignó el alias dedicado **https://datacore-atlas-sql.vercel.app**. Es una candidata de preview; no sustituye la producción anterior. Fuente de ejecución: commit `93d1b2bbf0848275e4c4c863076ff7999694aa94`, rama `feat/atlas-sql-consolidation`, release `atlas-sql-v1`; los cambios posteriores a ese commit documentan la entrega y no cambian los assets.
+
+Se enviaron exactamente 19 archivos revisados: 15 assets de la PWA, su build, dos funciones y vercel.json. No se envió el checkout completo. Vercel confirmó por metadatos el commit y el SHA-256 del manifiesto de fuentes `ad1715361617683fb4a2c263341be923d98cafb861850f43f452d00d87c906b3`. Esto acredita procedencia y finalización del build, **no** la respuesta HTTP anónima del dominio.
+
+La inspección del árbol de salida de Vercel confirmó `out/api/data` y `out/api/assistant` como funciones lambda. El alias apunta al deployment revisado. Estas comprobaciones de API no sustituyen la ejecución HTTP de las rutas públicas.
 
 El usuario decidió aplicar más adelante las reglas de red para `api.github.com` y `datacore-atlas-sql.vercel.app`. Por tanto, siguen pendientes la creación/lectura de PR mediante API y la prueba HTTP anónima del nuevo alias, incluidos hashes y caché. No se confunde READY con verificación pública. El script preparado es:
 

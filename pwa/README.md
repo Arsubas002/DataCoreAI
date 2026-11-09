@@ -45,6 +45,7 @@ BASE_URL=http://127.0.0.1:8082 npm run test:browser --prefix pwa
 BASE_URL=http://127.0.0.1:8082 npm run test:revision --prefix pwa
 BASE_URL=http://127.0.0.1:8082 npm run test:atlas --prefix pwa
 BASE_URL=http://127.0.0.1:8082 npm run test:a11y --prefix pwa
+BASE_URL=http://127.0.0.1:8082 npm run test:motion --prefix pwa
 BASE_URL=http://127.0.0.1:8082 ARTIFACTS_DIR=/tmp/atlas-sql-visual node pwa/tests/visual.mjs
 ```
 
