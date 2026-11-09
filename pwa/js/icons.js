@@ -1,6 +1,12 @@
 const paths = {
   inicio:
     '<path d="m3 10 9-7 9 7v9a2 2 0 0 1-2 2h-4v-7H9v7H5a2 2 0 0 1-2-2z"/>',
+  clientes:
+    '<circle cx="9" cy="8" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 5a3 3 0 0 1 0 6M18 15a5 5 0 0 1 3 5"/>',
+  technology:
+    '<rect x="3" y="4" width="18" height="13" rx="1"/><path d="M8 21h8M12 17v4"/>',
+  book: '<path d="M4 3h13a2 2 0 0 1 2 2v16H6a2 2 0 0 1-2-2ZM4 17h15M8 7h7M8 10h5"/>',
+  home: '<path d="m3 10 9-7 9 7v11H3ZM9 21v-7h6v7"/>',
   productos:
     '<rect x="4" y="6" width="16" height="15" rx="3"/><path d="M8 7V5a4 4 0 0 1 8 0v2M9 11h6"/>',
   ventas: '<path d="M4 17 10 11l4 3 6-9M14 5h6v6M4 21h16"/>',
@@ -25,14 +31,15 @@ const paths = {
   shoe: '<path d="m4 7 5 5 5-2 3 5 5 2v4H2v-8ZM10 14l2-2M13 16l2-2"/>',
   bag: '<rect x="5" y="6" width="14" height="16" rx="3"/><path d="M9 6V4a3 3 0 0 1 6 0v2M8 14h8v5H8ZM9 10h6"/>',
 };
-export function icon(name, cls = '') {
+export function icon(name, cls = "") {
   return `<svg class="icon ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || paths.productos}</svg>`;
 }
 export const pages = {
-  inicio: 'Inicio',
-  productos: 'Productos',
-  ventas: 'Ventas',
-  inventario: 'Inventario',
-  reportes: 'Reportes',
-  asistente: 'Asistente IA',
+  inicio: "Inicio",
+  productos: "Productos",
+  clientes: "Clientes",
+  ventas: "Ventas",
+  inventario: "Inventario",
+  reportes: "Reportes",
+  asistente: "Asistente IA",
 };

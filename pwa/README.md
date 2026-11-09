@@ -1,24 +1,38 @@
-# DataCore AI / Atlas
+# DataCore AI / Atlas · fuente SQL original
 
-PWA estática de demostración con seis experiencias distintas: visión ejecutiva, catálogo/comparación, ventas, inventario, reportes y conversación. **32 productos, 10 clientes ficticios y ventas de ejemplo. No conecta SQL, cuentas reales ni un modelo de IA.**
+PWA de consulta con siete experiencias: Inicio, Productos, Clientes, Ventas, Inventario, Reportes y Asistente. Conserva la paleta Atlas y la búsqueda superior. La fuente visible contiene **20 productos, 10 clientes ficticios, 4 categorías y 336 unidades**, recuperados de los scripts originales. **No es una conexión SQL en vivo.**
 
 ## Desarrollo
 
-Desde la raíz del repositorio:
+Desde la raíz:
 
 ```sh
-python3 -m http.server 8080 --directory pwa --bind 127.0.0.1
+python3 -m http.server 8082 --directory pwa --bind 127.0.0.1
 ```
 
-No requiere dependencias de producción ni recursos externos. Usa módulos ES por HTTP, no file://. La búsqueda global permanece en la cabecera de todas las rutas; en móvil va debajo del encabezado y la navegación inferior flota sobre el contenido.
+Módulos ES por HTTP, sin dependencias de producción, fuentes remotas o trackers. El servidor estático no ejecuta las funciones Vercel; la comprobación de backend informa del error y conserva la fuente identificada.
 
-## Datos y visualizaciones
+## Procedencia y funciones
 
-Todos los indicadores y gráficos se calculan desde `analytics(days, branch)`: área acumulada, barras horizontales por unidades, columnas por sucursal, donut, calendario diario, treemap proporcional y dispersión precio/unidades. Las fuentes no incluyen costos, horas u objetivos; esas métricas no se inventan. Consulta `DESIGN.md` y `DATOS_Y_VALIDACION.md`.
+[Auditoría de la fuente original](../docs/SQL_ORIGINAL.md). `scripts/sql_original.py` lee los tres scripts sin ejecutarlos y genera `js/sql-fixtures.js`. No edites ese archivo manualmente:
 
-Los filtros afectan ventas, reportes e indicadores, no la instantánea global de inventario. CSV exporta las líneas del filtro con referencia y fuente. Guardar como PDF abre impresión; no hay motor PDF/Excel añadido. Los clientes recuperados no se vinculan a ventas porque la fuente no contiene esa relación.
+```sh
+python scripts/sql_original.py --check-public
+# Solo cuando se haya revisado un cambio legítimo de fuente:
+python scripts/sql_original.py --write-public
+```
 
-El chat admite preguntas abiertas, conserva historial al navegar durante la sesión y explica sus límites. No persiste tras recargar/cerrar. Las sugerencias desaparecen al interactuar. `/api/assistant` es un límite seguro desactivado con respuesta 503, sin claves en el cliente.
+Catálogo, comparación, directorio, búsqueda por nombre/código/documento/categoría, alertas, gráficos y CSV usan esos mismos registros. La búsqueda permanece en la barra superior de todas las rutas; no hay panel lateral de búsqueda. En móvil, la navegación flotante reúne Clientes, Inventario y Reportes bajo Más.
+
+Ranking y donut representan existencias; treemap muestra participación en unidades; dispersión relaciona precio de catálogo y stock. El filtro de categoría de Reportes actualiza gráficos, tabla, totales y CSV. No se atribuyen unidades a ventas ni a sucursales inexistentes. Los scripts no contienen historial comercial: ingresos, pedidos, ticket y tendencias son no disponibles, no cero. No se inventan fechas, PK IDENTITY, metas o costos.
+
+CSV conserva filtro y procedencia, y neutraliza fórmulas. Guardar como PDF utiliza la impresión del sistema; no se añadió un motor Excel/PDF al navegador. Streamlit conserva sus exportaciones existentes.
+
+El asistente admite preguntas abiertas, conserva conversación mientras se navega y oculta sugerencias al interactuar. Es una **consulta local determinista identificada, sin IA generativa**. No llama a SQL ni a Groq. Reconoce datos ausentes en preguntas sobre ingresos, períodos o sucursales. No persiste la conversación al recargar.
+
+## API separada
+
+[Backend de lectura protegido](../backend/README.md). El puente Vercel `/api/data` exige Bearer y un origen HTTPS configurado en el servidor. No está conectado a una instancia SQL ni existe aún una sesión autenticada en el cliente. `/api/assistant` público permanece desactivado. Ninguna API se almacena offline. La demo no contiene contactos de clientes, claves ni cadenas de conexión.
 
 ## Pruebas
 
@@ -26,35 +40,34 @@ El chat admite preguntas abiertas, conserva historial al navegar durante la sesi
 npm ci --prefix pwa
 npm test --prefix pwa
 python3 -m unittest discover -s pwa/tests -v
-# Servidor activo y Chromium instalado:
-npm run test:browser --prefix pwa
-npm run test:revision --prefix pwa
-CHROMIUM_PATH=/usr/bin/chromium npm run test:integration --prefix pwa
-npm run test:atlas --prefix pwa
-npm run test:a11y --prefix pwa
-ARTIFACTS_DIR=/tmp/atlas-after node pwa/tests/visual.mjs
+# Con servidor y Chromium disponibles:
+BASE_URL=http://127.0.0.1:8082 npm run test:browser --prefix pwa
+BASE_URL=http://127.0.0.1:8082 npm run test:revision --prefix pwa
+BASE_URL=http://127.0.0.1:8082 npm run test:atlas --prefix pwa
+BASE_URL=http://127.0.0.1:8082 npm run test:a11y --prefix pwa
+BASE_URL=http://127.0.0.1:8082 ARTIFACTS_DIR=/tmp/atlas-sql-visual node pwa/tests/visual.mjs
 ```
 
-`CHROMIUM_PATH`, `BASE_URL` y `ARTIFACTS_DIR` permiten adaptar navegador/servidor/capturas. Playwright y Axe solo se usan para desarrollo. Ver resultados y límites reales en `VALIDACION_PREPUBLICACION.md`.
+`CHROMIUM_PATH`, `BASE_URL` y `ARTIFACTS_DIR` permiten adaptar las pruebas. Playwright y Axe son dependencias de desarrollo. `test:integration` ejecuta la misma suite integral que `test:browser`, sin contarla dos veces. Resultados y límites en [VALIDACION_PREPUBLICACION.md](VALIDACION_PREPUBLICACION.md).
 
-## PWA y build
+## PWA y distribución
 
 ```sh
 node pwa/build.mjs
 ```
 
-Produce `public-demo/` con una lista explícita de 14 assets y finales de línea canónicos. API, documentación, tests, dependencias, SQL y archivos privados quedan fuera. `vercel.json` configura build, cabeceras y no-cache para shell/worker. La distribución contiene únicamente la demo y una función desactivada.
+Genera `public-demo/` con exactamente **15 assets permitidos**, con finales de línea canónicos. SQL, backend privado, documentación, tests, dependencias y metadatos Git quedan fuera. Vercel recibe además build/configuración y las dos funciones de servidor revisadas; nunca el checkout completo.
 
-Release `atlas-v7.1` en HTML/imports/worker. El worker precarga antes de activar y no almacena API. Manifest standalone, iconos PNG 192/512 y apple-touch-icon conservan el ID de instalación. En Safari con HTTPS: Compartir > Añadir a pantalla de inicio. Offline requiere una primera carga completa conectada; instalación y teclado iOS real aún requieren validación manual.
+Release `atlas-sql-v1` en HTML, importaciones y worker. Conserva ID de instalación, manifest standalone, iconos PNG 192/512 y apple-touch-icon. Worker actualizado, API excluida, recursos estáticos offline tras primera carga conectada. Cabeceras no-cache para shell y worker. En Safari HTTPS: Compartir → Añadir a pantalla de inicio. La instalación física y el teclado iOS real requieren validación manual.
 
-## Despliegue preparado
+## Publicación y verificación
 
-Alias dedicado: https://datacore-atlas-v7.vercel.app . Vercel confirmó READY y asignación del alias. La URL previa de producción no se reemplazó. Desde este entorno, la comprobación HTTP pública sigue pendiente porque la política de red aún bloquea vercel.app.
+El estado exacto del candidato Vercel se registra en [VALIDACION_PREPUBLICACION.md](VALIDACION_PREPUBLICACION.md). La versión anterior de producción se conserva. Una compilación READY no acredita acceso público anónimo ni ausencia de caché.
 
-Después de aplicar acceso al dominio, validar:
+Cuando el permiso de red al alias se aplique:
 
 ```sh
-DEPLOYMENT_URL=https://datacore-atlas-v7.vercel.app npm run test:deployed --prefix pwa
+DEPLOYMENT_URL=https://datacore-atlas-sql.vercel.app npm run test:deployed --prefix pwa
 ```
 
-Ese verificador exige HTTPS, el marcador de release, búsqueda funcional y hashes SHA-256 idénticos al build, también después de recargar con service worker. Nunca se debe confundir un build READY con esta validación pública.
+El verificador exige HTTPS, release `atlas-sql-v1`, búsqueda funcional, API anónima bloqueada y hashes de los 15 assets iguales al build, también tras recargar con service worker.

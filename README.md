@@ -1,5 +1,20 @@
 # DataCore AI
 
+## Consolidación actual · PWA Atlas y SQL original
+
+La última base revisada es `design/atlas-editorial` (`c0f565d`). La candidata
+`feat/atlas-sql-consolidation` conserva su paleta y añade siete experiencias en
+`pwa/`, incluido Clientes. La fuente visible son exclusivamente los scripts SQL
+originales: 20 productos, 10 clientes de prueba, 4 categorías y 336 unidades.
+No se mezclan las ventas generadas de otras demos ni se afirma conexión en vivo.
+
+Consulta la [PWA y sus pruebas](pwa/README.md), la
+[auditoría de tablas, relaciones y datos faltantes](docs/SQL_ORIGINAL.md), la
+[API SQL de lectura protegida](backend/README.md) y el
+[estado de validación y publicación](pwa/VALIDACION_PREPUBLICACION.md).
+Los scripts SQL y la aplicación Streamlit permanecen sin modificaciones.
+Las siguientes secciones describen la aplicación Windows y desarrollos anteriores.
+
 ## Versión candidata para pruebas locales
 
 Nueva experiencia comercial: petróleo, blanco frío, violeta y turquesa; navegación

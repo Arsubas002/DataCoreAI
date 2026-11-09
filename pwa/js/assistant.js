@@ -1,51 +1,75 @@
-import { products, customers, money, number } from './data.js?v=atlas-v7.1';
-// Honest deterministic demo, deliberately distinct from a connected model.
-export function demoAnswer(question, data) {
+import { products, customers, money } from "./data.js?v=atlas-sql-v1";
+export function demoAnswer(question) {
   const q = question
-    .toLocaleLowerCase('es')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '');
-  const mentioned = products.filter((p) =>
-    q.includes(p.name.toLowerCase().split(' ')[0]),
+    .toLocaleLowerCase("es")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  const mentioned = products.filter(
+    (p) =>
+      q.includes(
+        p.name
+          .toLocaleLowerCase("es")
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .split(" ")[0],
+      ) || q.includes(p.code.toLowerCase()),
   );
+  const source =
+    "\n\nFuente: datos de prueba definidos en sql/02_datos_prueba.sql. No es una consulta al SQL Server ni una respuesta de IA generativa.";
+  if (/sucursal/.test(q))
+    return (
+      "El esquema SQL original no contiene una tabla o columna de sucursal. No puedo comparar ventas por sucursal sin ampliar ese modelo de forma autorizada." +
+      source
+    );
+  if (/venta|ingreso|evoluci|periodo|rentabilidad|margen|mas vendido/.test(q))
+    return (
+      "No hay registros originales de Ventas ni DetalleVentas en los scripts recuperados. No puedo calcular ingresos, tendencias, el producto con más ventas o comparar períodos. Tampoco hay costos para calcular rentabilidad. La integración preparada deberá consultar el servidor original detrás de la API protegida." +
+      source
+    );
   if (/cliente/.test(q))
-    return `Clientes ficticios recuperados del catálogo SQL\n\n${customers.map((c) => c.id + ' · ' + c.name).join('\n')}\n\nNo se encontró una relación cliente–venta. No se atribuyen compras a estos clientes.`;
-  if (/compar|diferencia/.test(q)) {
-    const list = mentioned.length >= 2 ? mentioned : data.ranking.slice(0, 2);
-    return `Comparación del catálogo ficticio\n\n${list.map((p) => `${p.name}: ${money(p.price)} · ${p.stock} unidades disponibles.`).join('\n')}\n\nLos valores son de demostración; no representan una recomendación generada por IA.`;
-  }
-  if (/stock|inventario|repon|repos|agot|existencia/.test(q)) {
+    return (
+      `Directorio original · ${customers.length} clientes de prueba\n\n${customers.map((c) => `${c.name} · ${c.document}`).join("\n")}\n\nNo se recuperó una relación entre estos clientes y ventas concretas.` +
+      source
+    );
+  if (/stock|inventario|disponibilidad|repon|repos|existencia|agot/.test(q)) {
     const list = mentioned.length
       ? mentioned
-      : products.filter((p) => p.stock <= p.min);
-    return `Disponibilidad de demostración\n\n${list.map((p) => `${p.name}: ${p.stock} unidades · mínimo ${p.min}${p.stock <= p.min ? ' · Reponer' : ''}.`).join('\n')}\n\nEl inventario representa una instantánea ficticia, no un almacén conectado.`;
+      : [...products]
+          .sort((a, b) => a.stock - b.stock)
+          .filter((p) => (/repon|repos|agot/.test(q) ? p.stock <= p.min : true))
+          .slice(0, 8);
+    return (
+      "Existencias definidas en el script\n\n" +
+      list
+        .map(
+          (p) =>
+            `${p.name}: ${p.stock} unidades · mínimo ${p.min}${p.stock <= p.min ? " · Reposición" : ""}.`,
+        )
+        .join("\n") +
+      "\n\nEstas cantidades no confirman disponibilidad actual." +
+      source
+    );
   }
-  if (/venta|vendid|ingreso|rendimiento/.test(q))
-    return `Resumen del período seleccionado\n\nIngresos: ${money(data.revenue)}\nOperaciones: ${number(data.orders)}\nUnidades: ${number(data.units)}\nProducto con más ingresos: ${data.ranking[0].name}.\n\nFuente: ventas ficticias del período y sucursal seleccionados. Este cálculo es local y no usa un modelo de lenguaje.`;
-  if (/precio|cuesta|caro|barato/.test(q) || mentioned.length) {
+  if (/precio|cuesta|compar|barat|caro/.test(q) || mentioned.length) {
     const list = mentioned.length
       ? mentioned
-      : [...products].sort((a, b) => a.price - b.price);
-    return `Precios del catálogo de demostración\n\n${list.map((p) => `${p.name}: ${money(p.price)}.`).join('\n')}\n\nPrecios ficticios en soles peruanos.`;
+      : [...products].sort((a, b) => a.price - b.price).slice(0, 6);
+    return (
+      "Catálogo original\n\n" +
+      list
+        .map(
+          (p) =>
+            `${p.code} · ${p.name}: ${money(p.price)} · ${p.stock} unidades del script.`,
+        )
+        .join("\n") +
+      source
+    );
   }
-  return 'Puedes escribir cualquier pregunta. En esta demostración solo puedo calcular consultas sencillas sobre el catálogo, precios, stock, ventas y comparaciones. No hay un modelo de IA conectado y no puedo interpretar con fiabilidad esta pregunta.\n\nPrueba con “¿Qué productos necesitan reposición?” o reformula tu consulta. Una integración futura deberá procesarse en el servidor.';
+  return (
+    "Puedes escribir una pregunta abierta. En este modo solo puedo consultar de forma determinista los productos, precios, existencias y clientes definidos en los scripts originales. No hay un modelo de lenguaje conectado. Prueba “¿Qué productos deberían reponerse?” o busca un código como DEMO-002." +
+    source
+  );
 }
-export async function ask(question, data, { signal } = {}) {
-  // The public client has no provider key and never calls Groq directly.
-  // Capability discovery must explicitly enable server mode; demo stays offline.
-  if (globalThis.datacoreServerAssistant === true) {
-    const response = await fetch('/api/assistant', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: question }),
-      signal,
-    });
-    if (!response.ok)
-      throw new Error('El asistente no pudo responder. Inténtalo de nuevo.');
-    const result = await response.json();
-    if (typeof result.answer !== 'string')
-      throw new Error('Respuesta no válida del servidor.');
-    return result.answer;
-  }
-  return demoAnswer(question, data);
+export async function ask(question) {
+  return demoAnswer(question);
 }

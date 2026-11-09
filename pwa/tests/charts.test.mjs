@@ -1,70 +1,50 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
-import { analytics, products } from '../js/data.js';
+import test from "node:test";
+import assert from "node:assert/strict";
+import { products, categories } from "../js/data.js";
 import {
-  breakdown,
-  branchTotals,
-  cumulative,
+  stockBreakdown,
   layoutTiles,
-  calendar,
-  treemap,
-  scatter,
-} from '../js/charts.js';
-test('all chart representations reconcile to the same filtered revenue', () => {
-  for (const days of [7, 30, 60])
-    for (const branch of ['Todas', 'Centro', 'Norte', 'Sur', 'Sin asignar']) {
-      const d = analytics(days, branch),
-        cents = (x) => Math.round(x * 100);
-      assert.equal(
-        cents(breakdown(d).reduce((a, p) => a + p.value, 0)),
-        cents(d.revenue),
-      );
-      assert.equal(
-        cents(branchTotals(d).reduce((a, p) => a + p.value, 0)),
-        cents(d.revenue),
-      );
-      assert.equal(cents(cumulative(d.series).at(-1)), cents(d.revenue));
-      assert.ok(
-        cumulative(d.series).every((v, i, a) => i === 0 || v >= a[i - 1]),
-      );
-      assert.ok(!/NaN|Infinity/.test(calendar(d) + treemap(d) + scatter(d)));
-    }
-});
-test('treemap rectangles partition the space and match revenue proportions', () => {
-  const items = analytics()
-      .ranking.filter((p) => p.revenue > 0)
-      .map((p) => ({ name: p.name, value: p.revenue })),
-    total = items.reduce((a, p) => a + p.value, 0),
-    tiles = layoutTiles(items);
-  assert.equal(tiles.length, items.length);
-  assert.ok(Math.abs(tiles.reduce((a, t) => a + t.w * t.h, 0) - 10000) < 1e-6);
-  for (const t of tiles) {
-    assert.ok(Math.abs((t.w * t.h) / 10000 - t.value / total) < 1e-8);
-    assert.ok(
-      t.x >= 0 && t.y >= 0 && t.x + t.w <= 100.00001 && t.y + t.h <= 100.00001,
+  stockDonut,
+  stockMap,
+  priceStock,
+} from "../js/charts.js";
+test("all inventory representations use the same original quantities and category filters", () => {
+  for (const category of [null, ...categories]) {
+    const list = products.filter((p) => !category || p.category === category),
+      total = list.reduce((n, p) => n + p.stock, 0);
+    assert.equal(
+      stockBreakdown(list).reduce((n, p) => n + p.value, 0),
+      total,
     );
+    for (const html of [stockDonut(list), stockMap(list), priceStock(list)])
+      assert.ok(!/NaN|Infinity/.test(html));
   }
+});
+test("treemap geometry preserves quantitative area without overlap", () => {
+  const values = products
+      .filter((p) => p.stock > 0)
+      .map((p) => ({ name: p.name, value: p.stock })),
+    tiles = layoutTiles(values),
+    total = values.reduce((n, p) => n + p.value, 0);
+  assert.ok(Math.abs(tiles.reduce((n, p) => n + p.w * p.h, 0) - 10000) < 1e-6);
+  for (const p of tiles)
+    assert.ok(Math.abs((p.w * p.h) / 10000 - p.value / total) < 1e-8);
   for (let i = 0; i < tiles.length; i++)
     for (let j = i + 1; j < tiles.length; j++) {
       const a = tiles[i],
-        b = tiles[j];
-      const overlapX = Math.max(
-          0,
-          Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x),
-        ),
-        overlapY = Math.max(
-          0,
-          Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y),
-        );
-      assert.ok(overlapX * overlapY < 1e-6);
+        b = tiles[j],
+        x = Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)),
+        y = Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
+      assert.ok(x * y < 1e-6);
     }
 });
-test('empty chart data and source limitations remain explicit', () => {
-  const d = analytics(7, 'No existe');
-  assert.equal(d.revenue, 0);
-  for (const markup of [calendar(d), treemap(d), scatter(d)])
-    assert.ok(!/NaN|Infinity/.test(markup));
-  assert.match(calendar(d), /Sin datos de hora/);
-  assert.match(scatter(d), /No se calcula rentabilidad/);
-  assert.equal(products.length, 32);
+
+test("empty original-data filters have a readable state and no invalid geometry", () => {
+  for (const draw of [stockDonut, stockMap, priceStock]) {
+    const html = draw([]);
+    assert.match(html, /Sin cantidades para representar/);
+    assert.ok(!/NaN|Infinity/.test(html));
+  }
+  assert.match(stockDonut([{ ...products[0], stock: 0 }]), /Sin cantidades/);
+  assert.match(stockMap([{ ...products[0], stock: 0 }]), /Sin cantidades/);
 });

@@ -1,9 +1,10 @@
-# Deploy only the public demo and its disabled server boundary.
+# Deploy only the public demo and the protected server boundaries.
 **/*
 !pwa/
 !pwa/**
 !api/
 !api/assistant.mjs
+!api/data.mjs
 !vercel.json
 pwa/tests/**
 pwa/AGENTS.md
@@ -16,3 +17,5 @@ pwa/package-lock.json
 pwa/.gitignore
 pwa/test-results/**
 pwa/playwright-report/**
+
+pwa/DATOS_Y_VALIDACION.md

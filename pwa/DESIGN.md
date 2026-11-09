@@ -1,40 +1,33 @@
-# DataCore AI / Atlas
+# Atlas · dirección visual de la consolidación
 
-## Base revisada
+Base revisada `design/atlas-editorial` (`c0f565d`). Se conserva íntegramente su paleta de papel, tinta oscura y acento lima; los doce tokens principales en ambos temas se comparan con esa base en una prueba automática. No se adoptan los colores de interfaces Apple.
 
-Rama `design/atlas-editorial`, basada en `release/public-demo-data` (`08c572c`). Esta base conserva 32 productos, 10 clientes ficticios, ocho categorías, el historial generado PWA y los siete pedidos iOS recuperados. No se modifican SQL, Streamlit o los valores de esos registros.
+Referencia principal: [apple-design, commit 5206a950](https://github.com/emilkowalski/skills/tree/5206a950b715e0cabe7043ea0b2304332b91494e/skills/apple-design). La carpeta de esa revisión contiene únicamente SKILL.md, sin referencias adicionales. También se aplicó la skill local interface-design. Se estudiaron respuesta al presionar, resortes interrumpibles, continuidad de velocidad, manipulación directa, materiales, tipografía y accesibilidad antes de modificar la PWA.
 
-Referencia principal: [apple-design, commit 5206a950](https://github.com/emilkowalski/skills/tree/5206a950b715e0cabe7043ea0b2304332b91494e/skills/apple-design). Su carpeta en ese commit solo contiene SKILL.md. Se revisaron respuesta inmediata, continuidad de velocidad, resortes interrumpibles, manipulación directa, materiales, tipografía, profundidad y accesibilidad, además de las instrucciones locales de interface-design.
+## Dirección por pantalla
 
-## Dirección antes de implementar
+La consolidación tiene una premisa visual y funcional: hacer visible la procedencia. Los datos que faltan merecen un estado diseñado, sin un gráfico financiero ficticio. La arquitectura se definió antes de implementar las siete experiencias:
 
-Atlas es un instrumento de lectura comercial para quien dirige una tienda desde su teléfono. Dominio: referencias, operaciones, reposición, mezcla comercial, sucursales y demanda. Materiales: grafito, papel cálido, tinta y una trama técnica tenue. Acento lima; tipografía de sistema con contrapunto editorial Georgia en titulares. No se cargan fuentes externas.
+- **Inicio / El origen.** Folio recortado con 20 referencias frente a un observatorio del modelo original. Seis nodos enlazados por las cinco relaciones reales del esquema; cifras recuperadas separadas del historial ausente. Métricas integradas en una franja, ranking y donut de existencias.
+- **Productos / Referencias.** Índice editorial, categorías táctiles y biblioteca de objetos diferenciados por familia. Comparación de hasta tres referencias en una hoja; claves de negocio y precios originales.
+- **Clientes / Personas.** Directorio tipográfico con iniciales de gran tamaño y navegación alfabética. No reutiliza las tarjetas del catálogo ni atribuye compras inexistentes. Detalle sin datos de contacto públicos.
+- **Ventas / Historia pendiente.** Composición abierta con una raya protagonista y métricas desconocidas. Contexto de las tablas que faltan y comprobación explícita del backend. No utiliza gráficos de cero ventas.
+- **Inventario / Disponibilidad.** Número de unidades, cola horizontal de reposición y registro denso con estados comprensibles además del color. Mínimos originales, filtro Por reponer y acceso a detalle.
+- **Reportes / Observatorio.** Treemap de ancho completo, composición por categoría y dispersión precio/existencias. Tabla y exportación conectadas al mismo filtro. No parece una repetición del inicio.
+- **Asistente / Conversación.** Página completa, historial de sesión y compositor próximo al pulgar. Preguntas sugeridas dentro de la conversación y descartadas al interactuar. Modo local explícito y preguntas abiertas sin fingir un modelo conectado.
 
-La firma es la relación entre una hoja recortada con el volumen de ingresos y una gran trayectoria acumulada abierta sobre el fondo. Las métricas viven en una franja, no en tarjetas equivalentes. Se eliminan las órbitas animadas, el espectro violeta/cian y las entradas escalonadas largas de la versión anterior.
+## Sistema e interacción
 
-- Inicio: superficie protagonista asimétrica, área acumulada, métricas integradas, ranking por unidades, donut y movimientos.
-- Productos: biblioteca editorial, índice de referencias, categorías desplazables, primera referencia de mayor tamaño y catálogo con comparación. Búsqueda global superior única.
-- Ventas: volumen sin tarjeta, barras verticales por sucursal, calendario de ingresos diarios y libro de operaciones/clientes.
-- Inventario: cifra de existencias, cola horizontal de reposición y lista filtrable. La instantánea no se atribuye a sucursales.
-- Reportes: treemap de ingresos a ancho completo, donut por categoría y dispersión precio/unidades. Exportación y metodología conservadas.
-- Asistente: página conversacional, acento tipográfico y sugerencias dentro de la conversación que desaparecen al interactuar. Sin panel lateral ni afirmación de IA real.
+Tipografía de sistema para controles y cifras; Georgia como contrapunto editorial en titulares. Tamaños fluidos, tracking ajustado por escala, leading amplio en lectura. Trama técnica inmóvil, superficies limpias y profundidad para capas funcionales. Translucidez en cabecera, navegación y hojas; no en cada módulo.
 
-## Gráficos con significado
+Búsqueda global siempre arriba, debajo del encabezado en iPhone y dentro de la barra superior en escritorio. Navegación contextual lateral únicamente para secciones; nunca búsqueda lateral. En iPhone, cinco destinos cómodos con Más para las rutas adicionales y áreas seguras.
 
-Todos consumen `analytics(days, branch)`; importes agregados en céntimos. Áreas muestran acumulados, barras sucursales, donut categorías, calendario días y treemap participación proporcional. El ranking usa unidades vendidas, no importe. La dispersión relaciona precio con unidades y utiliza color de categoría. La sparkline representa la serie diaria del mismo período.
+Presión inmediata; resorte críticamente amortiguado que conserva posición y velocidad al cambiar de objetivo. Hojas con Pointer Events, captura, seguimiento directo, resistencia al límite y proyección de velocidad. Entrada/salida simétricas; una hoja en cierre puede agarrarse y revertirse. Navegación interrumpible, sin bloquear controles ni temporizadores de falsa espera. Cola horizontal con scroll-snap nativo, sin overflow accidental del documento.
 
-No se inventan costos, horas u objetivos. Por eso no se dibuja rentabilidad, mapa por hora o cumplimiento radial. Las categorías sin ventas figuran con cero; productos sin ventas permanecen en catálogo e inventario. El treemap agrupa seis líderes y el resto, con leyenda táctil para las celdas pequeñas. Su geometría se valida por área, límites y ausencia de solapamiento.
+Tooltips accesibles por foco, puntero o toque, descartables con Escape. Treemap de área proporcional validada, leyendas legibles y estados vacíos sin geometría inválida. Las visualizaciones usan stock, no demanda o rentabilidad. Se omiten mapas por hora, ingresos por sucursal y objetivos porque el origen no permite calcularlos.
 
-Tooltips en foco, toque y puntero; comparaciones de período conservadas en modos acumulado/diario. Flechas y Home/End exploran valores temporales. Escape descarta tooltips. Cada representación tiene título, unidades, contexto y fuente compartida; filtros de período/sucursal actualizan todas sus cifras.
+Se respetan movimiento reducido, transparencia reducida y contraste aumentado. Safe areas, teclado mediante visualViewport, foco visible, nombres accesibles y navegación nativa por enlaces. No hay animaciones de fondo continuas, fuentes remotas ni dependencias de ejecución externas.
 
-## Interacción y accesibilidad
+## Evidencia
 
-La búsqueda persistente admite nombres, códigos, categorías y consultas de stock, y permite abrir detalles o secciones. Navegación inferior flotante con safe-area. Cola de reposición con scroll-snap nativo. Hojas con resorte amortiguado que conserva posición/velocidad, tracking 1:1, resistencia y proyección; no se bloquean entradas. Se corrigió la transformación de pulsación de los puntos para conservar su posición al tocarlos.
-
-Respeto de reduced-motion, reduced-transparency y contraste aumentado. Sin animación continua de fondo. Contraste reforzado en los textos del treemap y leyenda separada para celdas estrechas. Layout específico para 768px, evitando comprimir cuatro columnas o truncar indicadores.
-
-## Instalación y distribución
-
-La PWA mantiene manifest standalone, iconos 192/512 y apple-touch-icon con nueva paleta, ID estable y shell offline. Versión final `atlas-v7.1` en HTML, importaciones y service worker; API excluida de caché. El build publica exactamente 14 assets y normaliza finales de línea para reproducibilidad Windows/Linux. Fuera de la salida quedan documentación, tests, SQL, Python, metadatos Git y secretos.
-
-La integración generativa continúa desactivada en el servidor. La demo no incorpora claves en el cliente. El token de Vercel del entorno se utiliza por el proxy únicamente hacia api.vercel.com, sin extraer ni guardar su valor.
+Se revisaron capturas reales de las siete rutas a 393×852 y 1440×1000, ambos temas y búsqueda. Pruebas de layout también a 320 y 768 px. Resultados, límites de Safari físico y comprobación pública pendiente en [VALIDACION_PREPUBLICACION.md](VALIDACION_PREPUBLICACION.md). Las capturas comparativas son artefactos de revisión fuera del build y no incluyen información privada.

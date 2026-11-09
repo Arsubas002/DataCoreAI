@@ -1,7 +1,7 @@
 {
-  "name": "DataCore AI · Demo",
+  "name": "DataCore AI · SQL original",
   "short_name": "DataCore AI",
-  "description": "DataCore AI · Atlas. Análisis comercial con datos ficticios.",
+  "description": "Catálogo e inventario de prueba de los scripts SQL originales. Sin conexión al servidor.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

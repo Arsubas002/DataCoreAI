@@ -1,37 +1,38 @@
-import { chromium } from 'playwright';
-import AxeBuilder from '@axe-core/playwright';
-import assert from 'node:assert/strict';
+import { chromium } from "playwright";
+import AxeBuilder from "@axe-core/playwright";
+import assert from "node:assert/strict";
 const browser = await chromium.launch({
-  executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium',
-  args: ['--no-sandbox'],
+  executablePath: process.env.CHROMIUM_PATH || "/usr/bin/chromium",
+  args: ["--no-sandbox"],
 });
 const context = await browser.newContext({
     viewport: { width: 393, height: 852 },
-    serviceWorkers: 'block',
-    reducedMotion: 'reduce',
+    serviceWorkers: "block",
+    reducedMotion: "reduce",
   }),
   page = await context.newPage();
 let count = 0;
 try {
-  for (const theme of ['light', 'dark'])
+  for (const theme of ["light", "dark"])
     for (const route of [
-      'inicio',
-      'productos',
-      'ventas',
-      'inventario',
-      'reportes',
-      'asistente',
+      "inicio",
+      "productos",
+      "clientes",
+      "ventas",
+      "inventario",
+      "reportes",
+      "asistente",
     ]) {
       await page.goto(
-        (process.env.BASE_URL || 'http://127.0.0.1:8080') + '/#' + route,
+        (process.env.BASE_URL || "http://127.0.0.1:8080") + "/#" + route,
       );
-      await page.locator('#view h1').waitFor();
+      await page.locator("#view h1").waitFor();
       await page.evaluate(
         (t) => (document.documentElement.dataset.theme = t),
         theme,
       );
       const result = await new AxeBuilder({ page })
-        .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+        .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
         .analyze();
       assert.deepEqual(
         result.violations.map((v) => ({
@@ -43,17 +44,17 @@ try {
       );
       count++;
     }
-  for (const theme of ['light', 'dark']) {
+  for (const theme of ["light", "dark"]) {
     await page.goto(
-      (process.env.BASE_URL || 'http://127.0.0.1:8080') + '/#inicio',
+      (process.env.BASE_URL || "http://127.0.0.1:8080") + "/#inicio",
     );
-    await page.locator('#global-search').fill('stock');
+    await page.locator("#global-search").fill("stock");
     await page.evaluate(
       (theme) => (document.documentElement.dataset.theme = theme),
       theme,
     );
     const result = await new AxeBuilder({ page })
-      .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+      .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
       .analyze();
     assert.deepEqual(
       result.violations.map((v) => ({
@@ -61,7 +62,7 @@ try {
         targets: v.nodes.map((n) => n.target),
       })),
       [],
-      theme + '/global-search-open',
+      theme + "/global-search-open",
     );
     count++;
   }
