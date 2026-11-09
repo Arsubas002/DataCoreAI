@@ -14,6 +14,7 @@ const browser = await chromium.launch({
 });
 const context = await browser.newContext({
   viewport: { width: 393, height: 852 },
+  ...(process.env.HTTPS_PROXY ? { proxy: { server: process.env.HTTPS_PROXY } } : {}),
 });
 try {
   const page = await context.newPage();
