@@ -2,7 +2,7 @@ import { chromium } from "playwright";
 import assert from "node:assert/strict";
 import { readFile, mkdir } from "node:fs/promises";
 const base = process.env.BASE_URL || "http://127.0.0.1:8080",
-  artifacts = process.env.ARTIFACTS_DIR || "/tmp/atlas-sql";
+  artifacts = process.env.ARTIFACTS_DIR || "/tmp/datacore-original";
 await mkdir(artifacts, { recursive: true });
 const browser = await chromium.launch({
   executablePath: process.env.CHROMIUM_PATH || "/usr/bin/chromium",
@@ -29,6 +29,10 @@ try {
       "asistente",
     ]) {
       await page.goto(base + "/#" + section);
+      await page.waitForFunction(
+        (route) => document.body.dataset.page === route,
+        section,
+      );
       await page.locator("#view h1").waitFor();
       assert.equal(await page.locator('input[type="search"]').count(), 1);
       assert.equal(await page.locator('aside input[type="search"]').count(), 0);
@@ -41,11 +45,26 @@ try {
       );
       checks++;
       if (section === "inicio") {
-        assert.match(await page.locator(".folio-number").textContent(), /20/);
-        assert.match(await page.locator(".metric-ribbon").textContent(), /336/);
-        assert.equal(await page.locator(".schema-node").count(), 6);
+        assert.equal(
+          await page.locator(".stock-display>strong").textContent(),
+          "336",
+        );
+        assert.match(
+          await page.locator(".metric-ribbon").textContent(),
+          /7,350.50/,
+        );
+        assert.match(await page.locator(".health-center").textContent(), /70/);
+        assert.equal(
+          await page.locator(".source-bar,.schema-node,.folio-number").count(),
+          0,
+        );
         checks++;
-        await page.locator("[data-source-info]").first().click();
+        await page
+          .getByRole("button", {
+            name: "Datos de prueba y procedencia",
+            exact: true,
+          })
+          .click();
         assert.match(
           await page.locator("dialog").textContent(),
           /No recuperadas/,
@@ -101,6 +120,21 @@ try {
       }
       if (section === "clientes") {
         assert.equal(await page.locator(".client-row").count(), 10);
+        assert.deepEqual(
+          await page.locator(".client-row strong").allTextContents(),
+          [
+            "Ana Torres",
+            "Carlos Ruiz",
+            "Diego Vargas",
+            "Elena Mora",
+            "Jorge Silva",
+            "Laura Díaz",
+            "Luis Pérez",
+            "María Gómez",
+            "Pedro Castro",
+            "Sofía Rojas",
+          ],
+        );
         await page.getByRole("button", { name: "A", exact: true }).click();
         assert.equal(await page.locator(".client-row").count(), 1);
         checks++;
@@ -116,11 +150,55 @@ try {
       }
       if (section === "ventas") {
         assert.equal(await page.locator("#branch").count(), 0);
-        assert.equal(await page.locator("[data-chart]").count(), 0);
+        assert.equal(await page.locator("#quote-export").isDisabled(), true);
         assert.match(
-          await page.locator(".history-gap").textContent(),
-          /no significa.*cero ventas/,
+          await page.locator(".sales-history").textContent(),
+          /no incluyen ventas precargadas/,
         );
+        checks++;
+        await page.selectOption("#quote-product", "DEMO-001");
+        await page.locator("#quote-quantity").fill("2");
+        await page
+          .getByRole("button", { name: "Añadir producto", exact: true })
+          .click();
+        await page.selectOption("#quote-product", "DEMO-006");
+        await page.locator("#quote-quantity").fill("3");
+        await page
+          .getByRole("button", { name: "Añadir producto", exact: true })
+          .click();
+        await page.selectOption("#quote-customer", "DEMO-C001");
+        assert.match(
+          await page.locator(".quote-total").textContent(),
+          /155.50/,
+        );
+        assert.match(
+          await page.locator(".invoice-person").textContent(),
+          /Ana Torres/,
+        );
+        assert.equal(await page.locator(".quote-item").count(), 2);
+        checks++;
+        const quoteDownload = page.waitForEvent("download");
+        await page.locator("#quote-export").click();
+        const quoteFile = await (await quoteDownload).path(),
+          quoteCsv = await readFile(quoteFile, "utf8");
+        assert.ok(
+          quoteCsv.includes("155.50") &&
+            quoteCsv.includes("DEMO-006") &&
+            quoteCsv.includes("No es una venta registrada"),
+        );
+        checks++;
+        await page.selectOption("#quote-product", "DEMO-001");
+        await page.locator("#quote-quantity").fill("999");
+        assert.equal(
+          await page
+            .getByRole("button", { name: "Añadir producto", exact: true })
+            .isDisabled(),
+          true,
+        );
+        await page
+          .getByRole("button", { name: "Quitar Teclado USB", exact: true })
+          .click();
+        assert.match(await page.locator(".quote-total").textContent(), /25.50/);
         checks++;
         await page.route("**/api/data?resource=status", (r) =>
           r.fulfill({
@@ -148,9 +226,15 @@ try {
       }
       if (section === "reportes") {
         await page.selectOption("#report-category", "Papelería");
+        assert.equal(
+          await page
+            .locator(".report-lead>div:first-child>strong")
+            .textContent(),
+          "150",
+        );
         assert.match(
           await page.locator(".report-lead").textContent(),
-          /150 unidades/,
+          /582.50/,
         );
         assert.match(
           await page.locator(".report-lead").textContent(),
@@ -235,7 +319,7 @@ try {
   await page.waitForFunction(() => !!navigator.serviceWorker.controller);
   await context.setOffline(true);
   await page.reload();
-  await page.locator(".folio-number").waitFor();
+  await page.locator(".stock-display").waitFor();
   assert.match(
     await page.locator("#network-status").textContent(),
     /Sin conexión/,
@@ -247,6 +331,18 @@ try {
     .click();
   await page.locator(".client-row").first().waitFor();
   assert.equal(await page.locator(".client-row").count(), 10);
+  assert.deepEqual(await page.locator(".client-row strong").allTextContents(), [
+    "Ana Torres",
+    "Carlos Ruiz",
+    "Diego Vargas",
+    "Elena Mora",
+    "Jorge Silva",
+    "Laura Díaz",
+    "Luis Pérez",
+    "María Gómez",
+    "Pedro Castro",
+    "Sofía Rojas",
+  ]);
   checks++;
   await context.close();
   console.log(

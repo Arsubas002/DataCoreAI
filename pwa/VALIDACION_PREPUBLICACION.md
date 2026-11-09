@@ -1,56 +1,46 @@
-# Atlas SQL · validación de la candidata
+# DataCore AI · revisión original-v2
 
-Base revisada `design/atlas-editorial` (`c0f565d`); rama `feat/atlas-sql-consolidation`; release `atlas-sql-v1`. El usuario confirmó los scripts SQL como fuente original. Se conservan colores y se añade Clientes como séptima ruta.
+Rama `feat/atlas-sql-consolidation`. Esta entrega corrige los colores de Atlas y reconstruye la PWA con la identidad original documentada en `docs/WORKSPACE_PETROLEO.md`: petróleo #0D1726, blanco frío #F2F5FA, violeta #7659E8 y turquesa #24C9C0. La fuente sigue siendo la data de prueba de SQL, confirmada por el usuario.
 
-## Comprobado localmente
+## Cambios verificables
 
-| Área | Resultado ejecutado |
+Se sustituyó el CSS completo y se separaron las vistas, las veinte ilustraciones vectoriales y los cálculos en módulos. Ya no aparecen en el inicio el folio lima, el esquema SQL ni una advertencia de recuperación como elemento protagonista. Inicio, catálogo, directorio, cotizador, matriz de inventario, reportes y conversación tienen composiciones distintas.
+
+Búsqueda única superior en las siete rutas, navegación flotante en móvil, sidebar de secciones en escritorio y detalle técnico de procedencia bajo Demo SQL. Sin búsqueda lateral. La presión responde de inmediato, las hojas conservan su resorte interrumpible y los tooltips flotan sin desplazar los módulos. El estado de inventario se expresa con texto, cifras, formas y color.
+
+Datos idénticos al fixture SQL: 20 productos, 10 clientes ficticios, 4 categorías, 336 unidades; 14 referencias sobre el mínimo, 5 bajas y 1 agotada. Valor de catálogo derivado: S/ 7,350.50. No es ingreso, costo o rentabilidad. La cotización de prueba usa céntimos y no altera stock, inserta ventas ni genera historial.
+
+## Validación ejecutada
+
+| Área | Resultado |
 | --- | --- |
-| Aplicación Windows existente, Python 3.13.17 | 90 descubiertas: **86 aprobadas, 4 omitidas** (SQL real); cero intentos SQL/HTTP reales en la suite aislada. |
-| Backend privado y fuente original | **27 aprobadas**: RS256, emisor/audiencia/expiración, scopes, cuerpo y parámetros limitados, errores, recursos cerrados, rollback de lectura, importes Decimal y ausencia de escritura. Incluye hashes de scripts, seis PK/cinco FK y conservación exacta de paleta. SQL simulado. |
-| Node 24 | **16 aprobadas**: fuente original, registros exactos, categorías, gráficos proporcionales, estados vacíos, CSV y puente HTTPS/Bearer, incluidos recursos de prototipo rechazados y errores sanitizados. |
-| Empaquetado PWA | **4 aprobadas**: manifiesto, iconos, todos los módulos offline, API fuera de caché y exclusión del repositorio privado. |
-| Navegador integral | **103 comprobaciones aprobadas** en siete rutas a 320, 393, 768 y 1440 px; comparación, filtros, clientes, descarga CSV, temas, historial, preguntas sin datos, XSS y offline. |
-| Búsqueda/navegación | **42 comprobaciones aprobadas**, siete rutas en móvil/escritorio, búsqueda superior única, teclado, productos y clientes. Sin búsqueda en sidebar. |
-| Gráficos y paleta | **14 comprobaciones aprobadas**: valores originales, filtros, tooltips por toque y temas. |
-| Movimiento | **9 comprobaciones aprobadas**: tracking 1:1, inversión del arrastre, agarre desde posición presentada durante cierre, reversión de resorte, flick, movimiento reducido, Escape y ausencia de errores JS. Reloj controlado para inspección entre frames. |
-| Accesibilidad | Axe WCAG A/AA sin infracciones detectadas en **16 estados móviles** (siete rutas, ambos temas y búsqueda). No equivale a auditoría exhaustiva. |
-| Dependencias | Ambos entornos Python compatibles (`uv pip check`); compilación Python sin errores. |
+| Streamlit/Windows existente, Python 3.13.17 | 90 descubiertas: **86 aprobadas, 4 SQL real omitidas**; cero intentos SQL o HTTP reales en la suite aislada. |
+| Backend privado/fuente | **27 aprobadas**: autenticación, scopes, parámetros, fechas, errores, límites, Decimal, cierre/rollback de lecturas, integridad de scripts y contrato cromático original. Conexiones simuladas. |
+| Node 24 | **20 aprobadas**: registros exactos de SQL, fuente/privacidad, consultas locales, gráfico proporcional, valoración en céntimos, cotización sin mutaciones, cantidades inválidas, CSV y puente protegido. |
+| Empaquetado PWA | **4 aprobadas**: manifiesto/iconos, módulos offline, exclusión de API/archivos privados. |
+| Navegador integral | **115 comprobaciones aprobadas**: siete rutas a 320/393/768/1440 px, temas, búsqueda, comparación, orden alfabético, filtros, cotización, CSV, historial conversacional, XSS y offline. |
+| Búsqueda/navegación | **42 comprobaciones aprobadas**, siete rutas y móvil/escritorio, productos/clientes, teclado y barra superior única. |
+| Gráficos e identidad | **20 comprobaciones aprobadas**: cuatro colores exactos, fondo real de ambos temas, datos/valoración/filtros, tooltips y matriz de veinte productos. |
+| Movimiento | **9 comprobaciones aprobadas**: seguimiento 1:1, inversión, agarre durante cierre desde posición presentada, flick, movimiento reducido, Escape y ausencia de errores JS. |
+| Accesibilidad | Axe WCAG A/AA sin infracciones detectadas en **16 estados móviles** (rutas/temas/búsqueda); se corrigió el turquesa de texto sobre la selección clara. Se espera el fin de la breve transición de tema antes de medir contraste estable. |
+| PDF e interacciones de lectura | Cotización S/ 155.50 comprobada; tooltip sin desplazamiento del contenido; PDF nativo de Papelería, **3 páginas y 5 registros exactos**, leído con pypdf. Contiene S/ 582.50 y no incluye productos de otras categorías. El desplegable restaura su estado al terminar la impresión. |
 
-Además se hizo revisión visual de las siete pantallas a iPhone 15 (393×852) y escritorio (1440×1000), ambos temas y búsqueda. Capturas actuales y comparativas respecto a la base anterior en `/workspace/artifacts/atlas-sql/`, fuera de Git y de la distribución. Chromium emulado no sustituye Safari físico.
-
-La vida del proceso y el rechazo de una consulta anónima también se comprobaron por HTTP local: `/health` no afirma conexión y `/api/products` devuelve 401. No hubo lecturas sobre SQL Server real. Las pruebas de API en proceso verifican casos autenticados usando claves temporales en memoria y conexiones simuladas.
+Se revisaron capturas de las siete pantallas a iPhone 15 emulado (393×852) y escritorio (1440×1000), búsqueda y ambos temas. Artefactos comparativos en `/workspace/artifacts/datacore-original/`, fuera de Git/build. Hay capturas adicionales de conversación y cotización con datos de prueba. Chromium emulado no equivale a Safari físico ni a instalación real iOS. Axe no es una auditoría manual exhaustiva.
 
 ## Integridad y exposición
 
-Los tres scripts SQL, Streamlit, `database/`, `services/` y `views/` permanecen idénticos a la base. No se ejecutó DDL, no se cargaron semillas y no se modificó una base local. [Auditoría original](../docs/SQL_ORIGINAL.md).
+Los tres SQL, el fixture generado, Streamlit, `database/`, `services/` y `views/` permanecen intactos. No se ejecutaron scripts, crearon bases ni escribieron datos SQL. [Auditoría de la fuente](../docs/SQL_ORIGINAL.md).
 
-Build explícito de 15 assets, aproximadamente 160 kB sin comprimir. Revisión de archivos permitidos, ausencia de contactos de clientes y patrones de secretos/claves privadas. No hay SQL, Python, documentación, dependencias o Git en la salida pública. Los endpoints del puente no aceptan peticiones anónimas. La API no se almacena en service worker.
+Build con exactamente **18 assets permitidos**. No incluye SQL, Python, backend privado, documentación, tests, Git ni contactos. No hay claves privadas o credenciales en el JavaScript público. El paquete para Vercel añade únicamente build/configuración y las dos funciones revisadas: **22 archivos en total**. Manifest/ID/iconos, safe areas y caché offline conservados; nuevo worker `datacore-original-v2`, API excluida.
 
-## Vercel y GitHub
+## Publicación y límites
 
-La API de Vercel permite consultar el proyecto existente `datacore-ai-demo`; está enlazado al repositorio GitHub correcto. `DATACORE_API_ORIGIN`, servidor SQL y emisor JWT no están configurados en el proyecto: la demo no puede consultar SQL. No se mostraron ni exportaron valores secretos. Se conserva la protección global del proyecto y la producción anterior.
+La candidata está preparada para reemplazar la demo anterior mediante la API autorizada del proyecto Vercel existente, sin modificar su producción principal ni las protecciones globales. Se registrarán el deployment y alias cuando Vercel confirme READY.
 
-Los dos despliegues automáticos de Git revisados (`c0f565d` y `5e38ea7`) figuraban BLOCKED, sin un motivo específico en sus campos de error o eventos. El autor declarado coincide con la identidad Git existente; no se ha verificado su pertenencia/permisos de cuenta Vercel y no se atribuye el bloqueo a una causa no demostrada. No se reescribió identidad ni historial.
-
-Después de subir la rama, el despliegue automático de `fa745b4` (`dpl_EzsbvcnjS8T8H21HHephaPLtUirn`) también figuró BLOCKED. El flujo automático de Git sigue pendiente de diagnóstico de permisos en Vercel; la candidata manual autorizada descrita abajo sí finalizó. La inspección del alias de producción confirmó que conserva su deployment previo.
-
-La API autorizada del proyecto existente confirmó **READY** para `dpl_HW9wNQaKoK4cdSdVhpT6FE1N5RTw` y asignó el alias dedicado **https://datacore-atlas-sql.vercel.app**. Es una candidata de preview; no sustituye la producción anterior. Fuente de ejecución: commit `93d1b2bbf0848275e4c4c863076ff7999694aa94`, rama `feat/atlas-sql-consolidation`, release `atlas-sql-v1`; los cambios posteriores a ese commit documentan la entrega y no cambian los assets.
-
-Se enviaron exactamente 19 archivos revisados: 15 assets de la PWA, su build, dos funciones y vercel.json. No se envió el checkout completo. Vercel confirmó por metadatos el commit y el SHA-256 del manifiesto de fuentes `ad1715361617683fb4a2c263341be923d98cafb861850f43f452d00d87c906b3`. Esto acredita procedencia y finalización del build, **no** la respuesta HTTP anónima del dominio.
-
-La inspección del árbol de salida de Vercel confirmó `out/api/data` y `out/api/assistant` como funciones lambda. El alias apunta al deployment revisado. Estas comprobaciones de API no sustituyen la ejecución HTTP de las rutas públicas.
-
-El usuario decidió aplicar más adelante las reglas de red para `api.github.com` y `datacore-atlas-sql.vercel.app`. Por tanto, siguen pendientes la creación/lectura de PR mediante API y la prueba HTTP anónima del nuevo alias, incluidos hashes y caché. No se confunde READY con verificación pública. El script preparado es:
+El acceso del entorno sigue limitado a api.vercel.com. El usuario aplazó la aplicación de permisos para GitHub API y el dominio público. Por ello crear la PR y verificar HTTP anónimo/caché/hashes públicos siguen pendientes; no se presentan como pruebas ejecutadas. El verificador remoto preparado exige release original-v2, 18 hashes, búsqueda y API anónima bloqueada:
 
 ```sh
 DEPLOYMENT_URL=https://datacore-atlas-sql.vercel.app npm run test:deployed --prefix pwa
 ```
 
-## Pendiente fuera de este entorno
-
-- Conectar de forma autorizada a la instancia Windows existente con ODBC 18 y TLS válido; verificar esquema físico, FK/CHECK, permisos y registros reales con lecturas. No recrear la base.
-- Configurar proveedor de identidad/roles y sesión del cliente antes de habilitar datos en vivo. No abrir el equipo local ni el puerto SQL a Internet.
-- Recuperar historial real si existe: los scripts no incluyen ventas/detalles/solicitudes. No se requieren ni inventan nuevos registros para la demo.
-- Safari/iPhone físico: instalación desde Compartir, áreas seguras y teclado real. Manifest, iconos y offline sí se verificaron localmente.
-- Aplicar los permisos de red aplazados para completar PR y comprobación pública. No se afirma validación remota ni se fusiona main.
+El despliegue automático desde Git figuraba BLOCKED en la entrega anterior, sin una causa demostrada en los errores consultados. La identidad Git no se reescribe; no se eliminan protecciones ni se compran servicios. La vía de despliegue manual autorizada permite preparar la demo con origen controlado. La conexión SQL/IdP real y Safari físico quedan fuera de esta validación; la demo usa exclusivamente los datos de prueba existentes.

@@ -1,4 +1,4 @@
-import { original } from "./sql-fixtures.js?v=atlas-sql-v1";
+import { original } from "./sql-fixtures.js?v=original-v2";
 export const provenance = Object.freeze(original.provenance);
 export const categories = Object.freeze(original.categories);
 export const customers = original.customers.map((c) => ({

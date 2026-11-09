@@ -19,6 +19,9 @@ const modules = [
   "motion.js",
   "assistant.js",
   "sql-fixtures.js",
+  "catalogue-math.js",
+  "product-art.js",
+  "views.js",
 ];
 const icons = ["icon-192.png", "icon-512.png", "apple-touch-icon.png"];
 await rm(output, { recursive: true, force: true });
@@ -44,7 +47,7 @@ for (const name of [...files, ...modules.map((n) => "js/" + n)]) {
 const count = (
   await readdir(output, { recursive: true, withFileTypes: true })
 ).filter((entry) => entry.isFile()).length;
-if (count !== 15) throw new Error("Unexpected public asset count");
+if (count !== 18) throw new Error("Unexpected public asset count");
 console.log(
-  "Built public-demo: 15 allowlisted public files; no tests, docs, dependencies, SQL or repository metadata.",
+  "Built public-demo: 18 allowlisted public files; no tests, docs, dependencies, SQL or repository metadata.",
 );

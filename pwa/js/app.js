@@ -8,17 +8,19 @@ import {
   number,
   exportRows,
   toCsv,
-} from "./data.js?v=atlas-sql-v1";
-import { icon, pages } from "./icons.js?v=atlas-sql-v1";
+} from "./data.js?v=original-v2";
+import { icon, pages } from "./icons.js?v=original-v2";
+import { bindCharts } from "./charts.js?v=original-v2";
 import {
-  stockDonut,
-  stockMap,
-  priceStock,
-  schemaMap,
-  bindCharts,
-} from "./charts.js?v=atlas-sql-v1";
-import { setupSheet, reducedMotion, spring } from "./motion.js?v=atlas-sql-v1";
-import { ask } from "./assistant.js?v=atlas-sql-v1";
+  renderPage,
+  productMarkup,
+  featureMarkup,
+  esc,
+} from "./views.js?v=original-v2";
+import { art } from "./product-art.js?v=original-v2";
+import { quotation } from "./catalogue-math.js?v=original-v2";
+import { setupSheet, reducedMotion, spring } from "./motion.js?v=original-v2";
+import { ask } from "./assistant.js?v=original-v2";
 const view = document.querySelector("#view"),
   dialog = document.querySelector("#sheet"),
   sheet = setupSheet(dialog);
@@ -28,6 +30,10 @@ const state = {
   inventory: "Todos",
   customerInitial: "Todos",
   reportCategory: "Todas",
+  reportMetric: "units",
+  quoteLines: [],
+  quoteCustomer: "",
+  quoteProduct: products[0].code,
   compare: new Set(),
   messages: [],
   busy: false,
@@ -36,15 +42,6 @@ const state = {
 let page = "inicio",
   renderedPage,
   animation;
-const esc = (v) =>
-  String(v).replace(
-    /[&<>"']/g,
-    (c) =>
-      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
-        c
-      ],
-  );
-const totalStock = products.reduce((n, p) => n + p.stock, 0);
 const storage = {
   get(key, fallback) {
     try {
@@ -60,64 +57,22 @@ const storage = {
   },
 };
 const navLink = (id) =>
-  `<a href="#${id}" data-nav="${id}" ${page === id ? 'aria-current="page"' : ""}>${icon(id)}<span>${pages[id]}</span>${id === "inventario" ? `<small>${lowStock.length}</small>` : ""}</a>`;
+  `<a href="#${id}" title="${pages[id]}" data-nav="${id}" ${page === id ? 'aria-current="page"' : ""}>${icon(id)}<span>${pages[id]}</span>${id === "inventario" ? `<small>${lowStock.length}</small>` : ""}</a>`;
 function navigation() {
   document.querySelector("#desktop-nav").innerHTML =
     `<div class="nav-cluster">${navLink("inicio")}</div><div class="nav-cluster"><p class="nav-group-label">REGISTROS</p>${["productos", "clientes", "ventas", "inventario"].map(navLink).join("")}</div><div class="nav-cluster"><p class="nav-group-label">PERSPECTIVAS</p>${["reportes", "asistente"].map(navLink).join("")}</div>`;
   document.querySelector("#mobile-nav").innerHTML =
-    ["inicio", "productos", "ventas", "asistente"].map(navLink).join("") +
+    ["inicio", "productos", "ventas", "asistente"]
+      .map(navLink)
+      .join("")
+      .replace("Asistente IA</span>", "Asistente</span>") +
     `<button id="more-nav" ${["clientes", "inventario", "reportes"].includes(page) ? 'aria-current="page"' : ""}>${icon("more")}<span>Más</span></button>`;
   document.querySelector("#more-nav").onclick = () =>
     openSheet(
-      "Más perspectivas.",
-      "ATLAS / NAVEGACIÓN",
+      "Tu espacio.",
+      "DATACORE / NAVEGACIÓN",
       `<nav class="more-links" aria-label="Más secciones">${["clientes", "inventario", "reportes"].map(navLink).join("")}</nav>`,
     );
-}
-function heading(index, title, subtitle, action = "") {
-  return `<section class="page-heading"><div><span class="eyebrow">DATACORE / ${index}</span><h1>${title}</h1><p>${subtitle}</p></div>${action}</section>`;
-}
-function sectionHead(title, sub, action = "") {
-  return `<header class="section-heading"><div><h2>${title}</h2><p>${sub}</p></div>${action}</header>`;
-}
-function art(p, large = false) {
-  return `<div class="product-art ${p.color} ${large ? "large" : ""}">${icon(p.symbol)}</div>`;
-}
-function sourceBar() {
-  return `<div class="source-bar"><span><i></i>Fuente: scripts SQL originales</span><button type="button" data-source-info>Sin conexión al servidor ${icon("arrow")}</button></div>`;
-}
-function ranking() {
-  const sorted = [...products].sort((a, b) => b.stock - a.stock).slice(0, 5),
-    max = sorted[0].stock;
-  return `<div class="ranking">${sorted.map((p, i) => `<button class="ranking-row" data-product="${p.id}"><span class="rank-index">0${i + 1}</span>${art(p)}<span class="rank-main"><strong>${p.name}</strong><span class="bar-track"><span style="width:${(p.stock / max) * 100}%"></span></span></span><span class="rank-value">${p.stock} uds. ${icon("chevron")}</span></button>`).join("")}</div>`;
-}
-function start() {
-  return (
-    heading(
-      "01 / EL ORIGEN",
-      "Los datos,<br><em>con memoria.</em>",
-      "La fuente importa tanto como lo que nos cuenta.",
-      `<button class="button secondary" data-source-info>Explorar la fuente ${icon("arrow")}</button>`,
-    ) +
-    sourceBar() +
-    `
- <section class="consolidated-hero"><div class="source-folio hero-reading"><span class="eyebrow">CATÁLOGO ORIGINAL</span><div class="folio-number hero-value">${products.length}</div><h2>referencias.<br>Una sola fuente.</h2><p>Definidas en los scripts originales.<br>Sin mezclar las otras demos.</p><a href="#productos" class="folio-link">Abrir catálogo ${icon("arrow")}</a></div><div class="model-observatory"><header class="viz-heading"><span>MODELO / DATACOREAI</span><small>6 tablas declaradas</small></header>${schemaMap()}</div></section>
- <div class="metric-ribbon"><div><span>Unidades en el script</span><strong>${number(totalStock)}</strong></div><div><span>Categorías originales</span><strong>${categories.length}</strong></div><a href="#clientes"><span>Clientes de prueba</span><strong>${customers.length}<small> ver directorio ${icon("arrow")}</small></strong></a><a href="#ventas"><span>Historial de ventas</span><strong>—<small> no recuperado ${icon("arrow")}</small></strong></a></div>
- <div class="atlas-home-bottom"><section>${sectionHead("Las existencias, al frente.", "Ranking de cantidades definidas en el script", `<a href="#inventario" class="text-link">Inventario ${icon("arrow")}</a>`)}${ranking()}</section><section class="revenue-composition">${sectionHead("Un catálogo en cuatro partes.", "Distribución de unidades, no de ingresos")}${stockDonut()}</section></div>
- <a class="integrity-note" href="#ventas"><span class="integrity-symbol">—</span><span><strong>Un dato ausente también cuenta una historia.</strong><small>No hay ventas en los scripts recuperados. Los ingresos y tendencias permanecerán sin calcular hasta consultar la base original.</small></span>${icon("arrow")}</a>`
-  );
-}
-function catalogue() {
-  return (
-    heading(
-      "02 / REFERENCIAS",
-      "El detalle<br><em>hace la diferencia.</em>",
-      "Productos definidos en la fuente original. Precios y cantidades de prueba.",
-      `<button id="compare-open" class="button secondary">${icon("productos")} Comparar <span id="compare-count">${state.compare.size}</span></button>`,
-    ) +
-    sourceBar() +
-    `<div class="catalog-edition"><div><strong>${products.length}</strong><span>REFERENCIAS<br>SQL ORIGINAL</span></div><p>${categories.length} categorías.<br>Códigos DEMO-001 a DEMO-020.</p><span class="catalog-stamp">ATLAS / SQL<br>FUENTE ÚNICA</span></div><div class="catalog-tools"><p>Busca nombres, códigos y stock en la barra superior.</p><label class="select-label"><span class="sr-only">Ordenar productos</span><select id="product-sort"><option value="name">Nombre</option><option value="price">Menor precio</option><option value="stock">Menor stock</option></select></label></div><div class="chips" role="group" aria-label="Filtrar categoría">${["Todos", ...categories].map((c) => `<button data-category="${c}" aria-pressed="${state.category === c}">${c}</button>`).join("")}</div><p id="catalog-count" class="results-count" aria-live="polite"></p><div id="product-grid" class="product-grid"></div>`
-  );
 }
 function renderProducts() {
   const list = products
@@ -125,110 +80,141 @@ function renderProducts() {
     .sort((a, b) =>
       state.sort === "name"
         ? a.name.localeCompare(b.name)
-        : a[state.sort] - b[state.sort],
+        : state.sort === "price-desc"
+          ? b.price - a.price
+          : a[state.sort] - b[state.sort],
     );
   document.querySelector("#catalog-count").textContent =
-    `${list.length} referencias · datos de prueba del script, no inventario en vivo`;
+    `${list.length} productos · catálogo de prueba`;
   document.querySelector("#product-grid").innerHTML = list
-    .map(
-      (p) =>
-        `<article class="product"><button class="product-open" data-product="${p.id}" aria-label="Ver detalles de ${p.name}">${art(p, true)}<span class="product-category">${p.code} / ${p.category}</span><h2>${p.name}</h2><span class="product-price">${money(p.price)}</span></button><div class="product-footer"><span class="stock-status ${p.stock <= p.min ? "low" : ""}"><i></i>${p.stock} uds. del script${p.stock <= p.min ? " · Reponer" : ""}</span><label class="compare-label"><input type="checkbox" data-compare="${p.id}" ${state.compare.has(p.id) ? "checked" : ""}>Comparar</label></div></article>`,
-    )
+    .map((p) => productMarkup(p, state.compare.has(p.id)))
     .join("");
+  const focused = products.find(
+    (p) => state.category === "Todos" || p.category === state.category,
+  );
+  document.querySelector("#catalog-focus").innerHTML = featureMarkup(focused);
   bindProducts();
 }
-function clientsPage() {
-  const initials = [...new Set(customers.map((c) => c.name[0]))].sort();
-  const list = customers.filter(
-    (c) =>
-      state.customerInitial === "Todos" ||
-      c.name.startsWith(state.customerInitial),
+function bindQuotation() {
+  const form = document.querySelector("#quote-form"),
+    selection = document.querySelector("#quote-product"),
+    quantity = document.querySelector("#quote-quantity"),
+    error = document.querySelector("#quote-error");
+  selection.value = state.quoteProduct;
+  const validate = () => {
+    const product = products.find((p) => p.code === selection.value);
+    const inQuote =
+      state.quoteLines.find((p) => p.code === selection.value)?.quantity || 0;
+    const remaining = product.stock - inQuote,
+      amount = Number(quantity.value);
+    quantity.max = String(remaining);
+    const valid =
+      Number.isInteger(amount) && amount >= 1 && amount <= remaining;
+    quantity.setAttribute("aria-invalid", String(!valid));
+    form.querySelector('button[type="submit"]').disabled = !valid;
+    document.querySelector("#quote-help").textContent =
+      `${money(product.price)} por unidad · ${remaining} unidades de prueba disponibles para esta cotización.`;
+    error.textContent = valid
+      ? ""
+      : remaining === 0
+        ? "Ya incluiste todas las unidades de prueba de este producto."
+        : `Usa una cantidad entera entre 1 y ${remaining}.`;
+    return valid;
+  };
+  selection.onchange = () => {
+    state.quoteProduct = selection.value;
+    quantity.value = "1";
+    validate();
+  };
+  quantity.oninput = validate;
+  validate();
+  form.onsubmit = (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+    const code = selection.value,
+      amount = Number(quantity.value),
+      existing = state.quoteLines.find((p) => p.code === code);
+    const next = existing
+      ? state.quoteLines.map((p) =>
+          p.code === code ? { code, quantity: p.quantity + amount } : p,
+        )
+      : [...state.quoteLines, { code, quantity: amount }];
+    try {
+      quotation(next);
+      state.quoteLines = next;
+      render();
+      document.querySelector("#quote-product").focus({ preventScroll: true });
+      toast("Producto añadido a la cotización de prueba.");
+    } catch (e) {
+      error.textContent = e.message;
+    }
+  };
+  document.querySelector("#quote-customer").onchange = (e) => {
+    state.quoteCustomer = e.target.value;
+    render();
+    document.querySelector("#quote-customer").focus({ preventScroll: true });
+  };
+  view.querySelectorAll("[data-remove-quote]").forEach(
+    (button) =>
+      (button.onclick = () => {
+        state.quoteLines = state.quoteLines.filter(
+          (p) => p.code !== button.dataset.removeQuote,
+        );
+        render();
+        document.querySelector("#quote-product").focus({ preventScroll: true });
+        toast("Producto retirado de la cotización.");
+      }),
   );
-  return (
-    heading(
-      "03 / PERSONAS",
-      "Cada nombre,<br><em>un vínculo posible.</em>",
-      "Los diez clientes ficticios definidos en el script original. Sin compras atribuidas.",
-    ) +
-    sourceBar() +
-    `<div class="directory-heading"><strong>${customers.length}</strong><div><span>CLIENTES ORIGINALES</span><p>Documento de prueba como referencia.<br>Los valores de ClienteID no se han recuperado.</p></div></div><div class="chips directory-alphabet" role="group" aria-label="Filtrar clientes por inicial">${["Todos", ...initials].map((c) => `<button data-initial="${c}" aria-pressed="${state.customerInitial === c}">${c}</button>`).join("")}</div><div class="client-directory">${list.map((c) => `<button class="client-row" data-client="${c.id}"><span class="client-initial">${c.name[0]}</span><span><strong>${c.name}</strong><small>${c.document} · registro de prueba original</small></span><span class="client-action">Ver ficha ${icon("arrow")}</span></button>`).join("")}</div><p class="data-caption">No se publican correos ni teléfonos. El detalle de contacto del servidor requerirá permisos de Clientes.</p>`
-  );
+  document.querySelector("#quote-export").onclick = () => {
+    const result = quotation(state.quoteLines),
+      customer = customers.find((c) => c.id === state.quoteCustomer);
+    if (!result.items.length || !customer) return;
+    const rows = [
+      ["Cotización de prueba · No es una venta registrada"],
+      ["Cliente", customer.name],
+      ["Documento", customer.document],
+      [],
+      ["Código", "Producto", "Cantidad", "Precio PEN", "Subtotal PEN"],
+      ...result.items.map((p) => [
+        p.code,
+        p.name,
+        p.quantity,
+        (p.priceCents / 100).toFixed(2),
+        (p.subtotalCents / 100).toFixed(2),
+      ]),
+      [],
+      ["Total PEN", (result.totalCents / 100).toFixed(2)],
+      ["Fuente", "sql/02_datos_prueba.sql"],
+      ["Estado", "Simulación; no modifica existencias ni registra ventas."],
+    ];
+    downloadCsv(rows, "datacore_cotizacion_de_prueba.csv");
+    toast("Cotización de prueba preparada.");
+  };
 }
-function unavailable(title = "El historial aún no está aquí.") {
-  return `<section class="history-gap"><span class="gap-symbol" aria-hidden="true">—</span><div><span class="eyebrow">ORIGEN INCOMPLETO / VENTAS</span><h2>${title}</h2><p>Los scripts crean Ventas y DetalleVentas, pero no incluyen sus registros. Esto no significa que la base original tenga cero ventas.</p><div class="gap-metrics"><span>Ingresos <strong>—</strong></span><span>Operaciones <strong>—</strong></span><span>Variación <strong>—</strong></span></div><button class="button secondary" data-check-backend>Comprobar integración ${icon("arrow")}</button><p class="backend-status" role="status"></p></div></section>`;
-}
-function salesPage() {
-  return (
-    heading(
-      "04 / OPERACIONES",
-      "Antes de contar,<br><em>hay que conocer.</em>",
-      "El modelo de ventas está recuperado. Su historial no está disponible.",
-    ) +
-    sourceBar() +
-    unavailable() +
-    `<section class="original-contract">${sectionHead("Una venta. Varios detalles.", "Relaciones declaradas, no operaciones recuperadas")}<div class="contract-flow"><div><span>dbo.Clientes</span><strong>ClienteID</strong></div>${icon("arrow")}<div><span>dbo.Ventas</span><strong>VentaID</strong><small>ClienteID · Fecha · Total</small></div>${icon("arrow")}<div><span>dbo.DetalleVentas</span><strong>DetalleVentaID</strong><small>VentaID · ProductoID · Cantidad</small></div></div><p class="viz-note">Las solicitudes de confirmación se relacionan con VentaID. Se conservan las claves y la idempotencia del diseño original.</p></section><details class="data-details"><summary>Fechas, filtros y sucursales</summary><p>No se han recuperado fechas de ventas. La API permite filtrar un intervalo inclusivo y productos/categorías cuando exista conexión. El esquema original no tiene sucursales: ese filtro no se ofrece ni se simula.</p></details>`
-  );
-}
-function inventoryPage() {
-  const list = products
-    .filter(
-      (p) =>
-        state.inventory === "Todos" ||
-        (state.inventory === "Por reponer"
-          ? p.stock <= p.min
-          : p.stock > p.min),
-    )
-    .sort((a, b) => a.stock - b.stock);
-  return (
-    heading(
-      "05 / EXISTENCIAS",
-      "Lo que había.<br><em>Lo que sabemos.</em>",
-      "Cantidades exactas del script original. Sin confirmar disponibilidad actual.",
-    ) +
-    sourceBar() +
-    `<div class="inventory-top"><div class="inventory-total"><strong>${totalStock}</strong><span>unidades en la fuente<br>no es una lectura en vivo</span></div><p class="inventory-callout"><span class="status-dot"></span><strong>${lowStock.length} referencias en el mínimo o por debajo</strong><br><span>Una referencia tiene cero existencias en el script.</span></p></div><section class="replenishment"><header><span class="eyebrow">ATENCIÓN / SEGÚN EL SCRIPT</span><h2>Una lectura de la reposición.</h2></header><div class="replenishment-rail">${[
-      ...lowStock,
-    ]
-      .sort((a, b) => a.stock - b.stock)
-      .map(
-        (p) =>
-          `<button class="replenishment-item" data-product="${p.id}"><span>${p.stock === 0 ? "AGOTADO EN EL SCRIPT" : "STOCK BAJO EN EL SCRIPT"}</span><strong>${p.name}</strong><div><b>${p.stock}</b><small>unidades / mín. ${p.min}</small></div>${icon("arrow")}</button>`,
-      )
-      .join(
-        "",
-      )}</div></section><div class="chips" role="group" aria-label="Filtrar inventario">${["Todos", "Por reponer", "Disponibles"].map((c) => `<button data-inventory="${c}" aria-pressed="${state.inventory === c}">${c}</button>`).join("")}</div><div class="inventory-list">${list.map((p) => `<button class="inventory-row" data-product="${p.id}">${art(p)}<span class="inventory-name"><strong>${p.name}</strong><small>${p.code} · mínimo ${p.min}</small></span><span class="inventory-track"><span class="${p.stock <= p.min ? "low" : ""}" style="width:${Math.min(100, (p.stock / Math.max(p.min * 4, 1)) * 100)}%"></span></span><span class="inventory-quantity">${p.stock}<small>del script</small></span><span class="stock-status ${p.stock <= p.min ? "low" : ""}">${p.stock <= p.min ? "Reponer" : "Disponible"}</span>${icon("chevron")}</button>`).join("")}</div>`
-  );
-}
-function reportsPage() {
-  const list = products.filter(
-    (p) =>
-      state.reportCategory === "Todas" || p.category === state.reportCategory,
-  );
-  return (
-    heading(
-      "06 / OBSERVATORIO",
-      "Lo verificable,<br><em>a la vista.</em>",
-      "Analítica de catálogo e inventario original. Sin ingresos o tendencias inventados.",
-      `<label class="select-label"><span class="sr-only">Categoría del reporte</span><select id="report-category">${["Todas", ...categories].map((c) => `<option ${c === state.reportCategory ? "selected" : ""}>${c}</option>`).join("")}</select></label>`,
-    ) +
-    sourceBar() +
-    `<section class="report-lead"><div><span class="eyebrow">EXISTENCIAS DEL SCRIPT / ${esc(state.reportCategory)}</span><h2>${list.reduce((n, p) => n + p.stock, 0)} unidades.<br><span>${list.length} referencias.</span></h2><p>Las cantidades corresponden al archivo original, no a una consulta actual.</p></div><div class="report-export"><button class="button primary" id="export-csv">${icon("down")} Exportar inventario CSV</button><button class="button secondary" id="print-report">Guardar vista como PDF ${icon("arrow")}</button><small>El CSV conserva el filtro y la procedencia.<br> El PDF usa la impresión del sistema.</small></div></section><section class="treemap-stage">${sectionHead("El espacio de cada referencia.", "Mapa de cantidades, no de ingresos")}${stockMap(list)}</section><div class="report-diptych"><section class="report-distribution">${sectionHead("La composición del inventario.", "Existencias por categoría")}${stockDonut(list)}</section><section>${sectionHead("Precio y existencias.", "Los dos valores disponibles en la fuente")}${priceStock(list)}</section></div><section class="report-sales-note">${unavailable("Los reportes financieros esperan al historial.")}</section><details class="data-details"><summary>Consultar detalle verificable</summary><div class="table-scroll"><table><thead><tr><th>Código</th><th>Producto</th><th>Precio</th><th>Existencias del script</th><th>Mínimo</th></tr></thead><tbody>${list.map((p) => `<tr><td>${p.code}</td><td>${p.name}</td><td>${money(p.price)}</td><td>${p.stock}</td><td>${p.min}</td></tr>`).join("")}</tbody></table></div></details>`
-  );
-}
-function assistantPage() {
-  return `<section class="assistant-page"><header class="assistant-header"><div><span class="eyebrow">07 / CONVERSACIÓN</span><h1>Una pregunta.<br><em>Una perspectiva.</em></h1></div><button id="clear-chat" class="button secondary" ${state.busy ? "disabled" : ""}>Nueva conversación</button></header><p class="assistant-disclosure">${icon("asistente")}<span><strong>Consulta local de scripts · Sin IA generativa</strong>Preguntas abiertas sobre la fuente original. No consulta SQL Server ni inventa ventas.</span></p><div class="conversation" id="conversation" role="log" aria-live="polite" aria-label="Conversación"></div><form class="composer" id="chat-form"><label for="chat-input" class="sr-only">Pregunta sobre los datos originales</label><textarea id="chat-input" rows="1" maxlength="2000" placeholder="Pregunta con tus palabras…" enterkeyhint="send"></textarea><button type="submit" class="send-button" aria-label="Enviar pregunta">${icon("up")}</button><small>Fuente original explícita. No hay un modelo de lenguaje conectado.</small></form></section>`;
+function downloadCsv(rows, name) {
+  const url = URL.createObjectURL(
+      new Blob([toCsv(rows)], { type: "text/csv;charset=utf-8" }),
+    ),
+    link = document.createElement("a");
+  link.href = url;
+  link.download = name;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 function renderConversation() {
   const log = document.querySelector("#conversation");
   if (!log) return;
   log.innerHTML = state.messages.length
     ? state.messages
-        .map(
-          (m) =>
-            `<article class="message ${m.role}"><span class="message-label">${m.role === "user" ? "Tú" : "DataCore / consulta local"}</span><p>${esc(m.text)}</p></article>`,
-        )
+        .map((message) => {
+          const parts =
+            message.role === "assistant"
+              ? message.text.split("\n\nFuente:")
+              : [message.text];
+          return `<article class="message ${message.role}"><span class="message-label">${message.role === "user" ? "Tú" : "DataCore / consulta local"}</span><p>${esc(parts[0])}</p>${parts[1] ? '<small class="message-source">Datos de prueba de SQL · Consulta local, sin IA generativa.</small>' : ""}</article>`;
+        })
         .join("")
-    : `<div class="conversation-intro"><div class="assistant-orb">${icon("asistente")}</div><h2>La claridad<br><em>empieza preguntando.</em></h2><p>Explora el catálogo original, los precios o las existencias.<br> Las respuestas reconocen lo que falta.</p><div class="suggestions" ${state.interacted ? "hidden" : ""}>${["¿Qué productos deberían reponerse?", "¿Qué producto genera mayores ingresos?", "Muéstrame los clientes originales"].map((q) => `<button data-prompt="${q}">${q}${icon("arrow")}</button>`).join("")}</div></div>`;
+    : `<div class="conversation-intro"><div class="assistant-orb">${icon("asistente")}</div><h2>Tu catálogo.<br><em>Una conversación abierta.</em></h2><p>Productos, precios, existencias y comparaciones.<br>Escribe lo que necesitas saber.</p><div class="suggestions" ${state.interacted ? "hidden" : ""}>${["¿Qué productos deberían reponerse?", "Compara el Teclado USB y el Mouse óptico", "Muéstrame los clientes originales"].map((question) => `<button data-prompt="${question}">${question}${icon("arrow")}</button>`).join("")}</div></div>`;
   if (state.busy)
     log.insertAdjacentHTML(
       "beforeend",
@@ -276,9 +262,9 @@ function openSheet(title, context, body) {
 }
 function showSource() {
   openSheet(
-    "Una fuente.<br>Sin sustituciones.",
+    "Datos de prueba.<br>La base original.",
     "TRAZABILIDAD",
-    `<p class="product-description">Se recuperaron las definiciones de seis tablas y los datos de prueba declarados para 20 productos, cuatro categorías y 10 clientes.</p><div class="source-facts"><span>SQL Server conectado <strong>No</strong></span><span>Ventas originales recuperadas <strong>No</strong></span><span>Sucursales en el esquema <strong>No existen</strong></span><span>Claves IDENTITY originales <strong>No recuperadas</strong></span></div><div class="source-files">${Object.entries(
+    `<p class="product-description">Esta demo utiliza los datos de prueba originales de SQL: 20 productos, cuatro categorías y 10 clientes. No modifica la base de datos.</p><div class="source-facts"><span>SQL Server conectado <strong>No</strong></span><span>Ventas originales recuperadas <strong>No</strong></span><span>Sucursales en el esquema <strong>No existen</strong></span><span>Claves IDENTITY originales <strong>No recuperadas</strong></span></div><div class="source-files">${Object.entries(
       provenance.files,
     )
       .map(
@@ -316,7 +302,7 @@ function compare() {
   }
   openSheet(
     "El detalle, lado a lado.",
-    "CATÁLOGO DEL SCRIPT",
+    "COMPARACIÓN / DATOS DE PRUEBA",
     `<div class="table-scroll"><table><thead><tr><th>Referencia</th>${list.map((p) => `<th>${p.name}</th>`).join("")}</tr></thead><tbody>${[
       ["Código", (p) => p.code],
       ["Precio", (p) => money(p.price)],
@@ -351,6 +337,7 @@ function bindProducts() {
 }
 async function checkBackend(button) {
   const status = button.parentElement.querySelector(".backend-status");
+  button.setAttribute("aria-busy", "true");
   button.disabled = true;
   status.textContent = "Comprobando el acceso seguro…";
   try {
@@ -376,6 +363,7 @@ async function checkBackend(button) {
       "No se pudo comprobar el backend. No se usaron datos de sustitución.";
   } finally {
     button.disabled = false;
+    button.removeAttribute("aria-busy");
   }
 }
 function csv() {
@@ -414,15 +402,7 @@ function render() {
   document.body.dataset.page = page;
   navigation();
   animation?.cancel();
-  view.innerHTML = {
-    inicio: start,
-    productos: catalogue,
-    clientes: clientsPage,
-    ventas: salesPage,
-    inventario: inventoryPage,
-    reportes: reportsPage,
-    asistente: assistantPage,
-  }[page]();
+  view.innerHTML = renderPage(page, state);
   if (changingPage && !reducedMotion())
     animation = view.animate(
       [entry, { opacity: 1, transform: "translateY(0)" }],
@@ -430,6 +410,27 @@ function render() {
     );
   renderedPage = page;
   bindCharts(view);
+  if (page === "ventas") bindQuotation();
+  view.querySelectorAll("[data-report-metric]").forEach(
+    (button) =>
+      (button.onclick = () => {
+        state.reportMetric = button.dataset.reportMetric;
+        render();
+        view
+          .querySelector(`[data-report-metric="${state.reportMetric}"]`)
+          .focus({ preventScroll: true });
+      }),
+  );
+  view.querySelectorAll("[data-category-route]").forEach(
+    (button) =>
+      (button.onclick = () => {
+        state.category = button.dataset.categoryRoute;
+        location.hash = "productos";
+      }),
+  );
+  view
+    .querySelector("[data-go-low]")
+    ?.addEventListener("click", () => (state.inventory = "Por reponer"));
   bindProducts();
   view
     .querySelectorAll("[data-source-info]")
@@ -464,6 +465,9 @@ function render() {
       (b.onclick = () => {
         state.inventory = b.dataset.inventory;
         render();
+        view
+          .querySelector(`[data-inventory="${state.inventory}"]`)
+          .focus({ preventScroll: true });
       }),
   );
   view.querySelectorAll("[data-initial]").forEach(
@@ -471,6 +475,9 @@ function render() {
       (b.onclick = () => {
         state.customerInitial = b.dataset.initial;
         render();
+        view
+          .querySelector(`[data-initial="${state.customerInitial}"]`)
+          .focus({ preventScroll: true });
       }),
   );
   document
@@ -527,6 +534,9 @@ function route() {
   render();
   window.scrollTo(0, 0);
 }
+document
+  .querySelectorAll(".chrome-source")
+  .forEach((button) => (button.onclick = showSource));
 document.querySelector("#sheet-close").innerHTML = icon("close");
 document.querySelector("#sheet-close").onclick = sheet.close;
 function setTheme(theme) {
@@ -539,7 +549,7 @@ function setTheme(theme) {
     theme === "dark" ? "Activar modo claro" : "Activar modo oscuro",
   );
   document.querySelector('meta[name="theme-color"]').content =
-    theme === "dark" ? "#141613" : "#f3f0e8";
+    theme === "dark" ? "#0d1726" : "#f2f5fa";
 }
 setTheme(
   storage.get(
@@ -554,7 +564,7 @@ document.querySelector("#theme-toggle").onclick = () =>
 function network() {
   document.querySelector("#network-status").textContent = navigator.onLine
     ? ""
-    : "Sin conexión · copia del script disponible";
+    : "Sin conexión · demo disponible";
 }
 addEventListener("online", network);
 addEventListener("offline", network);
@@ -572,6 +582,20 @@ window.visualViewport?.addEventListener("resize", () => {
 addEventListener("hashchange", () => {
   route();
   view.focus({ preventScroll: true });
+});
+// Native PDF printing includes the current filtered table, then restores its state.
+let printDetails = [];
+addEventListener("beforeprint", () => {
+  printDetails = [...view.querySelectorAll("details:not([open])")];
+  printDetails.forEach((detail) => {
+    detail.open = true;
+  });
+});
+addEventListener("afterprint", () => {
+  printDetails.forEach((detail) => {
+    detail.open = false;
+  });
+  printDetails = [];
 });
 route();
 if ("serviceWorker" in navigator)

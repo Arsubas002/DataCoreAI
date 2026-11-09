@@ -99,3 +99,14 @@ test("open questions return sourced facts or explicit missing-data explanations"
     /No hay un modelo de lenguaje/,
   );
 });
+
+test("local price and category questions retain original prices and ordering", () => {
+  const expensive = demoAnswer("¿Cuáles son los productos más caros?");
+  assert.ok(
+    expensive.indexOf("Cámara web") < expensive.indexOf("Mochila urbana"),
+  );
+  const paper = demoAnswer("Muéstrame productos de Papelería");
+  assert.match(paper, /Cuaderno cuadriculado/);
+  assert.ok(!paper.includes("Teclado USB"));
+  assert.match(paper, /datos de prueba/);
+});

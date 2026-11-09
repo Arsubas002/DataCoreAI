@@ -1,12 +1,12 @@
 {
-  "name": "DataCore AI · SQL original",
+  "name": "DataCore AI",
   "short_name": "DataCore AI",
-  "description": "Catálogo e inventario de prueba de los scripts SQL originales. Sin conexión al servidor.",
+  "description": "Productos, clientes e inventario con los datos de prueba originales de SQL.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#141613",
-  "theme_color": "#141613",
+  "background_color": "#0d1726",
+  "theme_color": "#0d1726",
   "icons": [
     {
       "src": "./assets/icon-192.png",

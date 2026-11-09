@@ -86,16 +86,22 @@ class SourceTests(unittest.TestCase):
         self.assertEqual(kwargs["attrs_before"], {101: 1})
         self.assertEqual(connection.timeout, 10)
 
-    def test_current_palette_declarations_are_preserved(self):
-        import re, subprocess
+    def test_original_institutional_palette_matches_the_documented_identity(self):
+        import re
 
-        before = subprocess.check_output(
-            ["git", "show", "c0f565d:pwa/styles.css"], text=True
-        )
-        after = (ROOT / "pwa/styles.css").read_text()
-        keys = "paper|surface|ink|muted|soft|line|accent|accent-soft|amber|amber-soft|glass|nav-glass"
-        expression = re.compile(r"--(" + keys + r")\s*:\s*([^;}]+)")
-        self.assertEqual(expression.findall(after), expression.findall(before))
+        css = (ROOT / "pwa/styles.css").read_text().lower()
+        identity = (ROOT / "docs/WORKSPACE_PETROLEO.md").read_text().lower()
+        expected = {
+            "petroleum": "#0d1726",
+            "white": "#f2f5fa",
+            "violet": "#7659e8",
+            "turquoise": "#24c9c0",
+        }
+        for name, color in expected.items():
+            self.assertIn(color, identity)
+            self.assertRegex(css, r"--brand-" + name + r"\s*:\s*" + color)
+        self.assertNotIn("#d1ed89", css)
+        self.assertNotIn("#f3f0e8", css)
 
 
 if __name__ == "__main__":

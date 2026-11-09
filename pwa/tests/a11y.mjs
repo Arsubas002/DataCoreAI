@@ -26,10 +26,19 @@ try {
       await page.goto(
         (process.env.BASE_URL || "http://127.0.0.1:8080") + "/#" + route,
       );
+      await page.waitForFunction(
+        (r) => document.body.dataset.page === r,
+        route,
+      );
       await page.locator("#view h1").waitFor();
       await page.evaluate(
         (t) => (document.documentElement.dataset.theme = t),
         theme,
+      );
+      await page.waitForFunction(
+        (expected) =>
+          getComputedStyle(document.body).backgroundColor === expected,
+        theme === "dark" ? "rgb(13, 23, 38)" : "rgb(242, 245, 250)",
       );
       const result = await new AxeBuilder({ page })
         .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
@@ -52,6 +61,11 @@ try {
     await page.evaluate(
       (theme) => (document.documentElement.dataset.theme = theme),
       theme,
+    );
+    await page.waitForFunction(
+      (expected) =>
+        getComputedStyle(document.body).backgroundColor === expected,
+      theme === "dark" ? "rgb(13, 23, 38)" : "rgb(242, 245, 250)",
     );
     const result = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21aa"])

@@ -1,4 +1,4 @@
-const CACHE = 'datacore-atlas-sql-v1';
+const CACHE = 'datacore-original-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -10,6 +10,9 @@ const ASSETS = [
   './js/motion.js',
   './js/assistant.js',
   './js/sql-fixtures.js',
+  './js/catalogue-math.js',
+  './js/product-art.js',
+  './js/views.js',
   './manifest.webmanifest',
   './icon.svg',
   './assets/icon-192.png',

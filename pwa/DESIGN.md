@@ -1,33 +1,31 @@
-# Atlas · dirección visual de la consolidación
+# DataCore AI · petróleo, materia y datos
 
-Base revisada `design/atlas-editorial` (`c0f565d`). Se conserva íntegramente su paleta de papel, tinta oscura y acento lima; los doce tokens principales en ambos temas se comparan con esa base en una prueba automática. No se adoptan los colores de interfaces Apple.
+## Corrección de identidad
 
-Referencia principal: [apple-design, commit 5206a950](https://github.com/emilkowalski/skills/tree/5206a950b715e0cabe7043ea0b2304332b91494e/skills/apple-design). La carpeta de esa revisión contiene únicamente SKILL.md, sin referencias adicionales. También se aplicó la skill local interface-design. Se estudiaron respuesta al presionar, resortes interrumpibles, continuidad de velocidad, manipulación directa, materiales, tipografía y accesibilidad antes de modificar la PWA.
+La referencia cromática es la identidad original documentada en `docs/WORKSPACE_PETROLEO.md`: petróleo #0D1726, blanco frío #F2F5FA, violeta #7659E8 y turquesa #24C9C0. La interpretación anterior conservó por error la paleta lima de Atlas. Esta revisión recupera los colores institucionales y sustituye su composición y CSS completos.
 
-## Dirección por pantalla
+Referencia de interacción: apple-design, commit 5206a950b715e0cabe7043ea0b2304332b91494e. Se estudió SKILL.md (esa carpeta no contiene referencias adicionales), además de la skill local interface-design.
 
-La consolidación tiene una premisa visual y funcional: hacer visible la procedencia. Los datos que faltan merecen un estado diseñado, sin un gráfico financiero ficticio. La arquitectura se definió antes de implementar las siete experiencias:
+## Dirección definida antes de implementar
 
-- **Inicio / El origen.** Folio recortado con 20 referencias frente a un observatorio del modelo original. Seis nodos enlazados por las cinco relaciones reales del esquema; cifras recuperadas separadas del historial ausente. Métricas integradas en una franja, ranking y donut de existencias.
-- **Productos / Referencias.** Índice editorial, categorías táctiles y biblioteca de objetos diferenciados por familia. Comparación de hasta tres referencias en una hoja; claves de negocio y precios originales.
-- **Clientes / Personas.** Directorio tipográfico con iniciales de gran tamaño y navegación alfabética. No reutiliza las tarjetas del catálogo ni atribuye compras inexistentes. Detalle sin datos de contacto públicos.
-- **Ventas / Historia pendiente.** Composición abierta con una raya protagonista y métricas desconocidas. Contexto de las tablas que faltan y comprobación explícita del backend. No utiliza gráficos de cero ventas.
-- **Inventario / Disponibilidad.** Número de unidades, cola horizontal de reposición y registro denso con estados comprensibles además del color. Mínimos originales, filtro Por reponer y acceso a detalle.
-- **Reportes / Observatorio.** Treemap de ancho completo, composición por categoría y dispersión precio/existencias. Tabla y exportación conectadas al mismo filtro. No parece una repetición del inicio.
-- **Asistente / Conversación.** Página completa, historial de sesión y compositor próximo al pulgar. Preguntas sugeridas dentro de la conversación y descartadas al interactuar. Modo local explícito y preguntas abiertas sin fingir un modelo conectado.
+Persona: quien consulta su tienda desde iPhone y profundiza desde escritorio. Tareas: localizar un producto, revisar precio/existencias, priorizar reposición, explorar el catálogo, comparar referencias y consultar los datos de prueba.
 
-## Sistema e interacción
+Territorio: referencias, disponibilidad, categorías, unidades, clientes, mínimos y cotizaciones. Mundo cromático: petróleo, blanco frío, violeta, turquesa y matices derivados de esos colores. La firma visual combina grandes cifras abiertas, diagramas de inventario legibles y objetos vectoriales específicos de cada producto, con capas funcionales de cristal.
 
-Tipografía de sistema para controles y cifras; Georgia como contrapunto editorial en titulares. Tamaños fluidos, tracking ajustado por escala, leading amplio en lectura. Trama técnica inmóvil, superficies limpias y profundidad para capas funcionales. Translucidez en cabecera, navegación y hojas; no en cada módulo.
+Se descartan: siete titulares iguales sobre tarjetas → composiciones distintas según tarea; datos de ingeniería como protagonista → información comercial con procedencia accesible; ilustración genérica de categoría → veinte objetos dibujados específicamente; curvas financieras inventadas → representaciones calculadas desde las cantidades y precios SQL existentes.
 
-Búsqueda global siempre arriba, debajo del encabezado en iPhone y dentro de la barra superior en escritorio. Navegación contextual lateral únicamente para secciones; nunca búsqueda lateral. En iPhone, cinco destinos cómodos con Más para las rutas adicionales y áreas seguras.
+- Inicio: gran cifra de unidades, anillo de estado calculado, foco de reposición, bandas de categoría y ranking; el esquema SQL deja de ocupar el dashboard.
+- Productos: vitrina con un objeto protagonista y catálogo de veinte ilustraciones, precio/existencias visibles, filtros y comparación.
+- Clientes: directorio con letras de gran formato, ritmo horizontal y fichas; sin contactos públicos ni compras atribuidas.
+- Ventas: estudio de cotización interactiva con catálogo y clientes de prueba; cálculo en céntimos, sin guardar una venta ni descontar stock. Historial vacío identificado, sin ceros financieros ficticios.
+- Inventario: matriz interactiva de veinte posiciones, prioridades y registro ordenado; estado expresado mediante texto, forma y color.
+- Reportes: treemap amplio, barras de categoría, donut y dispersión; controles cercanos, filtros compartidos, valoración al precio de catálogo claramente diferenciada de ingresos/costos.
+- Asistente: conversación a página completa, preguntas abiertas y respuestas de consulta local identificadas; sugerencias dentro del diálogo y compositor accesible en móvil.
 
-Presión inmediata; resorte críticamente amortiguado que conserva posición y velocidad al cambiar de objetivo. Hojas con Pointer Events, captura, seguimiento directo, resistencia al límite y proyección de velocidad. Entrada/salida simétricas; una hoja en cierre puede agarrarse y revertirse. Navegación interrumpible, sin bloquear controles ni temporizadores de falsa espera. Cola horizontal con scroll-snap nativo, sin overflow accidental del documento.
+## Reglas de ejecución
 
-Tooltips accesibles por foco, puntero o toque, descartables con Escape. Treemap de área proporcional validada, leyendas legibles y estados vacíos sin geometría inválida. Las visualizaciones usan stock, no demanda o rentabilidad. Se omiten mapas por hora, ingresos por sucursal y objetivos porque el origen no permite calcularlos.
+Sistema tipográfico sans de plataforma, tracking óptico, cifras tabulares; petróleo dominante en oscuro y blanco frío en claro. Turquesa para disponibilidad/interacción y violeta para foco/acción. Fondo técnico tenue e inmóvil; sin animaciones perpetuas. Navegación de escritorio contextual y barra inferior flotante en iPhone, búsqueda siempre superior.
 
-Se respetan movimiento reducido, transparencia reducida y contraste aumentado. Safe areas, teclado mediante visualViewport, foco visible, nombres accesibles y navegación nativa por enlaces. No hay animaciones de fondo continuas, fuentes remotas ni dependencias de ejecución externas.
+Resortes interrumpibles y seguimiento directo en hojas, respuesta al presionar y cambios de vista sin bloqueo. Movimiento/transparencia reducidos y contraste aumentado. SVG sin librerías de ejecución ni fuentes remotas.
 
-## Evidencia
-
-Se revisaron capturas reales de las siete rutas a 393×852 y 1440×1000, ambos temas y búsqueda. Pruebas de layout también a 320 y 768 px. Resultados, límites de Safari físico y comprobación pública pendiente en [VALIDACION_PREPUBLICACION.md](VALIDACION_PREPUBLICACION.md). Las capturas comparativas son artefactos de revisión fuera del build y no incluyen información privada.
+Los datos siguen siendo exactamente los fixtures SQL: 20 productos, 10 clientes, 4 categorías y 336 unidades. No se modifica SQL ni se inventa historial. La cotización es cálculo transitorio sobre esos mismos precios, no una operación registrada. El detalle técnico de procedencia se conserva en una hoja accesible desde la cabecera.

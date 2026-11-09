@@ -20,11 +20,11 @@ const context = await browser.newContext({
 });
 try {
   const page = await context.newPage();
-  const response = await page.goto(base + "/?verify=atlas-sql-v1");
+  const response = await page.goto(base + "/?verify=original-v2");
   assert.equal(response.status(), 200);
   assert.equal(
     await page.locator('meta[name="datacore-release"]').getAttribute("content"),
-    "atlas-sql-v1",
+    "original-v2",
   );
   await page.locator("#global-search").fill("DEMO-002");
   await page.locator('[data-search-product="DEMO-002"]').waitFor();
@@ -40,7 +40,7 @@ try {
       .join("/");
     const remote = await context.request.get(
       new URL(relative, base.endsWith("/") ? base : base + "/").href +
-        "?verify=atlas-sql-v1",
+        "?verify=original-v2",
       { headers: { "Cache-Control": "no-cache" } },
     );
     assert.equal(remote.status(), 200, relative);
@@ -62,10 +62,10 @@ try {
   await page.reload();
   assert.equal(
     await page.locator('meta[name="datacore-release"]').getAttribute("content"),
-    "atlas-sql-v1",
+    "original-v2",
   );
   console.log(
-    `PASS: public HTTPS deployment serves atlas-sql-v1; ${checked} assets match SHA-256, including after reload with service worker.`,
+    `PASS: public HTTPS deployment serves original-v2; ${checked} assets match SHA-256, including after reload with service worker.`,
   );
 } finally {
   await browser.close();

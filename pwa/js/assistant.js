@@ -1,10 +1,26 @@
-import { products, customers, money } from "./data.js?v=atlas-sql-v1";
+import {
+  products,
+  customers,
+  categories,
+  money,
+} from "./data.js?v=original-v2";
 export function demoAnswer(question) {
   const q = question
     .toLocaleLowerCase("es")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
-  const mentioned = products.filter(
+  const group = categories.find((name) =>
+    q.includes(
+      name
+        .toLocaleLowerCase("es")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, ""),
+    ),
+  );
+  const scoped = group
+    ? products.filter((p) => p.category === group)
+    : products;
+  const mentioned = scoped.filter(
     (p) =>
       q.includes(
         p.name
@@ -34,7 +50,7 @@ export function demoAnswer(question) {
   if (/stock|inventario|disponibilidad|repon|repos|existencia|agot/.test(q)) {
     const list = mentioned.length
       ? mentioned
-      : [...products]
+      : [...scoped]
           .sort((a, b) => a.stock - b.stock)
           .filter((p) => (/repon|repos|agot/.test(q) ? p.stock <= p.min : true))
           .slice(0, 8);
@@ -50,10 +66,16 @@ export function demoAnswer(question) {
       source
     );
   }
-  if (/precio|cuesta|compar|barat|caro/.test(q) || mentioned.length) {
+  if (/precio|cuesta|compar|barat|caro/.test(q) || mentioned.length || group) {
     const list = mentioned.length
       ? mentioned
-      : [...products].sort((a, b) => a.price - b.price).slice(0, 6);
+      : [...scoped]
+          .sort((a, b) =>
+            /caro|mayor precio|mas alto/.test(q)
+              ? b.price - a.price
+              : a.price - b.price,
+          )
+          .slice(0, 6);
     return (
       "Catálogo original\n\n" +
       list

@@ -51,9 +51,11 @@ La UI usa Codigo y Documento como claves de negocio. **No inventa valores de Pro
 
 Los scripts no contienen filas de `Ventas`, `DetalleVentas` o `VentasSolicitudes`. Tampoco hay registros de sucursales, costos, metas, horarios de actividad ni fechas de captura del inventario. Esto no demuestra que la base local carezca de ventas; demuestra que ese historial no está en los archivos entregados.
 
-Por ello ingresos, pedidos, ticket, evolución, períodos y rentabilidad permanecen **no disponibles**. No se sustituyen por cero. No se dibujan áreas, heatmaps comerciales ni objetivos sin sus datos. Los gráficos disponibles representan existencias originales: ranking, composición por categoría, treemap y precio frente a stock.
+Por ello ingresos, pedidos, ticket, evolución, períodos y rentabilidad permanecen **no disponibles**. No se sustituyen por cero. No se dibujan áreas, heatmaps comerciales ni objetivos sin sus datos. Los gráficos representan existencias y precios originales: ranking, estado radial, matriz de productos, barras/donut por categoría, treemap de unidades o valor de catálogo y dispersión precio/stock. El valor de catálogo se calcula como existencias × precio, sin atribuirlo a ingresos o costos.
 
 Las versiones anteriores añadían productos PWA/iOS y ventas generadas. Continúan recuperables en el historial Git y la rama base `design/atlas-editorial`, pero se excluyen de esta vista SQL para no mezclarlos silenciosamente con la fuente que confirmó el usuario. No se han eliminado ni alterado registros de una base de datos.
+
+La cotización añadida a Ventas es un cálculo transitorio sobre los mismos productos y clientes de prueba. No inserta registros, no descuenta stock, no inventa claves y no se agrega a un historial comercial.
 
 ## Integración preparada
 

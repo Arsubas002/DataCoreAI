@@ -4,7 +4,7 @@
 Antes de modificar `pwa/`, lee **`.agents/skills/interface-design/SKILL.md`**. Es una copia de la skill open-source [Dammyjay93/interface-design](https://github.com/Dammyjay93/interface-design), con licencia MIT incluida. Úsala para revisar y mejorar el diseño; no ejecutes scripts externos sin inspeccionarlos.
 
 ## Objetivo
-Aplicación de gestión comercial móvil. Conserva la paleta Atlas existente en `styles.css` (oscuro, papel claro y acento lima); el usuario prohibió sustituirla en esta consolidación. Combina la skill local con [apple-design, commit 5206a950](https://github.com/emilkowalski/skills/tree/5206a950b715e0cabe7043ea0b2304332b91494e/skills/apple-design). Debe sentirse como una herramienta real de datos.
+Aplicación de gestión comercial móvil. La identidad original obligatoria está en `docs/WORKSPACE_PETROLEO.md`: petróleo #0D1726, blanco frío #F2F5FA, violeta #7659E8 y turquesa #24C9C0. La corrección del usuario descarta la paleta lima/papel cálido de Atlas. Combina la skill local con [apple-design, commit 5206a950](https://github.com/emilkowalski/skills/tree/5206a950b715e0cabe7043ea0b2304332b91494e/skills/apple-design). Debe sentirse como una herramienta real de datos.
 
 ## Reglas de implementación
 - La base revisada es `design/atlas-editorial` (`c0f565d`); Streamlit y SwiftUI son aplicaciones separadas.

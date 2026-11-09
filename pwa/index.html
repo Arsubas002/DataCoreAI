@@ -1,15 +1,15 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" data-theme="dark">
   <head>
     <meta charset="utf-8" />
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content"
     />
-    <meta name="theme-color" content="#141613" />
+    <meta name="theme-color" content="#0d1726" />
     <meta
       name="description"
-      content="DataCore AI. Una perspectiva clara de tu negocio. Demostración con datos ficticios."
+      content="DataCore AI. Productos, clientes e inventario en una nueva perspectiva. Demo con los datos ficticios de prueba originales de SQL."
     />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta
@@ -19,29 +19,29 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
-    <link rel="stylesheet" href="./styles.css?v=atlas-sql-v1" />
-    <meta name="datacore-release" content="atlas-sql-v1" />
+    <link rel="stylesheet" href="./styles.css?v=original-v2" />
+    <meta name="datacore-release" content="original-v2" />
     <title>Inicio · DataCore AI</title>
   </head>
   <body>
     <a class="skip-link" href="#view">Ir al contenido</a>
     <aside class="sidebar" aria-label="Espacio de trabajo">
       <a class="brand" href="#inicio"
-        ><span class="brand-mark" aria-hidden="true">d<span>c</span></span
+        ><span class="brand-mark" aria-hidden="true"
+          ><img src="./icon.svg" alt="" /></span
         ><span>DataCore<span class="brand-ai"> AI</span></span></a
       >
       <div class="workspace">
-        <span class="workspace-icon" aria-hidden="true">◈</span>
-        <div><strong>Mi negocio</strong><small>SQL original / copia</small></div>
+        <span class="workspace-icon" aria-hidden="true">DC</span>
+        <div><strong>Mi negocio</strong><small>Espacio de prueba</small></div>
         <span class="workspace-dot" aria-hidden="true"></span>
       </div>
-      <p class="nav-label">ATLAS / FUENTE SQL</p>
+      <p class="nav-label">TU ESPACIO</p>
       <nav id="desktop-nav" aria-label="Navegación principal"></nav>
-
       <div class="sidebar-footer">
         <span class="avatar">DC</span>
         <div>
-          <strong>DataCore Studio</strong><small>Scripts · Sin conexión SQL</small>
+          <strong>DataCore AI</strong><small>Una nueva perspectiva.</small>
         </div>
       </div>
     </aside>
@@ -49,10 +49,10 @@
       <header class="toolbar">
         <a class="mobile-brand" href="#inicio">DataCore <span>AI</span></a>
         <div class="breadcrumb">
-          Mi negocio <span>/</span> <strong id="breadcrumb">Inicio</strong>
+          Mi negocio <span>/</span><strong id="breadcrumb">Inicio</strong>
         </div>
         <div class="global-search" role="search" aria-label="Búsqueda global">
-          <label for="global-search" class="sr-only"
+          <label class="sr-only" for="global-search"
             >Buscar productos, inventario y secciones</label
           >
           <div class="global-search-field">
@@ -60,7 +60,7 @@
             ><input
               id="global-search"
               type="search"
-              placeholder="Buscar productos, stock, ventas…"
+              placeholder="Buscar productos, stock, clientes…"
               autocomplete="off"
               aria-controls="global-results"
             /><kbd>⌘ K</kbd
@@ -84,7 +84,12 @@
           </section>
         </div>
         <div class="toolbar-actions">
-          <span class="demo-label"><i></i>Scripts originales</span
+          <button
+            type="button"
+            class="demo-label chrome-source"
+            aria-label="Datos de prueba y procedencia"
+          >
+            <i></i>Demo SQL</button
           ><span id="network-status" role="status"></span
           ><button
             class="icon-button"
@@ -95,8 +100,13 @@
       </header>
       <main id="view" tabindex="-1"></main>
       <footer class="page-footer">
-        <span>La fuente, siempre a la vista.</span
-        ><span>DataCore AI · Fuente SQL · <small>Atlas / SQL original</small></span>
+        <button class="chrome-source" type="button">
+          Datos de prueba originales de SQL ↗</button
+        ><span
+          >DataCore AI<br /><small
+            >Productos. Personas. Perspectivas.</small
+          ></span
+        >
       </footer>
     </div>
     <nav id="mobile-nav" class="mobile-nav" aria-label="Navegación móvil"></nav>
@@ -113,6 +123,10 @@
       <div id="sheet-body"></div>
     </dialog>
     <div class="toast" id="toast" role="status"></div>
-    <script type="module" src="./js/app.js?v=atlas-sql-v1"></script>
+    <noscript
+      >Activa JavaScript para explorar el catálogo de prueba de DataCore
+      AI.</noscript
+    >
+    <script type="module" src="./js/app.js?v=original-v2"></script>
   </body>
 </html>

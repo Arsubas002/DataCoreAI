@@ -1,13 +1,15 @@
-# Datos de esta versión · SQL original
+# Datos de prueba SQL · única fuente
 
-Esta consolidación sustituye el origen mixto de las demos anteriores por la fuente que confirmó el usuario: **los tres scripts SQL originales**. La revisión histórica continúa accesible en Git; no se ejecutaron escrituras ni se eliminó una base.
+Los scripts SQL existentes son la fuente confirmada por el usuario. Se usan sus registros de prueba, sin crear una base sustituta ni mezclarlos con productos/ventas PWA o iOS de otras versiones. Auditoría, hashes y seis tablas/cinco relaciones en [SQL_ORIGINAL.md](../docs/SQL_ORIGINAL.md).
 
-La auditoría completa, hashes, tablas, claves y relaciones está en [docs/SQL_ORIGINAL.md](../docs/SQL_ORIGINAL.md). La demo lee `js/sql-fixtures.js`, generado por `scripts/sql_original.py`. Conserva 20 productos, 10 clientes ficticios, 4 categorías y 336 unidades, sin alterar los valores originales. Seis referencias necesitan reposición según el mínimo del script; una tiene cero unidades. Son cantidades de prueba sin fecha de captura, no inventario actual certificado.
+`js/sql-fixtures.js` es generado por `scripts/sql_original.py`: 20 productos DEMO-001…020, 10 clientes DEMO-C001…010, 4 categorías, 336 unidades y mínimos de 5. El archivo permanece idéntico al generado desde SQL. La demo pública no contiene contactos, claves IDENTITY inventadas o una supuesta conexión al servidor.
 
-El archivo público no incluye correos ni teléfonos. Codigo/Documento identifican registros; no se deducen IDENTITY físicos. No hay ventas en el origen recuperado, ni sucursales, costos, objetivos u horas. Los indicadores comerciales permanecen no disponibles. Ventas no muestra cero ingresos, fechas artificiales ni compras atribuidas a clientes.
+Cifras conciliadas: 14 referencias por encima del mínimo, 5 bajas con existencias y 1 agotada. Las seis últimas forman la cola de reposición. Valor de catálogo: **S/ 7,350.50**, obtenido de existencias × precio con céntimos enteros. Tecnología: 54 unidades / S/ 3,103.00; Papelería: 150 / S/ 582.50; Hogar: 55 / S/ 1,643.00; Accesorios: 77 / S/ 2,022.00. Es valoración al precio de catálogo, no costo, ingresos o rentabilidad.
 
-Los productos y ventas PWA/iOS de versiones anteriores no se agregan al original SQL. Catálogo, directorio, búsqueda, comparación, inventario, gráficos, exportaciones y asistente consumen exclusivamente el mismo módulo de datos. El filtro de categoría en Reportes afecta las cantidades, gráficas, tabla y CSV. CSV protege fórmulas e incluye procedencia; PDF usa la impresión del sistema.
+La cotización de Ventas calcula combinaciones elegidas durante la sesión con esos mismos precios y clientes. Valida cantidades, no guarda una venta y no modifica stock ni fixtures. Por ejemplo, 2 teclados de S/ 65 más 3 cuadernos de S/ 8.50 suman S/ 155.50. Su CSV se identifica como cotización de prueba, sin inventar VentaID, fecha histórica o transacción.
 
-La API privada y el puente Vercel están preparados con validación y autenticación, sin una conexión real ni sesión autenticada en la demo. No existe un modelo generativo conectado. Las respuestas del chat se identifican como consultas locales deterministas y reconocen preguntas imposibles con el origen disponible.
+No hay filas de ventas en los scripts ni sucursales, costos, metas u horas. No se generan ingresos, tendencias o porcentajes históricos a partir de la cotización. Los gráficos representan el catálogo/inventario; el asistente local identifica sus límites y no se presenta como IA generativa.
 
-Pruebas actuales y estado de despliegue: [VALIDACION_PREPUBLICACION.md](VALIDACION_PREPUBLICACION.md). Las verificaciones de generaciones anteriores no acreditan esta release. No se afirma validación SQL real, Safari físico ni HTTP público antes de ejecutarla.
+El filtro de Reportes afecta métricas, gráficos, tabla y CSV. El PDF conserva la tabla filtrada; se comprobó su contenido con un lector independiente. Los contactos permanecen fuera de la demo pública. SQL, Streamlit y el backend de lectura existente no sufren modificaciones funcionales.
+
+Pruebas ejecutadas, capturas y estado real de despliegue: [VALIDACION_PREPUBLICACION.md](VALIDACION_PREPUBLICACION.md).

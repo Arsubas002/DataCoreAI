@@ -1,4 +1,5 @@
 const paths = {
+  plus: '<path d="M12 5v14M5 12h14"/>',
   inicio:
     '<path d="m3 10 9-7 9 7v9a2 2 0 0 1-2 2h-4v-7H9v7H5a2 2 0 0 1-2-2z"/>',
   clientes:
