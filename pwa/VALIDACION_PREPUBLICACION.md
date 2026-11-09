@@ -33,6 +33,8 @@ La API de Vercel permite consultar el proyecto existente `datacore-ai-demo`; est
 
 Los dos despliegues automáticos de Git revisados (`c0f565d` y `5e38ea7`) figuraban BLOCKED, sin un motivo específico en sus campos de error o eventos. El autor declarado coincide con la identidad Git existente; no se ha verificado su pertenencia/permisos de cuenta Vercel y no se atribuye el bloqueo a una causa no demostrada. No se reescribió identidad ni historial.
 
+Después de subir la rama, el despliegue automático de `fa745b4` (`dpl_EzsbvcnjS8T8H21HHephaPLtUirn`) también figuró BLOCKED. El flujo automático de Git sigue pendiente de diagnóstico de permisos en Vercel; la candidata manual autorizada descrita abajo sí finalizó. La inspección del alias de producción confirmó que conserva su deployment previo.
+
 La API autorizada del proyecto existente confirmó **READY** para `dpl_HW9wNQaKoK4cdSdVhpT6FE1N5RTw` y asignó el alias dedicado **https://datacore-atlas-sql.vercel.app**. Es una candidata de preview; no sustituye la producción anterior. Fuente de ejecución: commit `93d1b2bbf0848275e4c4c863076ff7999694aa94`, rama `feat/atlas-sql-consolidation`, release `atlas-sql-v1`; los cambios posteriores a ese commit documentan la entrega y no cambian los assets.
 
 Se enviaron exactamente 19 archivos revisados: 15 assets de la PWA, su build, dos funciones y vercel.json. No se envió el checkout completo. Vercel confirmó por metadatos el commit y el SHA-256 del manifiesto de fuentes `ad1715361617683fb4a2c263341be923d98cafb861850f43f452d00d87c906b3`. Esto acredita procedencia y finalización del build, **no** la respuesta HTTP anónima del dominio.
