@@ -10,7 +10,8 @@
     "build": "node build.mjs",
     "test:revision": "node tests/revision.mjs",
     "test:deployed": "node tests/deployed.mjs",
-    "test:integration": "node tests/integration-browser.mjs"
+    "test:integration": "node tests/integration-browser.mjs",
+    "test:atlas": "node tests/atlas-browser.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.11.1",

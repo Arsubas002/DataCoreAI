@@ -10,15 +10,20 @@ import {
   exportRows,
   toCsv,
   snapshot,
-} from './data.js?v=orbit-data-v6';
-import { icon, pages } from './icons.js?v=orbit-data-v6';
-import { chart, bindCharts } from './charts.js?v=orbit-data-v6';
+} from './data.js?v=atlas-v7.1';
+import { icon, pages } from './icons.js?v=atlas-v7.1';
 import {
-  setupSheet,
-  reducedMotion,
-  spring,
-} from './motion.js?v=orbit-data-v6';
-import { ask } from './assistant.js?v=orbit-data-v6';
+  chart,
+  bindCharts,
+  donut,
+  columns,
+  calendar,
+  treemap,
+  scatter,
+  sparkline,
+} from './charts.js?v=atlas-v7.1';
+import { setupSheet, reducedMotion, spring } from './motion.js?v=atlas-v7.1';
+import { ask } from './assistant.js?v=atlas-v7.1';
 const view = document.querySelector('#view'),
   dialog = document.querySelector('#sheet'),
   sheet = setupSheet(dialog);
@@ -63,11 +68,14 @@ const escape = (value) =>
   );
 const change = (value) => `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`;
 const delta = (value) =>
-  value === null ? '<span class="data-caption">Sin base comparable</span>' : `<span class="delta ${value < 0 ? 'negative' : ''}">${value >= 0 ? '↗' : '↘'} ${change(value)}</span>`;
+  value === null
+    ? '<span class="data-caption">Sin base comparable</span>'
+    : `<span class="delta ${value < 0 ? 'negative' : ''}">${value >= 0 ? '↗' : '↘'} ${change(value)}</span>`;
 const navLink = (id) =>
   `<a href="#${id}" data-nav="${id}" ${page === id ? 'aria-current="page"' : ''}>${icon(id)}<span>${pages[id]}</span>${id === 'inventario' ? `<small>${lowStock.length}</small>` : ''}</a>`;
 function navigation() {
-  document.querySelector('#desktop-nav').innerHTML = `<div class="nav-cluster">${navLink('inicio')}</div><div class="nav-cluster"><p class="nav-group-label">OPERACIÓN</p>${['productos','ventas','inventario'].map(navLink).join('')}</div><div class="nav-cluster"><p class="nav-group-label">INTELIGENCIA</p>${['reportes','asistente'].map(navLink).join('')}</div>`;
+  document.querySelector('#desktop-nav').innerHTML =
+    `<div class="nav-cluster">${navLink('inicio')}</div><div class="nav-cluster"><p class="nav-group-label">OPERACIÓN</p>${['productos', 'ventas', 'inventario'].map(navLink).join('')}</div><div class="nav-cluster"><p class="nav-group-label">INTELIGENCIA</p>${['reportes', 'asistente'].map(navLink).join('')}</div>`;
   document.querySelector('#mobile-nav').innerHTML =
     ['inicio', 'productos', 'ventas', 'asistente'].map(navLink).join('') +
     `<button id="more-nav" ${['inventario', 'reportes'].includes(page) ? 'aria-current="page"' : ''}>${icon('more')}<span>Más</span></button>`;
@@ -104,33 +112,34 @@ function recent(rows) {
     .join('')}</div>`;
 }
 function start() {
+  const leaders = [...data.ranking].sort((a, b) => b.units - a.units);
   return (
     heading(
-      'WORKSPACE / VISIÓN GENERAL',
-      'El pulso de tu negocio<span class="heading-dot">.</span>',
-      'Conecta las señales. Encuentra tu próximo movimiento.',
+      'DATACORE / ATLAS 01',
+      'El negocio,<br><em>en perspectiva.</em>',
+      'Lecturas claras de un sistema en movimiento.',
       filters(),
     ) +
     `
-  <div class="workspace-strip"><span><i></i>Vista de demostración</span><span>07 NOV 2026 <b> / </b> ${state.days} DÍAS</span><a href="#reportes">Explorar reportes ${icon('arrow')}</a></div><section class="business-canvas" aria-label="Resumen ejecutivo">
-    <div class="canvas-intro"><span class="section-kicker">INGRESOS DEL PERÍODO</span><div class="hero-value">${money(data.revenue)}</div><p>${delta(data.delta)} <span>vs. período anterior</span></p><div class="canvas-baseline"><span>Antes</span><strong>${money(data.priorRevenue)}</strong></div><a class="text-link" href="#ventas">Entender la tendencia ${icon('arrow')}</a></div>
-    <div class="canvas-chart"><div class="signal-heading"><span>01 / FLUJO DE INGRESOS</span><span class="signal-light">Datos ficticios</span></div>${chart(data, 'home')}</div>
-    <div class="canvas-footer"><div><span>Operaciones</span><strong>${number(data.orders)}</strong></div><div><span>Ticket promedio</span><strong>${money(data.ticket)}</strong></div><div><span>Unidades vendidas</span><strong>${number(data.units)}</strong></div><p>Una vista de ${state.days} días.<br>Solo datos ficticios.</p></div>
-  </section>
-  <a class="attention-ribbon" href="#inventario"><span class="attention-count">${lowStock.length}</span><span><strong>Inventario bajo observación.</strong><small>${lowStock.length} referencias con existencias iguales o inferiores al mínimo.</small></span><span class="ribbon-action">Revisar stock ${icon('arrow')}</span></a>
-  <div class="editorial-grid"><section class="performance-column">${sectionHead('Productos que impulsan tu negocio', '02 / Productos por ingresos', `<a class="text-link" href="#productos">Explorar catálogo ${icon('arrow')}</a>`)}${bars(data.ranking.slice(0, 4))}</section><section class="movement-column">${sectionHead('Actividad reciente', '03 / Últimos movimientos', `<a class="text-link" href="#ventas">Ver ventas ${icon('arrow')}</a>`)}${recent(data.current.slice(0, 4))}</section></div>`
+ <div class="atlas-ledger"><span>07 NOV 2026</span><span>${products.length} referencias / ${customers.length} clientes</span><span class="atlas-live">DEMO · DATOS FICTICIOS</span></div>
+ <section class="atlas-hero"><div class="hero-reading"><span class="eyebrow">VOLUMEN DE INGRESOS</span><div class="hero-value">${money(data.revenue)}</div><p>${delta(data.delta)} <span>vs. período anterior</span></p><div class="hero-footnote">${number(data.orders)} operaciones<br>${state.days} días · ${state.branch === 'Todas' ? 'Todas las sucursales' : state.branch}</div></div><div class="hero-visual"><div class="viz-heading"><span>01 / TRAYECTORIA ACUMULADA</span><small>Soles peruanos</small></div>${chart(data, 'home')}</div><div class="hero-index"><span>01—06</span><a href="#reportes" class="text-link">Abrir análisis ${icon('arrow')}</a></div></section>
+ <div class="metric-ribbon"><div><span>Ticket promedio</span><strong>${money(data.ticket)}</strong></div><div><span>Unidades vendidas</span><strong>${number(data.units)}</strong></div><div><span>Actividad diaria</span>${sparkline(data.series)}</div><a href="#inventario"><span>Necesitan reposición</span><strong>${lowStock.length}<small> referencias ${icon('arrow')}</small></strong></a></div>
+ <div class="atlas-home-bottom"><section class="unit-ranking">${sectionHead('Las referencias que mueven el día.', 'Ranking por unidades vendidas', `<a class="text-link" href="#productos">Catálogo ${icon('arrow')}</a>`)}${bars(leaders.slice(0, 5), 'units')}</section><section class="revenue-composition">${sectionHead('De dónde vienen los ingresos.', 'Distribución por categoría')}${donut(data)}</section></div>
+ <section class="atlas-recent">${sectionHead('Movimientos en contexto.', 'Las operaciones más recientes', `<a href="#ventas" class="text-link">Ver movimientos ${icon('arrow')}</a>`)}${recent(data.current)}</section>`
   );
 }
 function catalogue() {
   return (
     heading(
-      `COLECCIÓN · ${products.length} REFERENCIAS`,
-      'El catálogo, al detalle.',
-      'Encuentra, explora y compara lo que vendes.',
+      '02 / BIBLIOTECA COMERCIAL',
+      'Cada referencia.<br><em>Su propia historia.</em>',
+      'Catálogo completo · Precios y existencias de demostración.',
       `<button class="button secondary" id="compare-open">${icon('productos')} Comparar <span id="compare-count">${state.compare.size}</span></button>`,
     ) +
     `
-<div class="catalog-tools"><p>Usa la búsqueda superior para encontrar una referencia o consultar su stock.</p><label class="select-label"><span class="sr-only">Ordenar productos</span><select id="product-sort"><option value="name">Nombre</option><option value="price">Menor precio</option><option value="stock">Menor stock</option></select></label></div><div class="chips" role="group" aria-label="Filtrar categoría">${['Todos', ...categories].map((c) => `<button data-category="${c}" aria-pressed="${state.category === c}">${c}</button>`).join('')}</div><p id="catalog-count" class="results-count" aria-live="polite"></p><div id="product-grid" class="product-grid"></div>`
+ <div class="catalog-edition"><div><strong>${products.length}</strong><span>REFERENCIAS<br>EN CATÁLOGO</span></div><p>${categories.length} categorías. Tres fuentes de ejemplo.<br>Una búsqueda global para encontrar cada detalle.</p><span class="catalog-stamp">DC / ATLAS<br>EDICIÓN 01</span></div>
+ <div class="catalog-tools"><p>Encuentra nombres, códigos y stock en la búsqueda superior.</p><label class="select-label"><span class="sr-only">Ordenar productos</span><select id="product-sort"><option value="name">Nombre</option><option value="price">Menor precio</option><option value="stock">Menor stock</option></select></label></div>
+ <div class="chips" role="group" aria-label="Filtrar categoría">${['Todos', ...categories].map((c) => `<button data-category="${c}" aria-pressed="${state.category === c}">${c}</button>`).join('')}</div><p id="catalog-count" class="results-count" aria-live="polite"></p><div id="product-grid" class="product-grid"></div>`
   );
 }
 function renderProducts() {
@@ -166,23 +175,36 @@ function renderProducts() {
 function salesPage() {
   return (
     heading(
-      'ANÁLISIS COMERCIAL',
-      'La historia de tus ventas.',
-      'Explora el ritmo de tus ventas, día a día.',
+      '03 / OPERACIONES',
+      'El ritmo<br><em>del intercambio.</em>',
+      'Cada sucursal aporta una parte distinta de la historia.',
       filters(),
     ) +
-    `<div class="sales-summary"><div><span>Ingresos</span><strong>${money(data.revenue)}</strong>${delta(data.delta)}</div><div><span>Período anterior</span><strong>${money(data.priorRevenue)}</strong><small>Misma duración · ${state.days} días</small></div><div><span>Operaciones</span><strong>${number(data.orders)}</strong><small>${number(data.units)} unidades vendidas</small></div></div><section class="trend-section">${sectionHead('Una perspectiva diaria', 'Ingresos en soles · comparación de períodos')}${chart(data, 'sales')}</section><div class="editorial-grid"><section>${sectionHead('Rendimiento por producto', 'Ingresos del período seleccionado')}${bars(data.ranking)}</section><section>${sectionHead('Movimientos recientes', 'Operaciones ficticias · más recientes primero')}${recent(data.current)}<details class="data-details"><summary>${customers.length} clientes ficticios del catálogo original</summary><p>Sin relación cliente–venta en las fuentes recuperadas; no se asignan compras a estas personas.</p><ul>${customers.map(c=>`<li>${c.id} · ${c.name}</li>`).join('')}</ul></details></section></div>`
+    `
+ <div class="sales-summary"><div><span>Ingresos del período</span><strong>${money(data.revenue)}</strong>${delta(data.delta)}</div><div><span>Operaciones</span><strong>${number(data.orders)}</strong><small>${number(data.units)} unidades</small></div><div><span>Período anterior</span><strong>${money(data.priorRevenue)}</strong><small>Misma duración · ${state.days} días</small></div></div>
+ <section class="branch-stage">${sectionHead('Cuatro puntos de vista.', 'Ingresos por sucursal · Sin asignar conserva el origen iOS')}${columns(data)}</section>
+ <div class="sales-diptych"><section class="daily-calendar">${sectionHead('El calendario del negocio.', 'Actividad diaria del período')}${calendar(data)}</section><section class="sales-ledger">${sectionHead('Las últimas operaciones.', 'Ordenadas de más reciente a más antigua')}${recent(data.current)}<details class="data-details"><summary>${customers.length} clientes ficticios del catálogo original</summary><p>Sin relación cliente–venta en las fuentes recuperadas; no se asignan compras a estas personas.</p><ul>${customers.map((c) => `<li>${c.id} · ${c.name}</li>`).join('')}</ul></details></section></div>`
   );
 }
 function inventoryPage() {
   const stock = products.reduce((a, p) => a + p.stock, 0);
   return (
     heading(
-      'DISPONIBILIDAD',
-      'Todo en su lugar.',
+      '04 / LOGÍSTICA',
+      'Lo que queda.<br><em>Lo que sigue.</em>',
       'Instantánea global del 7 de noviembre de 2026. Sin desglose por sucursal.',
     ) +
-    `<div class="inventory-top"><div class="inventory-total"><strong>${stock}</strong><span>unidades disponibles<br>en ${products.length} referencias</span></div><p class="inventory-callout"><span class="status-dot"></span><strong>${lowStock.length} productos necesitan reposición</strong><br><span>Existencias iguales o inferiores al mínimo.</span></p></div><div class="chips" role="group" aria-label="Filtrar inventario">${['Todos', 'Por reponer', 'Disponibles'].map((c) => `<button data-inventory="${c}" aria-pressed="${state.inventory === c}">${c}</button>`).join('')}</div><div class="inventory-list">${products
+    `<div class="inventory-top"><div class="inventory-total"><strong>${stock}</strong><span>unidades disponibles<br>en ${products.length} referencias</span></div><p class="inventory-callout"><span class="status-dot"></span><strong>${lowStock.length} productos necesitan reposición</strong><br><span>Existencias iguales o inferiores al mínimo.</span></p></div><section class="replenishment"><header><span class="eyebrow">PRÓXIMOS MOVIMIENTOS</span><h2>Cola de reposición</h2></header><div class="replenishment-rail">${[
+      ...lowStock,
+    ]
+      .sort((a, b) => a.stock - b.stock)
+      .map(
+        (p) =>
+          `<button data-product="${p.id}" class="replenishment-item"><span>${p.stock === 0 ? 'AGOTADO' : 'STOCK BAJO'}</span><strong>${p.name}</strong><div><b>${p.stock}</b><small>unidades / mín. ${p.min}</small></div>${icon('arrow')}</button>`,
+      )
+      .join(
+        '',
+      )}</div></section><div class="chips" role="group" aria-label="Filtrar inventario">${['Todos', 'Por reponer', 'Disponibles'].map((c) => `<button data-inventory="${c}" aria-pressed="${state.inventory === c}">${c}</button>`).join('')}</div><div class="inventory-list">${products
       .filter(
         (p) =>
           state.inventory === 'Todos' ||
@@ -203,26 +225,20 @@ function inventoryPage() {
 function reportsPage() {
   return (
     heading(
-      'INTELIGENCIA COMERCIAL',
-      'Los datos, con sentido.',
-      'Del detalle a la visión completa.',
+      '05 / OBSERVATORIO',
+      'Más de una forma<br><em>de ver lo mismo.</em>',
+      'Perspectivas conectadas por los mismos registros.',
       filters(),
     ) +
-    `<section class="report-lead"><div><span class="eyebrow">RESUMEN DEL PERÍODO</span><h2>${money(data.revenue)}<br><span>en ${number(data.orders)} operaciones.</span></h2><p>${delta(data.delta)} frente al período anterior.</p></div><div class="report-export"><button class="button primary" id="export-csv">${icon('down')} Exportar CSV</button><button class="button secondary" id="print-report">Guardar como PDF ${icon('arrow')}</button><small>Solo datos ficticios del filtro actual.<br> PDF mediante el diálogo de impresión.</small></div></section><section class="trend-section">${sectionHead('Actual frente a anterior', 'Misma duración. Una comparación más útil.')}${chart(data, 'reports')}</section><div class="editorial-grid"><section>${sectionHead('Participación por categoría', 'Distribución de ingresos del período')}<div class="category-breakdown">${categories
-      .map((c, i) => {
-        const value = data.ranking
-            .filter((p) => p.category === c)
-            .reduce((a, p) => a + p.revenue, 0),
-          pct = data.revenue ? (value / data.revenue) * 100 : 0;
-        return `<div class="category-breakdown-row"><span class="category-index">0${i + 1}</span><div><strong>${c}</strong><div class="bar-track"><span style="width:${pct}%"></span></div></div><span>${pct.toFixed(1)}%<small>${money(value)}</small></span></div>`;
-      })
-      .join(
-        '',
-      )}</div></section><aside class="report-note"><span class="eyebrow">UNA LECTURA RÁPIDA</span><h2>${data.ranking[0].name}</h2><p>Lidera los ingresos del período con ${money(data.ranking[0].revenue)} y ${data.ranking[0].units} unidades vendidas.</p><p>Esta comparación usa ventas ficticias. No incluye costos ni permite inferir utilidad.</p><a href="#productos" class="text-link">Explorar productos ${icon('arrow')}</a></aside></div><details class="data-details"><summary>Consultar datos diarios y metodología</summary><p>Una fila por día. Ingresos calculados en céntimos enteros. PWA: historial generado de 120 días. iOS: 7 pedidos recuperados, sin sucursal asignada. SQL: catálogo y clientes, sin historial. Una operación cuenta cada pedido, aunque tenga varias líneas. El inventario es una instantánea independiente; no se deduce de estas ventas. La comparación usa los ${state.days} días inmediatamente anteriores.</p><div class="table-scroll"><table><thead><tr><th>Fecha</th><th>Ingresos actuales</th><th>Ingresos anteriores</th></tr></thead><tbody>${data.dates.map((d, i) => `<tr><td>${dateLabel(d)}</td><td>${money(data.series[i])}</td><td>${money(data.previous[i])}</td></tr>`).join('')}</tbody></table></div></details>`
+    `
+ <section class="report-lead"><div><span class="eyebrow">BASE DEL ANÁLISIS</span><h2>${money(data.revenue)}<br><span>en ${number(data.orders)} operaciones.</span></h2><p>${delta(data.delta)} frente al período anterior.</p></div><div class="report-export"><button class="button primary" id="export-csv">${icon('down')} Exportar CSV</button><button class="button secondary" id="print-report">Guardar como PDF ${icon('arrow')}</button><small>Datos ficticios del filtro actual.<br> PDF mediante impresión del sistema.</small></div></section>
+ <section class="treemap-stage">${sectionHead('El espacio que ocupa cada producto.', 'Participación en ingresos · Superficie proporcional al importe')}${treemap(data)}</section>
+ <div class="report-diptych"><section class="report-distribution">${sectionHead('Mezcla comercial.', 'Ingresos por categoría')}${donut(data)}</section><section class="price-observatory">${sectionHead('Precio y demanda.', 'Relación entre precio y cantidad vendida')}${scatter(data)}</section></div>
+ <details class="data-details"><summary>Consultar datos diarios y metodología</summary><p>Ingresos calculados en céntimos enteros. PWA: historial generado de 120 días. iOS: siete pedidos recuperados sin sucursal asignada. SQL: catálogo y clientes sin historial. Cada pedido cuenta una operación aunque contenga varias líneas. No hay costos, horas de venta ni objetivos definidos: no se calculan márgenes, actividad horaria o metas. El inventario es una instantánea independiente. La comparación usa los ${state.days} días anteriores.</p><div class="table-scroll"><table><thead><tr><th>Fecha</th><th>Ingresos actuales</th><th>Ingresos anteriores</th></tr></thead><tbody>${data.dates.map((d, i) => `<tr><td>${dateLabel(d)}</td><td>${money(data.series[i])}</td><td>${money(data.previous[i])}</td></tr>`).join('')}</tbody></table></div></details>`
   );
 }
 function assistantPage() {
-  return `<section class="assistant-page"><header class="assistant-header"><div><div class="eyebrow">UN ESPACIO PARA PREGUNTAR</div><h1>Conversa con tus datos.</h1></div><button class="button secondary" id="clear-chat" ${state.busy ? 'disabled' : ''}>Nueva conversación</button></header><p class="assistant-disclosure">${icon('asistente')} <span><strong>Modo demostración · Sin IA conectada</strong> Respuestas locales sobre datos ficticios. Período: ${state.days} días · Sucursal: ${state.branch}. Puedes escribir libremente.</span></p><div id="conversation" class="conversation" role="log" aria-label="Conversación" aria-live="polite"></div><form class="composer" id="chat-form"><label class="sr-only" for="chat-input">Pregunta sobre productos, inventario, precios o ventas</label><textarea id="chat-input" maxlength="2000" rows="1" placeholder="¿Qué te gustaría saber?" enterkeyhint="send"></textarea><button class="send-button" type="submit" aria-label="Enviar pregunta">${icon('up')}</button><small>Demostración local. Sin datos reales ni acceso a tu negocio.</small></form></section>`;
+  return `<section class="assistant-page"><header class="assistant-header"><div><div class="eyebrow">UN ESPACIO PARA PREGUNTAR</div><h1>Un espacio para pensar.</h1></div><button class="button secondary" id="clear-chat" ${state.busy ? 'disabled' : ''}>Nueva conversación</button></header><p class="assistant-disclosure">${icon('asistente')} <span><strong>Modo demostración · Sin IA conectada</strong> Respuestas locales sobre datos ficticios. Período: ${state.days} días · Sucursal: ${state.branch}. Puedes escribir libremente.</span></p><div id="conversation" class="conversation" role="log" aria-label="Conversación" aria-live="polite"></div><form class="composer" id="chat-form"><label class="sr-only" for="chat-input">Pregunta sobre productos, inventario, precios o ventas</label><textarea id="chat-input" maxlength="2000" rows="1" placeholder="¿Qué te gustaría saber?" enterkeyhint="send"></textarea><button class="send-button" type="submit" aria-label="Enviar pregunta">${icon('up')}</button><small>Demostración local. Sin datos reales ni acceso a tu negocio.</small></form></section>`;
 }
 function renderConversation() {
   const log = document.querySelector('#conversation');
@@ -234,7 +250,7 @@ function renderConversation() {
             `<article class="message ${m.role}"><span class="message-label">${m.role === 'user' ? 'Tú' : 'DataCore · Demo'}</span><p>${escape(m.text)}</p></article>`,
         )
         .join('')
-    : `<div class="conversation-intro"><div class="assistant-orb">${icon('asistente')}</div><h2>Una buena decisión<br>empieza con una pregunta.</h2><p>Explora tu catálogo, compara precios o revisa las ventas.<br> La pregunta la eliges tú.</p><div class="suggestions" ${state.interacted ? 'hidden' : ''}>${['¿Qué productos necesitan reposición?', 'Compara el polo y el jean', '¿Cómo van las ventas?'].map((q) => `<button data-prompt="${q}">${q}${icon('arrow')}</button>`).join('')}</div></div>`;
+    : `<div class="conversation-intro"><div class="assistant-orb">${icon('asistente')}</div><h2>Pregunta.<br><em>Encuentra perspectiva.</em></h2><p>Explora tu catálogo, compara precios o revisa las ventas.<br> La pregunta la eliges tú.</p><div class="suggestions" ${state.interacted ? 'hidden' : ''}>${['¿Qué productos necesitan reposición?', 'Compara el polo y el jean', '¿Cómo van las ventas?'].map((q) => `<button data-prompt="${q}">${q}${icon('arrow')}</button>`).join('')}</div></div>`;
   if (state.busy)
     log.insertAdjacentHTML(
       'beforeend',
@@ -348,6 +364,7 @@ function render() {
   data = analytics(state.days, state.branch);
   document.title = `${pages[page]} · DataCore AI`;
   document.querySelector('#breadcrumb').textContent = pages[page];
+  document.body.dataset.page = page;
   navigation();
   viewAnimation?.cancel();
   view.innerHTML = {
@@ -377,12 +394,6 @@ function render() {
     document.querySelector('#branch').focus();
   });
   bindCharts(view, data);
-  if (!reducedMotion()) {
-    view.querySelectorAll('.canvas-intro, .canvas-chart, .canvas-footer > div, .editorial-grid > section, .product, .inventory-row, .sales-summary > div').forEach((el, i) => {
-      el.animate([{opacity:0, transform:'translateY(14px)'},{opacity:1, transform:'translateY(0)'}],{duration:480,delay:Math.min(i,7)*45,easing:'cubic-bezier(.2,.7,.2,1)',fill:'backwards'});
-    });
-    view.querySelectorAll('.data-line').forEach(el => el.animate([{strokeDasharray:'1',strokeDashoffset:'1'},{strokeDasharray:'1',strokeDashoffset:'0'}],{duration:1000,easing:'ease-out'}));
-  }
   bindProducts();
   if (page === 'productos') {
     renderProducts();
@@ -464,7 +475,7 @@ document.querySelector('#sheet-close').innerHTML = icon('close');
 document.querySelector('#sheet-close').onclick = sheet.close;
 function setTheme(theme) {
   document.documentElement.dataset.theme = theme;
-  storage.set('datacore-orbit-theme', theme);
+  storage.set('datacore-atlas-theme', theme);
   const toggle = document.querySelector('#theme-toggle');
   toggle.innerHTML = icon(theme === 'dark' ? 'sun' : 'moon');
   toggle.setAttribute(
@@ -472,12 +483,12 @@ function setTheme(theme) {
     theme === 'dark' ? 'Activar modo claro' : 'Activar modo oscuro',
   );
   document.querySelector('meta[name="theme-color"]').content =
-    theme === 'dark' ? '#101113' : '#f2f2f4';
+    theme === 'dark' ? '#141613' : '#f3f0e8';
 }
 setTheme(
   storage.get(
-    'datacore-orbit-theme',
-    'dark',
+    'datacore-atlas-theme',
+    storage.get('datacore-orbit-theme', 'dark'),
   ),
 );
 document.querySelector('#theme-toggle').onclick = () =>
@@ -560,7 +571,9 @@ function searchGlobal() {
     );
   let matched = products.filter((p) =>
     words.length
-      ? words.every((w) => normalize(p.name + ' ' + p.category + ' ' + p.code).includes(w))
+      ? words.every((w) =>
+          normalize(p.name + ' ' + p.category + ' ' + p.code).includes(w),
+        )
       : stockQuery,
   );
   if (/repon|repos|agot/.test(query))

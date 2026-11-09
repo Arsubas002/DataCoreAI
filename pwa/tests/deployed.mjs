@@ -17,11 +17,11 @@ const context = await browser.newContext({
 });
 try {
   const page = await context.newPage();
-  const response = await page.goto(base + '/?verify=orbit-data-v6');
+  const response = await page.goto(base + '/?verify=atlas-v7.1');
   assert.equal(response.status(), 200);
   assert.equal(
     await page.locator('meta[name="datacore-release"]').getAttribute('content'),
-    'orbit-data-v6',
+    'atlas-v7.1',
   );
   await page.locator('#global-search').fill('jean');
   await page.locator('[data-search-product="2"]').waitFor();
@@ -34,7 +34,7 @@ try {
     const relative = path.relative(fileURLToPath(root), fileURLToPath(file)).split(path.sep).join('/');
     const remote = await context.request.get(
       new URL(relative, base.endsWith('/') ? base : base + '/').href +
-        '?verify=orbit-data-v6',
+        '?verify=atlas-v7.1',
       { headers: { 'Cache-Control': 'no-cache' } },
     );
     assert.equal(remote.status(), 200, relative);
@@ -52,10 +52,10 @@ try {
   await page.reload();
   assert.equal(
     await page.locator('meta[name="datacore-release"]').getAttribute('content'),
-    'orbit-data-v6',
+    'atlas-v7.1',
   );
   console.log(
-    `PASS: public HTTPS deployment serves orbit-data-v6; ${checked} assets match SHA-256, including after reload with service worker.`,
+    `PASS: public HTTPS deployment serves atlas-v7.1; ${checked} assets match SHA-256, including after reload with service worker.`,
   );
 } finally {
   await browser.close();

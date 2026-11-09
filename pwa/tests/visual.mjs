@@ -34,9 +34,22 @@ try {
         await page.locator('#global-search').fill('stock');
         await page.screenshot({ path: `${output}/${device}-search.png` });
         await page.locator('#search-clear').click();
-        await page.getByRole('button', { name: 'Activar modo oscuro' }).click();
-        await page.screenshot({ path: `${output}/${device}-dark.png` });
-        await page.getByRole('button', { name: 'Activar modo claro' }).click();
+        const theme = await page.locator('html').getAttribute('data-theme');
+        await page
+          .getByRole('button', {
+            name:
+              theme === 'dark' ? 'Activar modo claro' : 'Activar modo oscuro',
+          })
+          .click();
+        await page.screenshot({
+          path: `${output}/${device}-${theme === 'dark' ? 'light' : 'dark'}.png`,
+        });
+        await page
+          .getByRole('button', {
+            name:
+              theme === 'dark' ? 'Activar modo oscuro' : 'Activar modo claro',
+          })
+          .click();
       }
     }
     await context.close();

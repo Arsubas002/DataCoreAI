@@ -1,12 +1,12 @@
 {
   "name": "DataCore AI · Demo",
   "short_name": "DataCore AI",
-  "description": "Una perspectiva clara de tu negocio. Solo datos ficticios.",
+  "description": "DataCore AI · Atlas. Análisis comercial con datos ficticios.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#101113",
-  "theme_color": "#101113",
+  "background_color": "#141613",
+  "theme_color": "#141613",
   "icons": [
     {
       "src": "./assets/icon-192.png",

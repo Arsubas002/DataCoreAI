@@ -35,7 +35,7 @@ try {
       false,
     );
     checks++;
-    await page.evaluate(() => { localStorage.setItem('datacore-orbit-theme','light'); document.documentElement.dataset.theme='light'; });
+    await page.evaluate(() => { localStorage.setItem('datacore-atlas-theme','light'); document.documentElement.dataset.theme='light'; });
     await page.reload();
     const before = await page.locator('.hero-value').textContent();
     await page.selectOption('#period', '7');

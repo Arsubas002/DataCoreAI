@@ -1,4 +1,4 @@
-const CACHE = 'datacore-orbit-data-v6';
+const CACHE = 'datacore-atlas-v7.1';
 const ASSETS = [
   './',
   './index.html',

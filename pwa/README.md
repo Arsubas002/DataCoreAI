@@ -1,8 +1,8 @@
-# DataCore AI · PWA de demostración
+# DataCore AI / Atlas
 
-Experiencia responsive reconstruida para iPhone y escritorio. Seis secciones, modos claro/oscuro, gráficos táctiles, catálogo con comparación, inventario, CSV y conversación local. **Todos los datos son ficticios. No hay SQL, autenticación ni IA conectada.**
+PWA estática de demostración con seis experiencias distintas: visión ejecutiva, catálogo/comparación, ventas, inventario, reportes y conversación. **32 productos, 10 clientes ficticios y ventas de ejemplo. No conecta SQL, cuentas reales ni un modelo de IA.**
 
-## Ejecutar
+## Desarrollo
 
 Desde la raíz del repositorio:
 
@@ -10,50 +10,51 @@ Desde la raíz del repositorio:
 python3 -m http.server 8080 --directory pwa --bind 127.0.0.1
 ```
 
-No requiere dependencias de producción. El build de distribución copia una lista explícita de 14 assets públicos, sin transformar el código. Los módulos ES se sirven por HTTP; no abras index.html como file://. Para Vercel se ejecuta `node pwa/build.mjs` desde la raíz y se usa la salida `public-demo/` y el endpoint desactivado `api/assistant.mjs`.
+No requiere dependencias de producción ni recursos externos. Usa módulos ES por HTTP, no file://. La búsqueda global permanece en la cabecera de todas las rutas; en móvil va debajo del encabezado y la navegación inferior flota sobre el contenido.
 
-## Validación
+## Datos y visualizaciones
+
+Todos los indicadores y gráficos se calculan desde `analytics(days, branch)`: área acumulada, barras horizontales por unidades, columnas por sucursal, donut, calendario diario, treemap proporcional y dispersión precio/unidades. Las fuentes no incluyen costos, horas u objetivos; esas métricas no se inventan. Consulta `DESIGN.md` y `DATOS_Y_VALIDACION.md`.
+
+Los filtros afectan ventas, reportes e indicadores, no la instantánea global de inventario. CSV exporta las líneas del filtro con referencia y fuente. Guardar como PDF abre impresión; no hay motor PDF/Excel añadido. Los clientes recuperados no se vinculan a ventas porque la fuente no contiene esa relación.
+
+El chat admite preguntas abiertas, conserva historial al navegar durante la sesión y explica sus límites. No persiste tras recargar/cerrar. Las sugerencias desaparecen al interactuar. `/api/assistant` es un límite seguro desactivado con respuesta 503, sin claves en el cliente.
+
+## Pruebas
 
 ```sh
-python3 -m unittest discover -s pwa/tests -v
 npm ci --prefix pwa
 npm test --prefix pwa
-# Con el servidor anterior activo y Chromium instalado:
+python3 -m unittest discover -s pwa/tests -v
+# Servidor activo y Chromium instalado:
 npm run test:browser --prefix pwa
+npm run test:revision --prefix pwa
+CHROMIUM_PATH=/usr/bin/chromium npm run test:integration --prefix pwa
+npm run test:atlas --prefix pwa
 npm run test:a11y --prefix pwa
+ARTIFACTS_DIR=/tmp/atlas-after node pwa/tests/visual.mjs
 ```
 
-`CHROMIUM_PATH` permite seleccionar el navegador. `BASE_URL` permite probar otra URL. Las capturas se guardan en `/tmp/datacore-artifacts` o `ARTIFACTS_DIR`. El test automatizado comprueba escritorio 1440px, móvil 393/375px, navegación, temas, búsqueda/filtros, comparación, gráficos, chat, exportación, offline y movimiento reducido. No equivale a Safari en un iPhone físico.
+`CHROMIUM_PATH`, `BASE_URL` y `ARTIFACTS_DIR` permiten adaptar navegador/servidor/capturas. Playwright y Axe solo se usan para desarrollo. Ver resultados y límites reales en `VALIDACION_PREPUBLICACION.md`.
 
-## PWA
-
-Safari > Compartir > Añadir a pantalla de inicio, bajo HTTPS. Incluye manifest standalone, iconos PNG y apple-touch-icon. Abre una vez con conexión y espera el registro del service worker antes de probar offline. La actualización conserva la versión anterior hasta cerrar sus pestañas; el siguiente arranque usa el shell nuevo de forma coherente. Cada entrega que cambie assets debe incrementar CACHE en sw.js.
-
-## Exportaciones y asistente
-
-CSV usa el período/sucursal seleccionados. Guardar como PDF abre el diálogo de impresión: elegir PDF depende del sistema; no se incorpora un motor PDF o Excel. El chat conserva la conversación al navegar durante la sesión, no tras cerrar o recargar. Las respuestas locales se identifican como demo; no se presentan como inferencias de un modelo.
-
-La arquitectura futura de servidor está documentada en `DESIGN.md`. El endpoint rechaza métodos/entradas inválidos y responde 503 mientras no exista una integración segura. Ninguna variable de clave se envía al cliente.
-
-## Despliegue
-
-La solicitud actual autoriza publicar únicamente la demo. `vercel.json` configura build/salida, cabeceras de seguridad y no-cache para sw.js. `.vercelignore` excluye el resto del repositorio, tests, documentación y node_modules. Para mayor aislamiento se puede preparar una carpeta temporal con solo `pwa/{index.html,styles.css,sw.js,manifest.webmanifest,icon.svg,js/,assets/}`, `api/assistant.mjs` `pwa/build.mjs` y `vercel.json`, y desplegarla con Vercel. Nunca publiques el resto del repositorio.
-
-Para una cuenta conectada: `vercel deploy` desde esa carpeta. La CLI también permite `vercel deploy --temporary` sin iniciar sesión; la URL y su caducidad deben confirmarse en el resultado. No se debe afirmar que está publicado solo por tener la configuración preparada.
-
-## Edición 02: corrección del rediseño
-
-Búsqueda global superior en las seis secciones, sin buscadores laterales ni campo duplicado en Productos. Encuentra nombres/categorías, muestra precio/stock y abre fichas o secciones. En escritorio: Cmd/Ctrl K; flechas para recorrer resultados y Escape para cerrar. En iPhone: debajo de la cabecera, con navegación inferior flotante.
-
-Inicio usa una composición analítica nueva, los gráficos permiten alternar tendencia/barras y comparación, y las sugerencias del asistente desaparecen al empezar a escribir. El modo demo permanece explícito.
-
-Validación adicional (servidor HTTP activo):
+## PWA y build
 
 ```sh
-npm run test:revision --prefix pwa
-node pwa/tests/visual.mjs
-# Solo después de tener una URL HTTPS real:
-DEPLOYMENT_URL=https://URL_REAL npm run test:deployed --prefix pwa
+node pwa/build.mjs
 ```
 
-No se ha obtenido URL pública en este entorno. VERCEL_TOKEN continúa ausente y la conexión actual a api.vercel.com fue rechazada con 403. Los requisitos ya guardados en el borrador deben completarse y aplicarse desde ajustes seguros; no deben enviarse valores al chat ni al código.
+Produce `public-demo/` con una lista explícita de 14 assets y finales de línea canónicos. API, documentación, tests, dependencias, SQL y archivos privados quedan fuera. `vercel.json` configura build, cabeceras y no-cache para shell/worker. La distribución contiene únicamente la demo y una función desactivada.
+
+Release `atlas-v7.1` en HTML/imports/worker. El worker precarga antes de activar y no almacena API. Manifest standalone, iconos PNG 192/512 y apple-touch-icon conservan el ID de instalación. En Safari con HTTPS: Compartir > Añadir a pantalla de inicio. Offline requiere una primera carga completa conectada; instalación y teclado iOS real aún requieren validación manual.
+
+## Despliegue preparado
+
+Alias dedicado: https://datacore-atlas-v7.vercel.app . Vercel confirmó READY y asignación del alias. La URL previa de producción no se reemplazó. Desde este entorno, la comprobación HTTP pública sigue pendiente porque la política de red aún bloquea vercel.app.
+
+Después de aplicar acceso al dominio, validar:
+
+```sh
+DEPLOYMENT_URL=https://datacore-atlas-v7.vercel.app npm run test:deployed --prefix pwa
+```
+
+Ese verificador exige HTTPS, el marcador de release, búsqueda funcional y hashes SHA-256 idénticos al build, también después de recargar con service worker. Nunca se debe confundir un build READY con esta validación pública.

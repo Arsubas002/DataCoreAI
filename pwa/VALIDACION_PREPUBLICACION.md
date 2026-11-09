@@ -1,29 +1,30 @@
-# Validación · Perspective 02
+# Atlas / validación de entrega
 
-Fecha: 8 de noviembre de 2026. Rama: `design/global-search-editorial-v2`.
+Base `release/public-demo-data` (08c572c), rama `design/atlas-editorial`, release offline `atlas-v7.1`.
 
-## Resultado local comprobado
+## Comprobado en este entorno
 
-- Seis vistas inspeccionadas en capturas iPhone 15 (393×852) y escritorio (1440×1000); se revisaron también búsqueda desplegada y modo oscuro. Capturas en `/tmp/datacore-v2/`.
-- Existe un solo campo de búsqueda global, dentro de la toolbar y visible en las seis rutas. No hay inputs ni regiones de búsqueda en aside. En móvil, el campo está debajo del encabezado; en escritorio, dentro de la barra superior.
-- 55 comprobaciones específicas aprobadas: búsqueda en las seis rutas y ambos tamaños, stock por referencia, reposición, apertura de detalle, acceso a Ventas, flechas/Escape, conmutadores de gráficos, navegación flotante y desaparición de sugerencias al escribir.
-- 52 comprobaciones generales aprobadas en 1440, 393 y 375 píxeles: rutas, filtros, temas, comparación, conversación, exportación, arrastre/proyección de hoja, errores de servidor, offline y movimiento reducido. Sin errores JavaScript observados.
-- 4 pruebas Node y 4 de empaquetado Python aprobadas. Build de distribución verificado con 14 assets públicos explícitos.
-- Axe WCAG A/AA: las seis vistas × dos temas móviles sin infracciones detectadas. La búsqueda desplegada se comprueba adicionalmente en ambos temas. No equivale a auditoría manual exhaustiva.
-- Se corrigieron el atributo ARIA no aplicable al searchbox y el cierre por Escape que reabría resultados al devolver foco.
+- 11 pruebas Node aprobadas: valores originales, pedidos/líneas, conciliación de CSV, categorías/sucursales, acumulados, geometría del treemap, datos vacíos y límites del asistente.
+- 4 pruebas Python de empaquetado aprobadas: manifiesto, iconos instalables, assets, API fuera de caché y exclusión de archivos privados.
+- 52 comprobaciones generales de navegador aprobadas: navegación, temas, catálogo, comparación, exportación, historial del chat, errores, hojas arrastrables, offline y movimiento reducido.
+- 55 comprobaciones de búsqueda/revisión aprobadas: búsqueda superior en las seis rutas, código/stock, detalles, navegación por teclado, comparación y sugerencias del asistente.
+- 40 comprobaciones de integración aprobadas a 320/393/768/1440px: seis secciones sin desbordamiento, 32 productos, clientes, pedidos iOS y exportación.
+- 20 comprobaciones de gráficos aprobadas en móvil/escritorio: valores acumulados/diarios, comparación, donut, sucursales, calendario, treemap y dispersión.
+- Axe WCAG A/AA sin infracciones detectadas en 14 combinaciones móviles de vista/tema/búsqueda. No sustituye una auditoría manual exhaustiva.
+- Revisión visual de las seis vistas en iPhone 15 (393×852) y escritorio (1440×1000), temas y búsqueda. Capturas completas y comparativas antes/después en `/workspace/artifacts/` y `/tmp/atlas-after/`.
+- Comparación exacta de los arrays originales y finales de productos, clientes, categorías y ventas. Sin alteraciones de registros. Streamlit, SQL y API de negocio sin cambios.
+- Build canónico con exactamente 14 assets públicos; no incluye Git, SQL, Python, tests, documentación o secretos.
 
-## Renovación de caché
+Se corrigieron contraste del treemap en claro, texto en celdas pequeñas, layout de tablet y desplazamiento del punto de dispersión al pulsarlo. La cola de reposición permite desplazamiento deliberado; la página no desborda horizontalmente.
 
-Marcador HTML `editorial-search-v2`, URL versionadas para CSS/entrada/imports, caché nueva `datacore-editorial-search-v2`, precarga antes de activación y cabecera no-cache para shell/service worker. Se conserva uso offline, sin cachear API.
+## Vercel
 
-El verificador `tests/deployed.mjs` valida en una URL HTTPS real el marcador, la búsqueda, hashes SHA-256 de los 14 assets y recarga con service worker. **Aún no se ha ejecutado contra una URL pública**: el entorno no dispone de credenciales de despliegue ni de una URL publicada.
+Build final aceptado y completado con READY. Deployment: `dpl_DQTLGfJiBggsCSPhGjPz3E2WThos`. Alias dedicado: https://datacore-atlas-v7.vercel.app . La URL anterior de producción se conserva.
 
-## Bloqueo externo de publicación
+Se usó la API de despliegues del proyecto existente: el token permite desplegar allí pero no crear un proyecto nuevo. La credencial permanece en el proxy del entorno; no se exporta ni guarda en archivos. Solo se enviaron 17 archivos revisados (14 assets, build, función desactivada y configuración).
 
-VERCEL_TOKEN no está presente y la conexión a https://api.vercel.com/v2/user falla en CONNECT con 403. El requisito del secreto y el dominio están guardados en el borrador del entorno, pero todavía no aparecen aplicados en el runtime. El usuario debe completar/guardar los ajustes seguros para permitir publicar. No se solicitan valores por chat ni se incluyen en el repositorio.
+El acceso HTTP a los dominios vercel.app desde este entorno está bloqueado por su política de salida. Las reglas de red necesarias se guardaron en el borrador para aplicación del usuario. Por tanto, READY y asignación del alias están confirmados mediante API; la prueba HTTP anónima y el verificador remoto de hashes siguen pendientes hasta que la regla se aplique. No se presentan como ejecutados.
 
-La publicación y la confirmación del diseño en URL pública quedan pendientes. No se declara entrega totalmente finalizada por compilar o pasar pruebas locales.
+## Límites
 
-## Límites conservados
-
-Datos ficticios; asistente determinista identificado como demo, sin IA real conectada; API de servidor desactivada. PDF mediante impresión del sistema. No se modificaron Streamlit, scripts SQL o datos. Chromium móvil no sustituye Safari real ni la instalación/teclado de un iPhone físico. La descarga de WebKit sigue bloqueada por la política de red.
+Chromium móvil no equivale a Safari en dispositivo físico. La PWA mantiene manifest standalone, iconos, safe-area y offline; la instalación final en un iPhone requiere prueba manual. No hay costos, horas o metas en la fuente: se omiten rentabilidad, heatmap por hora y objetivos radiales. El asistente sigue siendo demo determinista claramente identificada, sin IA conectada. PDF usa impresión del sistema; no se agrega Excel.
