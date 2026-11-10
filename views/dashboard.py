@@ -74,8 +74,9 @@ def mostrar_dashboard():
         )
         if datos["tendencia"]:
             tabla = pd.DataFrame(datos["tendencia"])
-            grafico = tabla.assign(
-                Dia=tabla["Dia"].map(str), TotalVentas=tabla["TotalVentas"].map(float)
+            grafico = tabla.sort_values("Dia").assign(
+                Dia=lambda filas: filas["Dia"].map(str),
+                TotalVentas=lambda filas: filas["TotalVentas"].map(float),
             )
             columna = "TotalVentas" if serie == "Ingresos" else "NumeroVentas"
             # Curva de actividad con área suave: usa exclusivamente datos reales.
