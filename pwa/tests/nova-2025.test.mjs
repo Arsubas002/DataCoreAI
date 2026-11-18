@@ -1,0 +1,7 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {source,transactions,shops,channels,catalog,categories,totals,groupBy,NO_STOCK} from '../js/novaretail-data.js';
+test('fuente Nova Retail completa y conciliada',()=>{const t=totals();assert.equal(source.rows,1671);assert.equal(transactions.length,1671);assert.equal(new Set(transactions.map(x=>x.id)).size,1671);assert.equal(shops.length,4);assert.equal(channels.length,3);assert.equal(catalog.length,12);assert.equal(categories.length,4);assert.deepEqual(t,{net:74908725,gross:77482500,discount:2573775,units:5001,orders:1671});});
+test('importes por fila, fechas y descuentos',()=>{for(const r of transactions){assert.match(r.date,new RegExp('^2025-0[123]-[0-9]{2}$'));assert.ok(r.quantity>0);assert.equal(r.net,r.gross-r.discountCents);assert.equal(r.discountCents,Math.round(r.gross*r.discount));assert.ok([0,.05,.10,.15].includes(r.discount));}});
+test('agrupaciones reconstruyen el total de ventas',()=>{for(const key of [r=>r.shop,r=>r.channel,r=>r.category,r=>r.date.slice(0,7)]){const a=groupBy(transactions,key);assert.equal(a.reduce((x,y)=>x+y.net,0),74908725);assert.equal(a.reduce((x,y)=>x+y.units,0),5001);}});
+test('no se inventan existencias ni rentabilidad',()=>{assert.equal(source.hasStock,false);assert.equal(source.hasCustomers,false);assert.match(NO_STOCK,/no existencias/);assert.ok(transactions.every(r=>!('stock' in r||'cost' in r||'profit' in r)));});

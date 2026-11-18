@@ -1,12 +1,12 @@
 {
   "name": "DataCore AI",
   "short_name": "DataCore AI",
-  "description": "Productos, clientes e inventario con los datos de prueba originales de SQL.",
+  "description": "Nova Retail · dashboard comercial DataCore AI con 1,671 ventas históricas del primer trimestre de 2025.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#0d1726",
-  "theme_color": "#0d1726",
+  "background_color": "#0e121c",
+  "theme_color": "#0e121c",
   "icons": [
     {
       "src": "./assets/icon-192.png",
