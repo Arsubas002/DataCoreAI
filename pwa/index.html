@@ -6,10 +6,10 @@
       name="viewport"
       content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content"
     />
-    <meta name="theme-color" content="#0d1726" />
+    <meta name="theme-color" content="#0e121c" />
     <meta
       name="description"
-      content="DataCore AI. Productos, clientes e inventario en una nueva perspectiva. Demo con los datos ficticios de prueba originales de SQL."
+      content="DataCore AI · Nova Retail. Ventas, canales, tiendas y descuentos históricos de enero a marzo de 2025 en USD."
     />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta
@@ -20,8 +20,9 @@
     <link rel="icon" href="./icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
     <link rel="stylesheet" href="./styles.css?v=original-v2" />
-    <meta name="datacore-release" content="original-v2" />
-    <title>Inicio · DataCore AI</title>
+    <link rel="stylesheet" href="./nova.css?v=nova-2025-v1" />
+    <meta name="datacore-release" content="nova-2025-v1" />
+    <title>Inicio · Nova Retail | DataCore AI</title>
   </head>
   <body>
     <a class="skip-link" href="#view">Ir al contenido</a>
@@ -49,18 +50,18 @@
       <header class="toolbar">
         <a class="mobile-brand" href="#inicio">DataCore <span>AI</span></a>
         <div class="breadcrumb">
-          Mi negocio <span>/</span><strong id="breadcrumb">Inicio</strong>
+          Nova Retail <span>/</span><strong id="breadcrumb">Inicio</strong>
         </div>
         <div class="global-search" role="search" aria-label="Búsqueda global">
           <label class="sr-only" for="global-search"
-            >Buscar productos, inventario y secciones</label
+            >Buscar productos, tiendas y secciones</label
           >
           <div class="global-search-field">
             <span id="search-symbol" aria-hidden="true"></span
             ><input
               id="global-search"
               type="search"
-              placeholder="Buscar productos, stock, clientes…"
+              placeholder="Buscar productos, tiendas, reportes…"
               autocomplete="off"
               aria-controls="global-results"
             /><kbd>⌘ K</kbd
@@ -87,9 +88,9 @@
           <button
             type="button"
             class="demo-label chrome-source"
-            aria-label="Datos de prueba y procedencia"
+            aria-label="Fuente y procedencia de ventas históricas"
           >
-            <i></i>Demo SQL</button
+            <i></i>Nova Retail · 2025</button
           ><span id="network-status" role="status"></span
           ><button
             class="icon-button"
@@ -101,10 +102,10 @@
       <main id="view" tabindex="-1"></main>
       <footer class="page-footer">
         <button class="chrome-source" type="button">
-          Datos de prueba originales de SQL ↗</button
+          Fuente: ventas históricas de Nova Retail ↗</button
         ><span
           >DataCore AI<br /><small
-            >Productos. Personas. Perspectivas.</small
+            >Comercio. Datos. Decisiones.</small
           ></span
         >
       </footer>
@@ -124,9 +125,9 @@
     </dialog>
     <div class="toast" id="toast" role="status"></div>
     <noscript
-      >Activa JavaScript para explorar el catálogo de prueba de DataCore
+      >Activa JavaScript para explorar los reportes históricos de
       AI.</noscript
     >
-    <script type="module" src="./js/app.js?v=original-v2"></script>
+    <script type="module" src="./js/app.js?v=nova-2025-v1"></script>
   </body>
 </html>
