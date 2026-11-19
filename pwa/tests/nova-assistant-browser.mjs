@@ -1,11 +1,13 @@
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import { chromium } from 'playwright';
+import { relative, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createHandler } from '../../api/assistant.mjs';
 
 const root = new URL('../../public-demo/', import.meta.url);
-const types = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript' };
+const types = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.woff2': 'font/woff2' };
 const requests = [];
 const provider = async (_url, request) => {
   const { messages, response_format: responseFormat } = JSON.parse(request.body);
@@ -25,9 +27,9 @@ const provider = async (_url, request) => {
   return Response.json({ choices: [{ message: { content: typeof data === 'string' ? data : JSON.stringify(data) } }] });
 };
 const api = createHandler({ env: { DATACORE_ASSISTANT_ENABLED: '1', GROQ_API_KEY: 'browser-test' }, fetcher: provider });
-const staticFiles = new Set(['index.html', 'nova.css', 'nova-shell.css', 'nova-workspace.css', 'nova-assistant.css', 'sw.js', 'icon.svg', 'manifest.webmanifest',
-  'js/app.js', 'js/icons.js', 'js/nova-chat.js', 'js/nova-analysis.js', 'js/novaretail-data.js',
-  'assets/manrope-latin.woff2', 'assets/icon-192.png', 'assets/icon-512.png', 'assets/apple-touch-icon.png']);
+const staticFiles = new Set((await readdir(root, { recursive: true, withFileTypes: true }))
+  .filter(entry => entry.isFile())
+  .map(entry => relative(fileURLToPath(root), resolve(entry.parentPath, entry.name)).replaceAll('\\', '/')));
 const server = createServer(async (req, res) => {
   const path = new URL(req.url, 'http://localhost').pathname.slice(1) || 'index.html';
   if (path === 'api/assistant') {

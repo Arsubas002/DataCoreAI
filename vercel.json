@@ -16,7 +16,7 @@
       ]
     },
     {
-      "source": "/index.html",
+      "source": "/:entry(index.html|actualizada.html)",
       "headers": [
         {
           "key": "Cache-Control",

@@ -5,6 +5,31 @@
     0 14px 32px color-mix(in srgb, #000 12%, transparent);
   --work-inset: color-mix(in srgb, var(--paper) 76%, var(--surface));
   --work-line: color-mix(in srgb, var(--line) 88%, transparent);
+  --work-tone: var(--violet);
+  --work-amber: #a45816;
+  --work-tint-strength: 12%;
+}
+
+:root[data-theme="dark"] {
+  --work-amber: #edaa6d;
+  --work-tint-strength: 19%;
+}
+
+#view:is([data-page="inventario"], [data-page="ventas"]) {
+  --work-tone: var(--teal);
+}
+
+#view[data-page="clientes"] {
+  --work-tone: color-mix(in srgb, var(--chart) 65%, var(--violet));
+}
+
+#view[data-page="reportes"] {
+  --work-tone: var(--accent);
+}
+
+#view:is([data-page="productos"], [data-page="ventas"], [data-page="inventario"],
+  [data-page="clientes"], [data-page="reportes"]) .nova-heading .nova-eyebrow {
+  color: var(--work-tone);
 }
 
 .nova-filters {
@@ -16,7 +41,7 @@
   margin-block-end: 1.375rem;
   border-color: var(--work-line);
   border-radius: 1rem;
-  background: linear-gradient(165deg, color-mix(in srgb, var(--accent) 4%, var(--surface)), var(--surface) 75%);
+  background: linear-gradient(152deg, color-mix(in srgb, var(--work-tone) 10%, var(--surface)), var(--surface) 64%);
   box-shadow: var(--work-depth);
 }
 
@@ -53,6 +78,15 @@
 .nova-select select:hover,
 .nova-search-table input:hover {
   border-color: color-mix(in srgb, var(--accent) 44%, var(--line));
+}
+
+.nova-select:has(option:checked:not(:first-child)) {
+  color: var(--work-tone);
+}
+
+.nova-select select:has(option:checked:not(:first-child)) {
+  border-color: color-mix(in srgb, var(--work-tone) 48%, var(--line));
+  background: color-mix(in srgb, var(--work-tone) 9%, var(--work-inset));
 }
 
 .nova-cta,
@@ -159,6 +193,8 @@
 .nova-product {
   min-height: 0;
   padding: clamp(.875rem, 1.6vw, 1.375rem);
+  background: radial-gradient(ellipse at 100% 0%, color-mix(in srgb, var(--work-tone) 14%, transparent), transparent 64%),
+    var(--surface);
   transition: border-color .2s ease, transform .2s var(--work-ease), box-shadow .2s ease;
 }
 
@@ -203,8 +239,14 @@
 .nova-product-metrics > div {
   min-width: 0;
   padding: .625rem;
+  border: 1px solid var(--work-line);
   border-radius: .625rem;
   background: var(--work-inset);
+}
+
+.nova-product-metrics > div:first-child {
+  border-color: color-mix(in srgb, var(--teal) 24%, var(--line));
+  background: color-mix(in srgb, var(--teal) 8%, var(--work-inset));
 }
 
 .nova-product-metrics strong {
@@ -237,17 +279,47 @@
 
 .nova-channel-card,
 .nova-store {
+  --card-tone: var(--work-tone);
+  position: relative;
   padding: clamp(.875rem, 1.6vw, 1.375rem);
-  background: linear-gradient(145deg, color-mix(in srgb, var(--accent) 5%, var(--surface)), var(--surface) 68%);
+  border-color: color-mix(in srgb, var(--card-tone) 26%, var(--line));
+  background: radial-gradient(ellipse at 92% 6%, color-mix(in srgb, var(--card-tone) var(--work-tint-strength), transparent), transparent 72%),
+    var(--surface);
+}
+
+.nova-channel-card:nth-child(3n + 1) {
+  --card-tone: var(--chart);
+}
+
+.nova-channel-card:nth-child(3n + 2) {
+  --card-tone: var(--violet);
+}
+
+.nova-channel-card:nth-child(3n) {
+  --card-tone: var(--work-amber);
 }
 
 .nova-channel-card h2,
 .nova-store h2 {
+  display: flex;
+  align-items: center;
+  gap: .44rem;
   margin-block: 0 .6rem;
-  color: var(--muted);
+  color: var(--ink);
   font-size: .86rem;
   font-weight: 650;
   letter-spacing: 0;
+}
+
+.nova-channel-card h2::before,
+.nova-store h2::before {
+  content: "";
+  width: .46rem;
+  height: .46rem;
+  flex: none;
+  border-radius: 100%;
+  background: var(--card-tone);
+  box-shadow: 0 0 0 .18rem color-mix(in srgb, var(--card-tone) 15%, transparent);
 }
 
 .nova-channel-card strong,
@@ -298,9 +370,9 @@
   gap: .375rem .875rem;
   margin-block: 0 .875rem;
   padding: .625rem .875rem;
-  border: 1px solid var(--work-line);
+  border: 1px solid color-mix(in srgb, var(--chart) 23%, var(--line));
   border-radius: .65rem;
-  background: color-mix(in srgb, var(--chart) 6%, var(--work-inset));
+  background: linear-gradient(100deg, color-mix(in srgb, var(--chart) 11%, var(--work-inset)), var(--work-inset));
 }
 
 .nova-sale-summary strong {
@@ -330,7 +402,7 @@
 }
 
 .nova-table thead th {
-  background: color-mix(in srgb, var(--line) 25%, var(--work-inset));
+  background: color-mix(in srgb, var(--work-tone) 8%, var(--work-inset));
   font-size: .68rem;
   letter-spacing: .065em;
   font-weight: 720;
@@ -362,6 +434,11 @@
   color: var(--chart);
 }
 
+.nova-matrix :is(th, td):last-child {
+  border-inline-start: 1px solid var(--work-line);
+  background: color-mix(in srgb, var(--chart) 7%, transparent);
+}
+
 #view[data-page="ventas"] .nova-table td:first-child {
   color: var(--muted);
   letter-spacing: .018em;
@@ -380,10 +457,70 @@
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
 }
 
+#view:is([data-page="clientes"], [data-page="reportes"]) .nova-kpis > .nova-kpi {
+  --metric-tone: var(--violet);
+  border: 1px solid color-mix(in srgb, var(--metric-tone) 27%, var(--line));
+  border-radius: var(--radius-panel);
+  background: radial-gradient(ellipse at 95% 0%, color-mix(in srgb, var(--metric-tone) var(--work-tint-strength), transparent), transparent 76%),
+    var(--surface);
+  box-shadow: var(--work-depth);
+}
+
+#view:is([data-page="clientes"], [data-page="reportes"]) .nova-kpis > .nova-kpi:first-child {
+  --metric-tone: var(--teal);
+}
+
+#view:is([data-page="clientes"], [data-page="reportes"]) .nova-kpis > .nova-kpi:nth-child(3) {
+  --metric-tone: var(--accent);
+}
+
+#view:is([data-page="clientes"], [data-page="reportes"]) .nova-kpis > .nova-kpi:nth-child(4) {
+  --metric-tone: var(--work-amber);
+}
+
+#view:is([data-page="clientes"], [data-page="reportes"]) .nova-kpis .nova-kpi-label {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+#view:is([data-page="clientes"], [data-page="reportes"]) .nova-kpis .nova-kpi:not([data-metric-icon]) .nova-kpi-label::before {
+  content: "";
+  width: .45rem;
+  height: .45rem;
+  flex: none;
+  border: 1px solid var(--metric-tone);
+  border-radius: .125rem;
+  background: color-mix(in srgb, var(--metric-tone) 25%, transparent);
+}
+
+#view:is([data-page="clientes"], [data-page="reportes"]) .nova-kpis .nova-kpi:first-child .nova-kpi-number {
+  color: var(--teal);
+}
+
+#view[data-page="reportes"] .nova-two .nova-panel:first-child,
+#view[data-page="clientes"] .nova-two .nova-panel:first-child {
+  background: radial-gradient(ellipse at 85% 0%, color-mix(in srgb, var(--violet) 14%, transparent), transparent 70%),
+    var(--surface);
+}
+
+#view[data-page="reportes"] .nova-two .nova-panel:nth-child(2),
+#view[data-page="clientes"] .nova-two .nova-panel:nth-child(2) {
+  background: radial-gradient(ellipse at 85% 0%, color-mix(in srgb, var(--teal) 11%, transparent), transparent 70%),
+    var(--surface);
+}
+
+#view[data-page="reportes"] .nova-panel:has(.nova-trend) {
+  border-color: color-mix(in srgb, var(--chart) 23%, var(--line));
+  background: linear-gradient(145deg, color-mix(in srgb, var(--chart) 11%, var(--surface)), var(--surface) 72%);
+}
+
 #view .nova-scenario {
   gap: 1.25rem;
   grid-template-columns: minmax(0, 1.28fr) minmax(0, .72fr);
-  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 7%, var(--surface)), var(--surface) 72%);
+  border-color: color-mix(in srgb, var(--accent) 26%, var(--line));
+  background: radial-gradient(ellipse at 0% 0%, color-mix(in srgb, var(--violet) var(--work-tint-strength), transparent), transparent 74%),
+    var(--surface);
 }
 
 .nova-scenario-result {
@@ -392,7 +529,7 @@
   padding: 1rem;
   border: 1px solid color-mix(in srgb, var(--chart) 24%, var(--line));
   border-radius: .75rem;
-  background: color-mix(in srgb, var(--chart) 5%, var(--work-inset));
+  background: linear-gradient(130deg, color-mix(in srgb, var(--chart) 12%, var(--work-inset)), var(--work-inset) 86%);
 }
 
 .nova-scenario-result strong {
@@ -426,7 +563,8 @@
   gap: .25rem .875rem;
   padding: .75rem;
   border-radius: .7rem;
-  background: var(--work-inset);
+  border: 1px solid color-mix(in srgb, var(--work-amber) 23%, var(--line));
+  background: linear-gradient(110deg, color-mix(in srgb, var(--work-amber) 9%, var(--work-inset)), var(--work-inset) 70%);
   text-align: start;
 }
 
@@ -435,6 +573,7 @@
   line-height: 1;
   font-size: clamp(1.75rem, 5vw, 3.2rem);
   font-variant-numeric: tabular-nums;
+  color: var(--work-amber);
 }
 
 .nova-audit p {
@@ -481,6 +620,10 @@
 .nova-bar-track i {
   background: linear-gradient(90deg, color-mix(in srgb, var(--chart) 64%, var(--accent)), var(--chart));
   transition: opacity .17s ease;
+}
+
+#view[data-page="reportes"] .nova-two .nova-panel:first-child .nova-bar-track i {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--violet) 56%, var(--chart)), var(--violet));
 }
 
 @media (hover: hover) {
@@ -561,6 +704,35 @@
 .nova-line-scroll svg path[fill="none"] {
   vector-effect: non-scaling-stroke;
   stroke-width: 1.65px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  #view[data-enter] :is(.nova-products, .nova-store-list, .nova-channel-grid, .nova-kpis) > :nth-child(-n+6) {
+    --work-delay: 25ms;
+    animation: nova-work-arrival 310ms var(--work-ease) var(--work-delay) backwards;
+  }
+
+  #view[data-enter] :is(.nova-products, .nova-store-list, .nova-channel-grid, .nova-kpis) > :nth-child(3n+2) {
+    --work-delay: 52ms;
+  }
+
+  #view[data-enter] :is(.nova-products, .nova-store-list, .nova-channel-grid, .nova-kpis) > :nth-child(3n) {
+    --work-delay: 76ms;
+  }
+
+  #view[data-enter] .nova-panel .nova-bar-track i {
+    animation: nova-chart-arrival 320ms var(--work-ease) calc(55ms + var(--bar-index, 0) * 16ms) backwards;
+  }
+
+  @keyframes nova-work-arrival {
+    from { opacity: .48; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes nova-chart-arrival {
+    from { opacity: .42; }
+    to { opacity: 1; }
+  }
 }
 
 @media (max-width: 960px) {
@@ -651,4 +823,95 @@
   .nova-table {
     white-space: normal;
   }
+}
+
+/* Module accents also follow the indicator when it appears on the home view. */
+:root {
+  --nova-volume: #6741be;
+  --nova-operations: #255e8f;
+  --nova-discount: #87510e;
+}
+
+:root[data-theme="dark"] {
+  --nova-volume: #c5adff;
+  --nova-operations: #9fc8ff;
+  --nova-discount: #edbc81;
+}
+
+.nova-kpi[data-metric-icon="ventas"] { --metric-accent: var(--teal); }
+.nova-kpi[data-metric-icon="productos"] { --metric-accent: var(--nova-volume); }
+.nova-kpi[data-metric-icon="reportes"] { --metric-accent: var(--nova-operations); }
+.nova-kpi[data-metric-icon="down"] { --metric-accent: var(--nova-discount); }
+
+.nova-kpi[data-metric-icon] .nova-kpi-top .icon { color: var(--metric-accent); }
+
+#view :is(.nova-dashboard-metrics,.nova-kpis) .nova-kpi[data-metric-icon] {
+  border-color: color-mix(in srgb, var(--metric-accent) 27%, var(--line));
+  background:
+    radial-gradient(ellipse at 92% 2%, color-mix(in srgb, var(--metric-accent) 12%, transparent), transparent 75%),
+    var(--surface);
+}
+
+#view .nova-dashboard-metrics .nova-kpi-featured {
+  background:
+    radial-gradient(circle at var(--glint-x, 78%) var(--glint-y, 18%), color-mix(in srgb, var(--teal) 16%, transparent), transparent 72%),
+    linear-gradient(112deg, var(--atmosphere), transparent 80%), var(--surface);
+}
+
+#view[data-page="reportes"] .nova-panel-head h2 .icon {
+  width: 1.05em;
+  height: 1.05em;
+  margin-right: .5rem;
+  color: var(--work-accent);
+}
+
+.nova-report-audit {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(15rem, 1fr);
+  align-items: stretch;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+#view .nova-report-audit .nova-panel { margin: 0; }
+#view .nova-report-audit .nova-scenario { grid-template-columns: minmax(0, 1fr) minmax(8.5rem, .7fr); }
+#view .nova-report-audit .nova-audit { align-content: center; }
+
+@media (max-width: 1060px) {
+  .nova-report-audit { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 670px) {
+  #view .nova-report-audit .nova-scenario { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  #view[data-refine] :is(.nova-hero-number,.nova-kpi-number,.nova-line-scroll svg) {
+    animation: nova-data-clarify 370ms var(--motion-ease) both;
+  }
+
+  #view[data-enter] .nova-line-scroll svg > path[fill="none"] {
+    animation: nova-data-clarify 440ms var(--motion-ease) 85ms both;
+  }
+
+  @keyframes nova-data-clarify {
+    from { opacity: .46; }
+    to { opacity: 1; }
+  }
+}
+
+.nova-report-charts {
+  grid-template-areas: "categories products" "trend products";
+  align-items: stretch;
+}
+.nova-report-charts > :nth-child(1) { grid-area: categories; }
+.nova-report-charts > :nth-child(2) { grid-area: products; }
+.nova-report-charts > :nth-child(3) { grid-area: trend; }
+
+@media (max-width: 960px) {
+  .nova-report-charts { grid-template-areas: "categories" "products" "trend"; }
+}
+@media print {
+  .nova-report-charts, .nova-report-audit { display: block; }
+  .nova-report-charts > .nova-panel { margin-bottom: .8rem; }
 }
