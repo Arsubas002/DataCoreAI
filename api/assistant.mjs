@@ -19,21 +19,28 @@ const options = values => ({ type: 'string', enum: values });
 const filtersSchema = objectSchema(Object.fromEntries(Object.keys(queryOptions.fields).map(field => [
   field, nullable(list({ type: field === 'discount' ? 'number' : 'string' })),
 ])));
-const querySchema = objectSchema({
-  tool: options(['aggregate', 'compare_periods']),
-  group: nullable(options(queryOptions.group)),
-  metric: nullable(options(queryOptions.metrics)),
-  view: nullable(options(queryOptions.views)),
-  order: nullable(options(['asc', 'desc'])),
-  limit: nullable({ type: 'integer' }),
-  filters: nullable(filtersSchema),
-  replaceContext: nullable({ type: 'boolean' }),
-  change: nullable({ type: 'number' }),
-  quantityChange: nullable({ type: 'number' }),
-  discountRate: nullable({ type: 'number' }),
-  periods: nullable(list({ type: 'string' })),
-  groups: nullable(list(options(queryOptions.comparisonGroups))),
-});
+const querySchema = { anyOf: [
+  objectSchema({
+    tool: options(['aggregate']),
+    group: nullable(options(queryOptions.group)),
+    metric: nullable(options(queryOptions.metrics)),
+    view: nullable(options(queryOptions.views)),
+    order: nullable(options(['asc', 'desc'])),
+    limit: nullable({ type: 'integer' }),
+    filters: nullable(filtersSchema),
+    replaceContext: nullable({ type: 'boolean' }),
+    change: nullable({ type: 'number' }),
+    quantityChange: nullable({ type: 'number' }),
+    discountRate: nullable({ type: 'number' }),
+  }),
+  objectSchema({
+    tool: options(['compare_periods']),
+    filters: nullable(filtersSchema),
+    replaceContext: nullable({ type: 'boolean' }),
+    periods: list(options(queryOptions.fields.month)),
+    groups: list(options(queryOptions.comparisonGroups)),
+  }),
+] };
 const outputSchemas = {
   plan: objectSchema({ intent: options(intents), queries: list(querySchema) }),
   review: objectSchema({
@@ -189,7 +196,9 @@ lookup es una cifra o lista directa. analysis es una comparación, explicación,
 o escenario que exige evaluar varios datos. conversation es una interacción sin consulta de cifras.
 Usa clarification solo si falta un dato crítico que el historial no aclara. Usa unavailable solo para
 una solicitud exclusivamente fuera de la fuente. Los demás casos con cifras requieren 1 a 4 consultas.
-Para una explicación de variación mensual, usa la comparación de períodos y el desglose más pertinente.
+Las comparaciones y diagnósticos de ventas de enero, febrero y marzo son consultas disponibles incluso
+cuando se piden causas. Consulta la variación observada y aclara después qué causas no pueden demostrarse.
+Para una explicación de variación mensual, usa la comparación de períodos y los desgloses solicitados.
 Para rankings por dos métricas, ejecuta una agregación por métrica con el orden correcto. Para una recomendación
 cruza al menos dos señales pertinentes y evita métricas irrelevantes. Reutiliza entidades de seguimientos, pero
 verifica cifras previas con los datos. No presupongas que creció, cayó o fue rentable solo porque lo sugiere la pregunta.
