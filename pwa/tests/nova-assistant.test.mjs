@@ -251,3 +251,25 @@ test('volumen, descuentos y participaciones se calculan en el servidor', () => {
   assert.ok(Math.abs(distribution.reduce((sum, row) => sum + row.sharePct, 0) - 100) < 1e-9);
   assert.throws(() => analyze({ discountRate: -1 }));
 });
+
+test('un límite temporal al redactar reintenta solo esa etapa y conserva la evidencia', async () => {
+  const plan = { intent: 'analysis', queries: [{ tool: 'compare_periods', periods: ['2025-02', '2025-03'] }] };
+  const review = { status: 'ready', queries: [], discard: [] };
+  const { fetcher, calls } = provider(plan, review, 'Las ventas aumentaron [E1].');
+  let limited = false;
+  const result = await reply({ message: '¿Qué pasó con las ventas de febrero a marzo?' }, {
+    key: 'test-key',
+    fetcher: async (url, options) => {
+      const request = JSON.parse(options.body);
+      if (!request.response_format && !limited) {
+        limited = true;
+        return new Response('', { status: 429, headers: { 'Retry-After': '0' } });
+      }
+      return fetcher(url, options);
+    },
+  });
+  assert.equal(limited, true);
+  assert.equal(calls.length, 3);
+  assert.equal(result.artifacts[0].netDelta, 2994350);
+  assert.match(result.sections[0].text, /\[E1\]/);
+});
