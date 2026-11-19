@@ -1,0 +1,654 @@
+/* Shared controls, data graphics and secondary Nova Retail workspaces. */
+:root {
+  --work-ease: cubic-bezier(.23, 1, .32, 1);
+  --work-depth: 0 1px 0 color-mix(in srgb, var(--ink) 5%, transparent) inset,
+    0 14px 32px color-mix(in srgb, #000 12%, transparent);
+  --work-inset: color-mix(in srgb, var(--paper) 76%, var(--surface));
+  --work-line: color-mix(in srgb, var(--line) 88%, transparent);
+}
+
+.nova-filters {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
+  gap: .75rem;
+  align-items: end;
+  padding: .875rem 1rem;
+  margin-block-end: 1.375rem;
+  border-color: var(--work-line);
+  border-radius: 1rem;
+  background: linear-gradient(165deg, color-mix(in srgb, var(--accent) 4%, var(--surface)), var(--surface) 75%);
+  box-shadow: var(--work-depth);
+}
+
+.nova-select,
+.nova-search-table {
+  min-width: 0;
+  gap: .375rem;
+  font-size: .735rem;
+  font-weight: 650;
+  letter-spacing: .015em;
+  color: var(--muted);
+}
+
+.nova-select select,
+.nova-search-table input {
+  width: 100%;
+  min-height: 44px;
+  padding-inline: .75rem;
+  border-color: var(--line);
+  border-radius: .625rem;
+  background: var(--work-inset);
+  color: var(--ink);
+  font: inherit;
+  font-size: .86rem;
+  font-weight: 550;
+  letter-spacing: 0;
+  transition: border-color .16s ease, background-color .16s ease;
+}
+
+.nova-search-table input::placeholder {
+  color: var(--muted);
+}
+
+.nova-select select:hover,
+.nova-search-table input:hover {
+  border-color: color-mix(in srgb, var(--accent) 44%, var(--line));
+}
+
+.nova-cta,
+.nova-secondary,
+.nova-reset,
+.nova-pager button {
+  min-height: 44px;
+  padding: .55rem .875rem;
+  border: 1px solid var(--line);
+  border-radius: .625rem;
+  font-size: .79rem;
+  font-weight: 700;
+  letter-spacing: .005em;
+  transition: transform .18s var(--work-ease), border-color .18s ease, background-color .18s ease;
+}
+
+.nova-cta {
+  border-color: transparent;
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+.nova-secondary,
+.nova-reset,
+.nova-pager button {
+  background: color-mix(in srgb, var(--surface) 72%, var(--paper));
+  color: var(--ink);
+}
+
+.nova-reset {
+  gap: .45rem;
+  white-space: nowrap;
+}
+
+.nova-reset svg {
+  color: var(--muted);
+}
+
+.nova-cta:hover,
+.nova-secondary:hover,
+.nova-reset:hover,
+.nova-pager button:not(:disabled):hover {
+  border-color: color-mix(in srgb, var(--accent) 54%, var(--line));
+  transform: translateY(-1px);
+}
+
+.nova-cta:active,
+.nova-secondary:active,
+.nova-reset:active,
+.nova-pager button:not(:disabled):active {
+  transform: scale(.98);
+}
+
+.nova-pager button:disabled {
+  opacity: .52;
+}
+
+:where(.nova-cta, .nova-secondary, .nova-reset, .nova-pager button, .nova-select select,
+  .nova-search-table input, .nova-product-footer a, .nova-line-scroll, .nova-table-scroll,
+  .nova-scenario input):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+#view:is([data-page="ventas"], [data-page="inventario"], [data-page="clientes"], [data-page="reportes"]) .nova-panel,
+.nova-product,
+.nova-channel-card,
+.nova-store {
+  border-color: var(--work-line);
+  border-radius: 1rem;
+  background: var(--surface);
+  box-shadow: var(--work-depth);
+}
+
+#view:is([data-page="ventas"], [data-page="inventario"], [data-page="clientes"], [data-page="reportes"]) .nova-panel {
+  padding: clamp(.875rem, 2vw, 1.5rem);
+}
+
+#view:is([data-page="inventario"], [data-page="clientes"], [data-page="reportes"]) .nova-panel-head {
+  align-items: baseline;
+  padding-block-end: .875rem;
+  border-bottom: 1px solid var(--work-line);
+  margin-block-end: 1rem;
+}
+
+/* Catalog and store surfaces prioritize the comparison-ready values. */
+.nova-toolbar-line {
+  margin-block: .5rem .875rem;
+  gap: 1rem;
+}
+
+.nova-toolbar-line > strong {
+  font-size: .86rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.nova-products,
+.nova-channel-grid,
+.nova-store-list {
+  gap: clamp(.625rem, 1.35vw, 1rem);
+}
+
+.nova-product {
+  min-height: 0;
+  padding: clamp(.875rem, 1.6vw, 1.375rem);
+  transition: border-color .2s ease, transform .2s var(--work-ease), box-shadow .2s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .nova-product:hover {
+    border-color: color-mix(in srgb, var(--line) 74%, var(--accent));
+    transform: translateY(-2px);
+    box-shadow: var(--work-depth), 0 8px 16px color-mix(in srgb, #000 8%, transparent);
+  }
+}
+
+.nova-product:focus-within {
+  border-color: color-mix(in srgb, var(--line) 65%, var(--accent));
+}
+
+.nova-product-top {
+  margin-block-end: .75rem;
+}
+
+.nova-tag {
+  padding: .275rem .625rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--line));
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+  font-size: .7rem;
+}
+
+.nova-product h2 {
+  margin: 0 0 .3rem;
+  font-size: clamp(1.05rem, 1.7vw, 1.35rem);
+  letter-spacing: -.04em;
+  overflow-wrap: anywhere;
+}
+
+.nova-product-metrics {
+  grid-template-columns: minmax(0, 1.28fr) minmax(0, 1fr);
+  gap: .5rem;
+  margin-block: .875rem 0;
+  padding: 0;
+  border-top: 0;
+}
+
+.nova-product-metrics > div {
+  min-width: 0;
+  padding: .625rem;
+  border-radius: .625rem;
+  background: var(--work-inset);
+}
+
+.nova-product-metrics strong {
+  font-size: clamp(.9rem, 1.65vw, 1.22rem);
+  font-weight: 720;
+  letter-spacing: -.045em;
+  overflow-wrap: anywhere;
+}
+
+.nova-product-metrics > div:first-child strong {
+  color: var(--chart);
+}
+
+.nova-product-footer {
+  gap: .5rem;
+  margin-block-start: .25rem;
+}
+
+.nova-product-footer a {
+  min-height: 44px;
+  padding-inline: .2rem;
+  white-space: nowrap;
+  border-radius: .3rem;
+}
+
+.nova-product-footer a:hover {
+  text-decoration: underline;
+  text-underline-offset: .2em;
+}
+
+.nova-channel-card,
+.nova-store {
+  padding: clamp(.875rem, 1.6vw, 1.375rem);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--accent) 5%, var(--surface)), var(--surface) 68%);
+}
+
+.nova-channel-card h2,
+.nova-store h2 {
+  margin-block: 0 .6rem;
+  color: var(--muted);
+  font-size: .86rem;
+  font-weight: 650;
+  letter-spacing: 0;
+}
+
+.nova-channel-card strong,
+.nova-store strong {
+  line-height: 1.2;
+  font-weight: 740;
+  overflow-wrap: anywhere;
+}
+
+.nova-channel-card strong {
+  font-size: clamp(1.35rem, 2.65vw, 2.2rem);
+}
+
+.nova-store strong {
+  font-size: clamp(1.15rem, 2.15vw, 1.75rem);
+}
+
+.nova-channel-card p,
+.nova-store p {
+  margin-block: .475rem .75rem;
+}
+
+.nova-store p {
+  margin-block-end: 0;
+}
+
+.nova-channel-stat {
+  gap: .375rem;
+  padding-block-start: .65rem;
+}
+
+.nova-channel-stat span {
+  padding: .28rem .5rem;
+  background: var(--work-inset);
+  border-radius: .35rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Ledger, financial matrix and reports. */
+.nova-sales-actions {
+  gap: .75rem;
+  margin-block-end: .875rem;
+}
+
+.nova-sale-summary {
+  align-items: center;
+  gap: .375rem .875rem;
+  margin-block: 0 .875rem;
+  padding: .625rem .875rem;
+  border: 1px solid var(--work-line);
+  border-radius: .65rem;
+  background: color-mix(in srgb, var(--chart) 6%, var(--work-inset));
+}
+
+.nova-sale-summary strong {
+  color: var(--chart);
+  font-size: clamp(1.15rem, 2.25vw, 1.65rem);
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.045em;
+}
+
+.nova-table-scroll {
+  border: 1px solid var(--work-line);
+  border-radius: .7rem;
+  scrollbar-color: var(--line) transparent;
+}
+
+.nova-table {
+  min-width: max-content;
+  font-variant-numeric: tabular-nums;
+  font-size: .8rem;
+}
+
+.nova-table th,
+.nova-table td {
+  padding: .72rem .875rem;
+  border-color: var(--work-line);
+}
+
+.nova-table thead th {
+  background: color-mix(in srgb, var(--line) 25%, var(--work-inset));
+  font-size: .68rem;
+  letter-spacing: .065em;
+  font-weight: 720;
+}
+
+.nova-table th:last-child,
+.nova-table td:last-child,
+.nova-matrix th:not(:first-child),
+.nova-matrix td:not(:first-child),
+#view[data-page="ventas"] .nova-table :is(th, td):nth-child(n+6),
+#view[data-page="reportes"] .nova-table :is(th, td):nth-child(n+2) {
+  text-align: end;
+}
+
+.nova-table tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--ink) 2.5%, var(--surface));
+}
+
+.nova-table tbody tr:hover {
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+
+.nova-table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+.nova-table .nova-cell-money,
+.nova-matrix tbody td:last-child strong {
+  color: var(--chart);
+}
+
+#view[data-page="ventas"] .nova-table td:first-child {
+  color: var(--muted);
+  letter-spacing: .018em;
+}
+
+#view[data-page="ventas"] .nova-table td:nth-child(3) {
+  font-weight: 620;
+}
+
+.nova-pager {
+  margin-block-start: .875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+#view[data-page="reportes"] .nova-two {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+}
+
+#view .nova-scenario {
+  gap: 1.25rem;
+  grid-template-columns: minmax(0, 1.28fr) minmax(0, .72fr);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 7%, var(--surface)), var(--surface) 72%);
+}
+
+.nova-scenario-result {
+  gap: .45rem;
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid color-mix(in srgb, var(--chart) 24%, var(--line));
+  border-radius: .75rem;
+  background: color-mix(in srgb, var(--chart) 5%, var(--work-inset));
+}
+
+.nova-scenario-result strong {
+  color: var(--chart);
+  overflow-wrap: anywhere;
+  line-height: 1.2;
+}
+
+.nova-scenario label strong {
+  flex-shrink: 0;
+  margin-inline-start: .75rem;
+  padding: .25rem .5rem;
+  border: 1px solid var(--work-line);
+  border-radius: .375rem;
+  color: var(--accent);
+  background: var(--work-inset);
+  font-variant-numeric: tabular-nums;
+}
+
+.nova-scenario input {
+  min-height: 35px;
+  margin-block: 0;
+  cursor: pointer;
+}
+
+.nova-audit {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  justify-content: start;
+  gap: .25rem .875rem;
+  padding: .75rem;
+  border-radius: .7rem;
+  background: var(--work-inset);
+  text-align: start;
+}
+
+.nova-audit strong {
+  grid-row: span 2;
+  line-height: 1;
+  font-size: clamp(1.75rem, 5vw, 3.2rem);
+  font-variant-numeric: tabular-nums;
+}
+
+.nova-audit p {
+  margin: 0;
+}
+
+.nova-callout {
+  border: 1px solid var(--work-line);
+  border-inline-start: 2px solid color-mix(in srgb, var(--accent) 66%, var(--line));
+  background: color-mix(in srgb, var(--surface) 65%, var(--paper));
+}
+
+/* Preserve all geometry and inline data values while refining chart furniture. */
+.nova-bars {
+  gap: .8rem;
+  align-content: start;
+}
+
+.nova-bar-row {
+  gap: .38rem;
+}
+
+.nova-bar-top {
+  gap: .55rem;
+  color: var(--muted);
+}
+
+.nova-bar-top span {
+  max-width: none;
+  min-width: 0;
+}
+
+.nova-bar-top b {
+  color: var(--ink);
+  font-weight: 660;
+}
+
+.nova-bar-track {
+  height: .375rem;
+  background: repeating-linear-gradient(to right, transparent 0 calc(25% - 1px), var(--line) calc(25% - 1px) 25%),
+    var(--work-inset);
+}
+
+.nova-bar-track i {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--chart) 64%, var(--accent)), var(--chart));
+  transition: opacity .17s ease;
+}
+
+@media (hover: hover) {
+  .nova-bars:has(.nova-bar-row:hover) .nova-bar-row:not(:hover) .nova-bar-track i {
+    opacity: .57;
+  }
+}
+
+.nova-donut-wrap {
+  grid-template-columns: minmax(100px, 148px) minmax(0, 1fr);
+  gap: clamp(.75rem, 2.25vw, 1.5rem);
+  justify-items: normal;
+}
+
+.nova-donut {
+  width: 100%;
+  padding: 0;
+  aspect-ratio: 1;
+  box-shadow: 0 0 0 1px var(--work-line), 0 7px 21px color-mix(in srgb, #000 12%, transparent);
+}
+
+.nova-donut > div {
+  width: 66%;
+  aspect-ratio: 1;
+  border: 1px solid var(--work-line);
+  background: var(--work-inset);
+}
+
+.nova-donut strong {
+  font-size: clamp(1.6rem, 4vw, 2.3rem);
+  line-height: 1.1;
+  letter-spacing: -.06em;
+  font-variant-numeric: tabular-nums;
+}
+
+.nova-donut-legend {
+  gap: 0;
+}
+
+.nova-donut-legend > div {
+  gap: .5rem;
+  min-width: 0;
+  padding-block: .58rem;
+  overflow-wrap: anywhere;
+}
+
+.nova-donut-legend > div + div {
+  border-top: 1px solid var(--work-line);
+}
+
+.nova-donut-legend i {
+  width: 8px;
+  height: 8px;
+}
+
+.nova-donut-legend strong {
+  white-space: nowrap;
+}
+
+.nova-line-scroll {
+  border: 1px solid var(--work-line);
+  border-radius: .7rem;
+  padding: .5rem .35rem .32rem;
+  background: var(--work-inset);
+  scrollbar-color: var(--line) transparent;
+}
+
+.nova-line-scroll svg {
+  min-width: 385px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.nova-line-scroll svg line {
+  stroke-dasharray: 2.5 3.5;
+}
+
+.nova-line-scroll svg path[fill="none"] {
+  vector-effect: non-scaling-stroke;
+  stroke-width: 1.65px;
+}
+
+@media (max-width: 960px) {
+  #view[data-page="reportes"] .nova-two {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 670px) {
+  .nova-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .65rem;
+    padding: .75rem;
+  }
+
+  .nova-filters .nova-reset {
+    grid-column: 1 / -1;
+    justify-content: center;
+  }
+
+  #view .nova-scenario {
+    grid-template-columns: minmax(0, 1fr);
+    gap: .8rem;
+  }
+
+  .nova-table th,
+  .nova-table td {
+    padding: .65rem .625rem;
+  }
+
+  .nova-sales-actions .nova-cta {
+    flex-grow: 1;
+  }
+
+  .nova-products {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .nova-pager {
+    flex-wrap: wrap;
+    gap: .6rem;
+  }
+
+  .nova-line-scroll svg {
+    min-width: 350px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nova-select select,
+  .nova-search-table input,
+  .nova-cta,
+  .nova-secondary,
+  .nova-reset,
+  .nova-pager button,
+  .nova-product,
+  .nova-bar-track i {
+    transition: none;
+  }
+
+  .nova-cta:is(:hover, :active),
+  .nova-secondary:is(:hover, :active),
+  .nova-reset:is(:hover, :active),
+  .nova-pager button:is(:hover, :active),
+  .nova-product:hover {
+    transform: none;
+  }
+}
+
+@media print {
+  .nova-panel,
+  .nova-product,
+  .nova-channel-card,
+  .nova-store {
+    box-shadow: none;
+  }
+
+  .nova-table-scroll,
+  .nova-line-scroll {
+    overflow: visible;
+  }
+
+  .nova-table,
+  .nova-line-scroll svg {
+    min-width: 0;
+  }
+
+  .nova-table {
+    white-space: normal;
+  }
+}

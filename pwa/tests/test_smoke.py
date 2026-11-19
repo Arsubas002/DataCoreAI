@@ -18,7 +18,7 @@ class PWASmokeTests(unittest.TestCase):
 
     def test_offline_shell_covers_all_runtime_modules_and_assets(self):
         sw=(ROOT/'sw.js').read_text(encoding='utf-8')
-        for file in ('index.html', 'styles.css', 'nova.css', 'manifest.webmanifest', 'icon.svg', *RUNTIME_MODULES):
+        for file in ('index.html', 'nova.css', 'nova-shell.css', 'nova-workspace.css', 'nova-assistant.css', 'assets/manrope-latin.woff2', 'manifest.webmanifest', 'icon.svg', *RUNTIME_MODULES):
             self.assertIn('./'+file,sw)
         self.assertIn("url.pathname.startsWith('/api/')",sw)
         self.assertIn("key.startsWith('datacore-')",sw)

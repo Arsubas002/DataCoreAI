@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content"
     />
-    <meta name="theme-color" content="#0d1726" />
+    <meta name="theme-color" content="#090f1b" />
     <meta
       name="description"
       content="DataCore AI · Nova Retail. Ventas, canales, tiendas y descuentos históricos de enero a marzo de 2025 en USD."
@@ -19,9 +19,11 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
-    <link rel="stylesheet" href="./styles.css?v=original-v2" />
-    <link rel="stylesheet" href="./nova.css?v=nova-2025-v5" />
-    <meta name="datacore-release" content="nova-2025-v5" />
+    <link rel="stylesheet" href="./nova.css?v=nova-2025-v6" />
+    <link rel="stylesheet" href="./nova-shell.css?v=nova-2025-v6" />
+    <link rel="stylesheet" href="./nova-workspace.css?v=nova-2025-v6" />
+    <link rel="stylesheet" href="./nova-assistant.css?v=nova-2025-v6" />
+    <meta name="datacore-release" content="nova-2025-v6" />
     <title>Inicio · Nova Retail | DataCore AI</title>
   </head>
   <body>
@@ -37,12 +39,14 @@
         <div><strong>Nova Retail</strong><small>Ventas 2025</small></div>
         <span class="workspace-dot" aria-hidden="true"></span>
       </div>
-      <p class="nav-label">ÁREAS DE TRABAJO</p>
-      <nav id="desktop-nav" aria-label="Navegación principal"></nav>
+      <div>
+        <p class="nav-label">ÁREAS DE TRABAJO</p>
+        <nav id="desktop-nav" aria-label="Navegación principal"></nav>
+      </div>
     </aside>
     <div class="app-shell">
       <header class="toolbar">
-        <a class="mobile-brand" href="#inicio">DataCore <span>AI</span></a>
+        <a class="mobile-brand" href="#inicio"><span class="brand-mark" aria-hidden="true"><img src="./icon.svg" alt="" /></span>DataCore <span class="brand-ai">AI</span></a>
         <div class="breadcrumb">
           Nova Retail <span>/</span><strong id="breadcrumb">Inicio</strong>
         </div>
@@ -101,22 +105,20 @@
     </div>
     <nav id="mobile-nav" class="mobile-nav" aria-label="Navegación móvil"></nav>
     <dialog id="sheet" aria-labelledby="sheet-title">
-      <div class="sheet-handle" aria-label="Arrastrar para cerrar"></div>
       <header class="sheet-header">
-        <span class="eyebrow" id="sheet-context">EXPLORAR</span
-        ><button
-          class="icon-button"
-          id="sheet-close"
-          aria-label="Cerrar panel"
-        ></button>
+        <h2 id="sheet-title">Fuente de datos</h2>
+        <button class="icon-button" id="sheet-close" type="button" aria-label="Cerrar panel"></button>
       </header>
-      <div id="sheet-body"></div>
+      <div id="sheet-body">
+        <p>Origen: libro proporcionado por el usuario, hoja in, 1,671 transacciones de Nova Retail (enero-marzo 2025). USD.</p>
+        <p>Datos históricos; no incluye inventario, clientes ni costos.</p>
+        <p>Ventas netas conciliadas: <strong>$749,087.25</strong>.</p>
+      </div>
     </dialog>
-    <div class="toast" id="toast" role="status"></div>
     <noscript
       >Activa JavaScript para explorar los reportes históricos de
       AI.</noscript
     >
-    <script type="module" src="./js/app.js?v=nova-2025-v5"></script>
+    <script type="module" src="./js/app.js?v=nova-2025-v6"></script>
   </body>
 </html>
