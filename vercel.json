@@ -4,7 +4,7 @@
   "outputDirectory": "public-demo",
   "framework": null,
   "cleanUrls": false,
-  "functions": { "api/assistant.mjs": { "maxDuration": 60 } },
+  "functions": { "api/assistant.mjs": { "maxDuration": 110 } },
   "headers": [
     {
       "source": "/sw.js",

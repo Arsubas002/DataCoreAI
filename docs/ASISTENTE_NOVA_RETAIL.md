@@ -14,7 +14,7 @@ En [Vercel → datacore-ai-demo → Settings → Environment Variables](https://
 - `DATACORE_ASSISTANT_ENABLED=1` para habilitar las llamadas.
 - `GROQ_MODEL` opcional. Predeterminado: `openai/gpt-oss-120b`. Un modelo alternativo debe admitir el modo JSON de Groq.
 
-Una clave ausente produce `groq_key_missing` y la desactivación produce `assistant_disabled`, ambos con estado 503. Credenciales rechazadas y modelos no disponibles reciben mensajes distintos. Tras configurar las variables, vuelve a desplegar el mismo commit. El servidor aplica límites por IP y globales por instancia, un plazo total de 55 segundos y propaga el límite 429 del proveedor con `Retry-After` si está disponible. Para una promoción pública, configura una cuota distribuida para `/api/assistant` en el perímetro y un límite de gasto en Groq. El límite en memoria solo cubre una instancia.
+Una clave ausente produce `groq_key_missing` y la desactivación produce `assistant_disabled`, ambos con estado 503. Credenciales rechazadas y modelos no disponibles reciben mensajes distintos. Tras configurar las variables, vuelve a desplegar el mismo commit. El servidor aplica límites por IP y globales por instancia, un plazo total de 100 segundos y puede reintentar una vez una etapa posterior al plan si Groq indica una espera compatible con el plazo. Si el límite persiste, propaga el estado 429 del proveedor con `Retry-After` si está disponible. Para una promoción pública, configura una cuota distribuida para `/api/assistant` en el perímetro y un límite de gasto en Groq. El límite en memoria solo cubre una instancia.
 
 ## Verificación
 
