@@ -1,16 +1,23 @@
 // Run explicitly in a server environment with the deployment's Groq variables.
 import assert from 'node:assert/strict';
+import { setTimeout as delay } from 'node:timers/promises';
 import { createHandler } from '../api/assistant.mjs';
 import { analyze, comparePeriods } from './js/nova-analysis.js';
 
-async function ask(message, history = []) {
+async function ask(message, history = [], retries = 2) {
   const result = {};
   const response = {
-    setHeader() {},
+    setHeader(key, value) { if (key === 'Retry-After') result.retryAfter = Number(value); },
     status(code) { result.code = code; return this; },
     json(body) { result.body = body; },
   };
   await createHandler()({ method: 'POST', headers: {}, body: { message, history } }, response);
+  if (result.code === 429 && retries > 0) {
+    const seconds = Math.min(120, Math.max(61, result.retryAfter || 0));
+    console.log('GROQ_LIVE_RATE_LIMIT_RETRY', seconds);
+    await delay(seconds * 1000);
+    return ask(message, history, retries - 1);
+  }
   if (result.code !== 200) throw new Error('Groq live verification HTTP ' + result.code + ' ' + (result.body?.error ?? ''));
   assert.ok(result.body.sections[0].text.length > 30, 'Groq returned a non-empty answer');
   return result.body;
