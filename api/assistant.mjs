@@ -44,7 +44,17 @@ async function complete(fetcher, key, selectedModel, messages, signal) {
     const retry = response.headers.get('retry-after');
     throw failure(429, 'Groq alcanzó su límite temporal. Vuelve a intentarlo en unos segundos.', /^\d{1,5}$/.test(retry ?? '') ? retry : undefined);
   }
-  if (!response.ok) throw failure(502, 'Groq no pudo procesar la solicitud. Intenta nuevamente.');
+  if (response.status === 401 || response.status === 403) {
+    throw failure(502, 'Groq rechazó la credencial del servidor. El administrador debe revisar la clave y sus permisos.');
+  }
+  if (!response.ok) {
+    const payload = response.status === 400 || response.status === 404
+      ? await response.json().catch(() => null) : null;
+    if (['model_not_found', 'model_decommissioned', 'model_not_allowed'].includes(payload?.error?.code)) {
+      throw failure(502, 'El modelo de Groq configurado no está disponible para esta cuenta. El administrador debe revisar GROQ_MODEL.');
+    }
+    throw failure(502, 'Groq no pudo procesar la solicitud. Intenta nuevamente.');
+  }
   const output = await response.json();
   const result = output.choices?.[0];
   if (result?.finish_reason === 'length') throw failure(502, 'La respuesta quedó incompleta. Prueba con una pregunta más acotada.');
@@ -121,12 +131,22 @@ export function createHandler({ env = process.env, fetcher = fetch, deadline = (
         throw failure(403, 'Usa el asistente desde DataCore AI.');
       }
       conversation(req.body);
-      if (env.DATACORE_ASSISTANT_ENABLED !== '1' || !env.GROQ_API_KEY?.trim()) {
-        throw failure(503, 'El asistente de Groq aún no está habilitado en este entorno.');
+      const key = env.GROQ_API_KEY?.trim();
+      if (!key) {
+        return res.status(503).json({
+          error: 'groq_key_missing',
+          message: 'El asistente necesita una clave de Groq. El administrador debe configurar GROQ_API_KEY en Vercel y volver a desplegar.',
+        });
+      }
+      if (env.DATACORE_ASSISTANT_ENABLED?.trim() !== '1') {
+        return res.status(503).json({
+          error: 'assistant_disabled',
+          message: 'El asistente está desactivado. El administrador debe establecer DATACORE_ASSISTANT_ENABLED=1 en Vercel y volver a desplegar.',
+        });
       }
       if (!permit(req)) throw failure(429, 'Hay demasiadas consultas en curso. Vuelve a intentarlo en un minuto.', '60');
       const result = await reply(req.body, {
-        key: env.GROQ_API_KEY, selectedModel: env.GROQ_MODEL?.trim() || model, fetcher, signal: deadline(),
+        key, selectedModel: env.GROQ_MODEL?.trim() || model, fetcher, signal: deadline(),
       });
       return res.status(200).json(result);
     } catch (error) {
