@@ -5,7 +5,7 @@ import path from "node:path";
 const source = fileURLToPath(new URL("./", import.meta.url));
 const output = path.resolve(source, "../public-demo");
 const files = ["index.html", "styles.css", "nova.css", "sw.js", "manifest.webmanifest", "icon.svg"];
-const modules = ["app.js", "novaretail-data.js", "icons.js"];
+const modules = ["app.js", "novaretail-data.js", "icons.js", "nova-chat.js", "nova-analysis.js"];
 const icons = ["icon-192.png", "icon-512.png", "apple-touch-icon.png"];
 await rm(output, { recursive: true, force: true });
 await mkdir(output, { recursive: true });
@@ -30,7 +30,7 @@ for (const name of [...files, ...modules.map((n) => "js/" + n)]) {
 const count = (
   await readdir(output, { recursive: true, withFileTypes: true })
 ).filter((entry) => entry.isFile()).length;
-if (count !== 12) throw new Error("Unexpected public asset count");
+if (count !== files.length + modules.length + icons.length) throw new Error("Unexpected public asset count");
 console.log(
-  "Built public-demo: 12 allowlisted files; Nova Retail 2025 sales, no SQL scripts, dependencies, contacts or repository metadata.",
+  `Built public-demo: ${count} allowlisted files for Nova Retail 2025.`,
 );

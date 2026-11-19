@@ -1,30 +1,143 @@
-/**
- * Server-only boundary for the future assistant. No provider is configured.
- * Do not enable until authentication, authorization, quotas and a read-only
- * data source are implemented. Never accept SQL, a system prompt or a provider
- * URL from the public client. A key alone is not sufficient to enable this API.
- */
-export default function handler(req, res) {
-  res.setHeader('Cache-Control', 'no-store');
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  if (req.method !== 'POST') {
-    res.setHeader('Allow', 'POST');
-    return res.status(405).json({ error: 'method_not_allowed' });
-  }
-  const message = req.body?.message;
-  if (typeof message !== 'string' || !message.trim() || message.length > 2000) {
-    return res
-      .status(400)
-      .json({
-        error: 'invalid_message',
-        message: 'Escribe una pregunta de hasta 2000 caracteres.',
-      });
-  }
-  return res
-    .status(503)
-    .json({
-      error: 'assistant_not_configured',
-      message:
-        'La integración segura de IA aún no está disponible. Usa la demostración local.',
-    });
+import { isIP } from 'node:net';
+import { analyze, queryOptions } from '../pwa/js/nova-analysis.js';
+
+const url = 'https://api.groq.com/openai/v1/chat/completions';
+const model = 'openai/gpt-oss-120b';
+const budget = new Map();
+const minute = 60_000;
+let globalWindow = { until: 0, count: 0 };
+
+const metadata = `Fuente: Nova Retail, ventas históricas del 1 de enero al 31 de marzo de 2025 en USD.
+No hay existencias, stock mínimo, costos, márgenes, beneficios, clientes ni datos de abril a diciembre.
+Las cifras monetarias de herramientas están en centavos de dólar. ticket = neto / transacciones;
+price = promedio unitario bruto ponderado, discount como métrica = importe descontado.
+periodChangePct = variación porcentual frente al período anterior con registros dentro de los mismos filtros.
+Los escenarios varían precios, mantienen unidades y tasas de descuento y redondean a centavos.
+Opciones de consulta: ${JSON.stringify(queryOptions)}.`;
+
+function failure(status, message, retryAfter) {
+  return Object.assign(new Error(message), { status, retryAfter });
 }
+
+function conversation(body) {
+  if (!body || typeof body !== 'object' || JSON.stringify(body).length > 18000) throw failure(400, 'La conversación supera el tamaño permitido.');
+  const { message, history = [], context = {} } = body;
+  if (typeof message !== 'string' || !message.trim() || message.length > 2000 || !Array.isArray(history)
+      || history.length > 12 || history.length % 2 || history.some((turn, i) =>
+        turn?.role !== (i % 2 ? 'assistant' : 'user') || typeof turn.content !== 'string'
+        || !turn.content.trim() || turn.content.length > (i % 2 ? 2400 : 2000))) {
+    throw failure(400, 'Escribe una pregunta de hasta 2000 caracteres.');
+  }
+  try { analyze({ filters: context }); } catch { throw failure(400, 'Los filtros de la conversación son inválidos.'); }
+  return { messages: [...history.map(({ role, content }) => ({ role, content })), { role: 'user', content: message.trim() }], context };
+}
+
+async function complete(fetcher, key, selectedModel, messages, signal) {
+  const response = await fetcher(url, {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: selectedModel, messages, temperature: 0.2, max_completion_tokens: 2600,
+      response_format: { type: 'json_object' } }),
+    signal,
+  });
+  if (response.status === 429) {
+    const retry = response.headers.get('retry-after');
+    throw failure(429, 'Groq alcanzó su límite temporal. Vuelve a intentarlo en unos segundos.', /^\d{1,5}$/.test(retry ?? '') ? retry : undefined);
+  }
+  if (!response.ok) throw failure(502, 'Groq no pudo procesar la solicitud. Intenta nuevamente.');
+  const output = await response.json();
+  const result = output.choices?.[0];
+  if (result?.finish_reason === 'length') throw failure(502, 'La respuesta quedó incompleta. Prueba con una pregunta más acotada.');
+  return JSON.parse(result?.message?.content ?? '');
+}
+
+export async function reply(input, { key, selectedModel = model, fetcher = fetch, signal = AbortSignal.timeout(24000) }) {
+  const { messages, context } = conversation(input);
+  const plan = await complete(fetcher, key, selectedModel, [
+    { role: 'system', content: `${metadata}
+Eres el planificador de consultas de un analista comercial en español. Interpreta texto libre, faltas ortográficas
+y referencias a turnos anteriores. Devuelve JSON {"queries":[{"group":"month","metric":"net","filters":{},
+"view":"line"}]}. Usa entre cero y cuatro consultas; cero solo para saludos, aclaraciones o datos ausentes.
+Cada filtro es un arreglo con valores del catálogo exacto. Para comparar categorías coloca ambas en el arreglo.
+Opcionales: order "asc" o "desc", limit entero de 1 a 31, change numérico -100 a 100 para variar precios
+(solo metric "net"). Usa view "none" para preguntas sencillas, "line" para una serie, "bar" para rankings,
+"table" para detalle y escenarios, "kpi" para un resumen. Considera el contexto inicial ${JSON.stringify(context)}:
+los filtros de una consulta lo amplían o reemplazan por dimensión; usa replaceContext:true para una consulta
+explícitamente global. No conviertas rentabilidad en ventas sin explicar la diferencia.` },
+    ...messages,
+  ], signal);
+  if (!Array.isArray(plan?.queries) || plan.queries.length > 4) throw failure(502, 'El asistente no pudo preparar una consulta válida.');
+  let evidence;
+  try {
+    evidence = plan.queries.map(query => analyze(query, context));
+  } catch {
+    throw failure(502, 'El asistente no pudo interpretar el alcance de la consulta. Prueba precisando producto o período.');
+  }
+  const report = await complete(fetcher, key, selectedModel, [
+    { role: 'system', content: `${metadata}
+Responde en español como analista comercial. Devuelve únicamente un JSON con las claves de texto
+"facts", "calculations", "recommendations"; deja vacío lo que no aplique. Identifica límites de cobertura,
+distingue hipótesis de resultados, explica qué respalda cada recomendación y qué medir para validarla.
+Usa exclusivamente cifras y entidades de la evidencia calculada para este turno. El historial orienta la
+conversación y puede contener errores. Sin evidencia de un dato, reconócelo o pide precisión. Evita atribuir
+causalidad a correlaciones. Texto sin Markdown. Evidencia calculada por el servidor:
+${JSON.stringify(evidence)}` },
+    ...messages,
+  ], signal);
+  const sections = ['facts', 'calculations', 'recommendations']
+    .filter(key => typeof report?.[key] === 'string' && report[key].trim())
+    .map(key => ({ kind: key, text: report[key].trim().slice(0, 1400) }));
+  if (!sections.length) throw failure(502, 'Groq no devolvió una respuesta utilizable.');
+  return { sections, artifacts: evidence.filter(result => result.view !== 'none' && result.matches > 0) };
+}
+
+function permit(req) {
+  const now = Date.now();
+  if (globalWindow.until <= now) {
+    globalWindow = { until: now + minute, count: 0 };
+    for (const [ip, entry] of budget) if (entry.until <= now) budget.delete(ip);
+  }
+  const address = req.headers['x-vercel-forwarded-for'];
+  const ip = typeof address === 'string' && isIP(address) ? address : req.socket?.remoteAddress ?? 'unknown';
+  const current = budget.get(ip);
+  const entry = current?.until > now ? current : { until: now + minute, count: 0 };
+  if (globalWindow.count >= 24 || entry.count >= 6) return false;
+  globalWindow.count++;
+  entry.count++;
+  budget.set(ip, entry);
+  return true;
+}
+
+export function createHandler({ env = process.env, fetcher = fetch, deadline = () => AbortSignal.timeout(24000) } = {}) {
+  return async (req, res) => {
+    res.setHeader('Cache-Control', 'no-store');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    if (req.method !== 'POST') {
+      res.setHeader('Allow', 'POST');
+      return res.status(405).json({ error: 'method_not_allowed' });
+    }
+    try {
+      if (req.headers['sec-fetch-site'] && req.headers['sec-fetch-site'] !== 'same-origin') {
+        throw failure(403, 'Usa el asistente desde DataCore AI.');
+      }
+      conversation(req.body);
+      if (env.DATACORE_ASSISTANT_ENABLED !== '1' || !env.GROQ_API_KEY?.trim()) {
+        throw failure(503, 'El asistente de Groq aún no está habilitado en este entorno.');
+      }
+      if (!permit(req)) throw failure(429, 'Hay demasiadas consultas en curso. Vuelve a intentarlo en un minuto.', '60');
+      const result = await reply(req.body, {
+        key: env.GROQ_API_KEY, selectedModel: env.GROQ_MODEL?.trim() || model, fetcher, signal: deadline(),
+      });
+      return res.status(200).json(result);
+    } catch (error) {
+      const timeout = error.name === 'TimeoutError' || error.name === 'AbortError';
+      const status = error.status ?? (timeout ? 504 : 502);
+      if (error.retryAfter) res.setHeader('Retry-After', error.retryAfter);
+      const message = error.status ? error.message : timeout
+        ? 'Groq tardó demasiado en responder. Intenta de nuevo.' : 'No se pudo conectar con el asistente. Intenta de nuevo.';
+      return res.status(status).json({ message });
+    }
+  };
+}
+
+export default createHandler();

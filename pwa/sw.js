@@ -1,5 +1,5 @@
-const CACHE='datacore-nova-2025-v2';
-const ASSETS=['./','./index.html','./styles.css','./nova.css','./js/app.js','./js/novaretail-data.js','./js/icons.js','./manifest.webmanifest','./icon.svg','./assets/icon-192.png','./assets/icon-512.png','./assets/apple-touch-icon.png'];
+const CACHE='datacore-nova-2025-v3';
+const ASSETS=['./','./index.html','./styles.css','./nova.css','./js/app.js','./js/novaretail-data.js','./js/nova-chat.js','./js/nova-analysis.js','./js/icons.js','./manifest.webmanifest','./icon.svg','./assets/icon-192.png','./assets/icon-512.png','./assets/apple-touch-icon.png'];
 self.addEventListener('message',event=>{if(event.data==='ACTIVATE_UPDATE')self.skipWaiting()});
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('datacore-')&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));

@@ -204,3 +204,87 @@ body::before {
   .nova-panel { break-inside: avoid; }
   .nova-sales-overview .nova-secondary { display: none; }
 }
+
+/* Nova Retail analyst: conversation first, with evidence and findings alongside. */
+.nova-analyst {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(235px, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+.nova-analyst .nova-chat {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  padding: 0;
+}
+.nova-analyst .nova-chat-top { padding: 1rem 1.25rem; border-bottom: 1px solid var(--line); }
+.nova-analyst .nova-chat-top h2, .nova-insights h2 { font-size: 1.12rem; letter-spacing: -.025em; }
+.nova-chat-top p, .nova-insights header p { font-size: .78rem; margin-top: .25rem; color: var(--muted); }
+.nova-analyst .nova-chat-messages {
+  min-height: clamp(240px, 38vh, 460px);
+  max-height: 58vh;
+  padding: 1.25rem;
+  overscroll-behavior: contain;
+}
+.nova-analyst .nova-message { max-width: 88%; white-space: normal; overflow-wrap: anywhere; }
+.nova-message.assistant { width: min(95%, 55rem); border-left: 2px solid var(--chart); }
+.nova-message p { white-space: pre-wrap; }
+.nova-chat-section + .nova-chat-section { margin-top: .95rem; }
+.nova-chat-section h3, .nova-chat-artifact h3 { margin-top: .55rem; font-size: .87rem; font-weight: 750; }
+.nova-chat-section p { margin-top: .25rem; }
+.nova-chat-artifact {
+  margin-top: .9rem;
+  padding: .85rem;
+  background: var(--surface);
+  border-radius: .65rem;
+  border: 1px solid var(--line);
+}
+.nova-chat-artifact h3 { margin-top: 0; }
+.nova-chat-artifact small { color: var(--muted); }
+.nova-chat-artifact .nova-bars, .nova-chat-artifact .nova-table-scroll { margin-top: .65rem; }
+.nova-chat-line { display: block; width: 100%; margin: .4rem 0; }
+.nova-chat-line text { fill: var(--muted); font-size: 13px; }
+.nova-chat-kpis { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: .65rem; }
+.nova-chat-kpis strong { display: block; font-size: 1.4rem; font-variant-numeric: tabular-nums; }
+.nova-chat-composer { padding: .85rem 1.25rem 1.1rem; border-top: 1px solid var(--line); }
+.nova-chat-composer > small { display: block; margin-top: .65rem; color: var(--muted); font-size: .73rem; }
+.nova-chat-pills button { min-height: 44px; }
+.nova-chat-pills button:hover { background: var(--accent-soft); }
+.nova-chat-input button:disabled { opacity: .5; cursor: wait; }
+.nova-chat-status, .nova-chat-error { margin-bottom: .7rem; font-size: .85rem; }
+.nova-chat-status { display: flex; align-items: center; gap: .5rem; color: var(--teal); }
+.nova-chat-status i { width: .55rem; height: .55rem; border-radius: 50%; background: currentColor; animation: nova-pulse 1.25s ease-in-out infinite alternate; }
+.nova-chat-error { padding: .6rem .75rem; border-left: 2px solid var(--accent); background: var(--accent-soft); }
+@keyframes nova-pulse { to { opacity: .35; } }
+.nova-insights {
+  display: grid;
+  gap: .6rem;
+  min-width: 0;
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+}
+.nova-insights article { padding: .85rem 0 0; border-top: 1px solid var(--line); }
+.nova-insights h3 { font-size: .78rem; color: var(--muted); font-weight: 600; }
+.nova-insights strong { display: block; margin: .35rem 0; font-size: 1.12rem; font-variant-numeric: tabular-nums; }
+.nova-insights article p { font-size: .76rem; color: var(--muted); }
+.nova-insights button {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font-size: .78rem;
+  font-weight: 700;
+}
+.nova-insights svg { width: 1rem; }
+@media (max-width: 950px) { .nova-analyst { grid-template-columns: 1fr; } }
+@media (max-width: 600px) {
+  .nova-analyst .nova-message { max-width: 100%; }
+  .nova-analyst .nova-chat-top, .nova-analyst .nova-chat-messages, .nova-chat-composer { padding-inline: .8rem; }
+}
+@media (prefers-reduced-motion: reduce) { .nova-chat-status i { animation: none; } }
