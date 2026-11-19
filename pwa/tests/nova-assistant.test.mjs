@@ -74,6 +74,10 @@ test('credenciales ausentes, origen inválido, historial inválido, 429, timeout
   const env = { DATACORE_ASSISTANT_ENABLED: '1', GROQ_API_KEY: 'test-key' };
   const disabled = await send({ env: {}, fetcher: () => assert.fail('Llamada no autorizada') });
   assert.equal(disabled.code, 503);
+  assert.equal(disabled.payload.error, 'groq_key_missing');
+  const switchedOff = await send({ env: { GROQ_API_KEY: 'test-key' }, fetcher: () => assert.fail('Llamada no autorizada') });
+  assert.equal(switchedOff.code, 503);
+  assert.equal(switchedOff.payload.error, 'assistant_disabled');
   assert.equal(disabled.headers['Cache-Control'], 'no-store');
   assert.equal((await send({ env }, { message: 'x', history: [{ role: 'system', content: 'x' }] })).code, 400);
   assert.equal((await send({ env }, undefined, { headers: { 'sec-fetch-site': 'cross-site' } })).code, 403);
@@ -83,5 +87,16 @@ test('credenciales ausentes, origen inválido, historial inválido, 429, timeout
   assert.equal((await send({ env, fetcher: async () => { throw new DOMException('t', 'TimeoutError'); } })).code, 504);
   const rejected = await send({ env, fetcher: async () => new Response('sensitive provider diagnostics', { status: 401 }) });
   assert.equal(rejected.code, 502);
+  assert.match(rejected.payload.message, /rechazó la credencial/);
   assert.doesNotMatch(JSON.stringify(rejected.payload), /sensitive|test-key/);
+  const unavailable = await send({
+    env: { ...env, GROQ_MODEL: ' unlisted-model ', GROQ_API_KEY: ' test-key ' },
+    fetcher: async (_url, request) => {
+      assert.equal(request.headers.Authorization, 'Bearer test-key');
+      assert.equal(JSON.parse(request.body).model, 'unlisted-model');
+      return Response.json({ error: { code: 'model_not_found' } }, { status: 404 });
+    },
+  });
+  assert.equal(unavailable.code, 502);
+  assert.match(unavailable.payload.message, /modelo de Groq configurado no está disponible/);
 });

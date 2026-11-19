@@ -8,13 +8,13 @@ La fuente cubre 1.671 transacciones de enero a marzo de 2025 en USD. Incluye pro
 
 ## Activación
 
-En Vercel, usa las variables del **entorno Preview protegido** del proyecto:
+En [Vercel → datacore-ai-demo → Settings → Environment Variables](https://vercel.com/josuecaceresm-2044/datacore-ai-demo/settings/environment-variables), selecciona **Production** para el dominio principal y **Preview** para probar una candidata protegida. Agrega las siguientes variables en cada entorno que corresponda:
 
 - `GROQ_API_KEY` como variable sensible del servidor.
 - `DATACORE_ASSISTANT_ENABLED=1` para habilitar las llamadas.
 - `GROQ_MODEL` opcional. Predeterminado: `openai/gpt-oss-120b`. Un modelo alternativo debe admitir el modo JSON de Groq.
 
-Una clave ausente o la desactivación producen un estado 503 en el chat. Tras configurar las variables, vuelve a desplegar el mismo commit. El servidor aplica límites por IP y globales por instancia, un plazo total de 24 segundos y propaga el límite 429 del proveedor con `Retry-After` si está disponible. Para una promoción pública, configura una cuota distribuida para `/api/assistant` en el perímetro y un límite de gasto en Groq. El límite en memoria solo cubre una instancia.
+Una clave ausente produce `groq_key_missing` y la desactivación produce `assistant_disabled`, ambos con estado 503. Credenciales rechazadas y modelos no disponibles reciben mensajes distintos. Tras configurar las variables, vuelve a desplegar el mismo commit. El servidor aplica límites por IP y globales por instancia, un plazo total de 24 segundos y propaga el límite 429 del proveedor con `Retry-After` si está disponible. Para una promoción pública, configura una cuota distribuida para `/api/assistant` en el perímetro y un límite de gasto en Groq. El límite en memoria solo cubre una instancia.
 
 ## Verificación
 
