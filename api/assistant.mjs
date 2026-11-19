@@ -51,8 +51,9 @@ async function complete(fetcher, key, selectedModel, messages, signal, stage) {
   const structured = stage !== 'answer';
   const reasoning = /^openai\/gpt-oss-(?:20b|120b)$/.test(selectedModel)
     ? { reasoning_effort: stage === 'review' ? 'high' : 'medium', include_reasoning: false } : {};
+  const tokenBudget = { plan: 2500, review: 3600, answer: 4000 };
   const modelRequest = {
-    model: selectedModel, messages, temperature: 0.2, max_completion_tokens: 5200,
+    model: selectedModel, messages, temperature: 0.2, max_completion_tokens: tokenBudget[stage],
     ...(structured ? { response_format: { type: 'json_object' } } : {}),
     ...reasoning,
   };
