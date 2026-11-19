@@ -1,4 +1,4 @@
-import { chatPage as analyst } from './nova-chat.js';
+import { chatPage as analyst, exportArtifact } from './nova-chat.js';
 import {source,shops,channels,catalog,categories,transactions,money,num,pct,totals,groupBy} from './novaretail-data.js?v=nova-2025-v1';
 import {icon} from './icons.js?v=nova-2025-v1';
 
@@ -159,6 +159,28 @@ async function askChat(text, fullPeriod = false) {
 function searchGlobal(q){const el=$('#global-results'),matches=$('#search-matches'),status=$('#search-status');if(!q.trim()){el.hidden=true;return}const term=normalize(q);const items=[...catalog.filter(p=>normalize(p.name).includes(term)).slice(0,5).map(p=>({title:p.name,sub:p.category,href:'#productos'})),...Object.entries(names).filter(([id,label])=>normalize(label).includes(term)).map(([id,label])=>({title:label,sub:'Sección',href:'#'+id})),...shops.filter(n=>normalize(n).includes(term)).map(n=>({title:n,sub:'Tienda',href:'#inventario'}))].slice(0,8);status.textContent=items.length?`${items.length} resultados`:'No se encontraron coincidencias';matches.innerHTML=items.map(i=>`<a href="${i.href}"><strong>${esc(i.title)}</strong><small>${esc(i.sub)}</small></a>`).join('');el.hidden=false}
 document.addEventListener('change',e=>{const target=e.target;if(target.matches('[data-filter]')){state[target.dataset.filter]=target.value;state.page=0;render();return}if(target.id==='nova-sort'){state.sort=target.value;render();return}});
 document.addEventListener('input',e=>{if(e.target.id==='chat-input'){state.draft=e.target.value;return}if(e.target.id==='sales-search'){const val=e.target.value;clearTimeout(searchTimeout);searchTimeout=setTimeout(()=>{state.term=val;state.page=0;render();const input=$('#sales-search');if(input){input.focus()}},180);return}if(e.target.id==='global-search'){searchGlobal(e.target.value);return}if(e.target.id==='whatif'){state.whatIf=+e.target.value;$('#scenario-rate').textContent=state.whatIf+' %';const r=filtered().filter(r=>r.category==='Moda'&&r.discount===.15);const v=r.reduce((a,r)=>a+r.gross*(.15-state.whatIf/100),0);$('.nova-scenario-result strong').textContent=money(Math.round(v));return}});
+document.addEventListener('click', async event => {
+  const button = event.target.closest('[data-copy-chat], [data-export-chat]');
+  if (!button) return;
+  if (button.hasAttribute('data-copy-chat')) {
+    const response = state.chat[Number(button.dataset.copyChat)];
+    try {
+      await navigator.clipboard.writeText(response.sections.map(section => section.text).join('\n\n'));
+      button.textContent = 'Respuesta copiada';
+    } catch {
+      button.textContent = 'Selecciona el texto para copiarlo';
+    }
+    return;
+  }
+  const [turn, index] = button.dataset.exportChat.split(':').map(Number);
+  const artifact = state.chat[turn]?.artifacts?.[index];
+  if (!artifact) return;
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(new Blob([exportArtifact(artifact)], { type: 'text/csv;charset=utf-8' }));
+  link.download = 'NovaRetail_analisis.csv';
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+});
 document.addEventListener('click',e=>{const b=e.target.closest('button,a');if(!b)return;if(b.dataset.resetFilters){Object.assign(state,{channel:'Todos',shop:'Todas',category:'Todas',month:'Todos',page:0});render();return}if(b.id==='download-rows'){download();return}if(b.id==='print-report'){window.print();return}if(b.dataset.page){state.page=Math.max(0,state.page+Number(b.dataset.page));render();return}if(b.id==='nova-more'){state.more=!state.more;nav();return}if(b.id==='reset-chat'){state.pending?.abort();Object.assign(state,{chat:[],pending:null,draft:'',error:''});render();$('#chat-input').focus();return}if(b.dataset.suggest){askChat(b.dataset.suggest,b.hasAttribute('data-full-period'));return}if(b.dataset.productLink){state.term=b.dataset.productLink;return}if(b.id==='theme-toggle'){const next=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=next;try{localStorage.setItem('datacore-novaretail-theme',next)}catch{};$('#theme-toggle').innerHTML=icon(next==='dark'?'sun':'moon');return}if(b.classList.contains('chrome-source')){alert('Origen: libro proporcionado por el usuario, hoja in, 1,671 transacciones de Nova Retail (enero-marzo 2025). USD. Datos históricos; no incluye inventario, clientes ni costos. Ventas netas conciliadas: $749,087.25.');return}});
 document.addEventListener('submit',e=>{if(e.target.id==='chat-form'){e.preventDefault();const input=$('#chat-input');const q=input.value;askChat(q);return}});
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();$('#global-search')?.focus()}if(e.key==='Escape'){$('#global-results').hidden=true;state.more=false;nav()}if(e.key==='Enter'&&e.target.id==='chat-input'&&!e.shiftKey&&!e.isComposing){e.preventDefault();e.target.closest('form')?.requestSubmit()}});

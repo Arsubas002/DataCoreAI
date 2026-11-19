@@ -1,4 +1,4 @@
-import { money, num } from './novaretail-data.js';
+import { money, num, pct } from './novaretail-data.js';
 import { insights } from './nova-analysis.js';
 
 const labels = {
@@ -6,7 +6,6 @@ const labels = {
   orders: 'Transacciones', ticket: 'Ticket medio', price: 'Precio unitario medio',
   scenario: 'Neto simulado', delta: 'Variación',
 };
-const headings = { facts: 'Hallazgos', calculations: 'Cálculos', recommendations: 'Recomendaciones' };
 const examples = [
   '¿Cómo evolucionaron las ventas?',
   'Compara Moda y Deportes',
@@ -14,9 +13,9 @@ const examples = [
 ];
 const findings = insights();
 
-function artifact(result, esc) {
-  const { metric, rows, view, change, groups } = result;
-  const columns = change === undefined ? [metric] : ['net', 'scenario', 'delta'];
+function artifact(result, esc, turnIndex, artifactIndex) {
+  const { metric, rows, view, scenario, groups } = result;
+  const columns = !scenario ? [metric] : ['net', 'scenario', 'delta'];
   const format = value => value == null ? '—' : ['units', 'orders'].includes(metric) ? num(value) : money(value);
   const title = labels[metric];
   const maximum = Math.max(1, ...rows.map(row => row[metric] ?? 0));
@@ -27,9 +26,10 @@ function artifact(result, esc) {
   const table = `<div class="nova-table-scroll" tabindex="0" role="region" aria-label="Datos de ${esc(title)}">
     <table class="nova-table"><thead><tr><th scope="col">Grupo</th>${columns.map(key => `<th scope="col">${labels[key]}</th>`).join('')}</tr></thead>
     <tbody>${rows.map(row => `<tr><th scope="row">${esc(row.name)}</th>${columns.map(key => `<td>${format(row[key])}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
-  const chart = view === 'bar' ? `<div class="nova-bars">${rows.map(row => `<div class="nova-bar-row">
-      <div class="nova-bar-top"><span>${esc(row.name)}</span><b>${format(row[metric])}</b></div>
-      <div class="nova-bar-track" aria-hidden="true"><i style="width:${(100 * (row[metric] ?? 0) / maximum).toFixed(2)}%"></i></div></div>`).join('')}</div>`
+  const distribution = view === 'distribution';
+  const chart = view === 'bar' || distribution ? `<div class="nova-bars">${rows.map(row => `<div class="nova-bar-row">
+      <div class="nova-bar-top"><span>${esc(row.name)}</span><b>${format(row[metric])}${distribution && row.sharePct !== null ? ` · ${pct(row.sharePct / 100)}` : ''}</b></div>
+      <div class="nova-bar-track" aria-hidden="true"><i style="width:${(distribution ? row.sharePct ?? 0 : 100 * (row[metric] ?? 0) / maximum).toFixed(2)}%"></i></div></div>`).join('')}</div>`
     : view === 'line' ? `<svg class="nova-chat-line" viewBox="0 0 520 150" role="img" aria-label="${esc(title)} por fecha. Valores disponibles en la tabla.">
       <path d="M16 112H504" stroke="var(--line)"/>
       <polyline points="${points.map(point => point.join(',')).join(' ')}" stroke="var(--chart)" stroke-width="3" fill="none"/>
@@ -42,9 +42,12 @@ function artifact(result, esc) {
   const scope = Object.values(result.filters).flat().map(esc).join(' · ');
   return `<section class="nova-chat-artifact"><h3>${title}</h3>
     <small>${scope || 'Enero–marzo 2025'}${groups > rows.length ? ` · ${rows.length} de ${groups} grupos` : ''}</small>
-    ${change === undefined ? '' : `<p>Escenario de precio ${num(change)} %. Unidades y tasas de descuento constantes.</p>`}
+    ${scenario ? `<p><strong>Escenario hipotético.</strong> ${scenario.change === undefined ? 'Precios constantes.' : `Precios: ${num(scenario.change)} % de variación.`}
+      ${scenario.quantityChange === undefined ? 'Volumen constante.' : `Volumen: ${num(scenario.quantityChange)} % de variación con la misma mezcla de productos.`}
+      ${scenario.discountRate === undefined ? 'Se mantienen las tasas históricas.' : `Se aplica ${num(scenario.discountRate)} % de descuento a todas las operaciones.`}</p>` : ''}
     ${chart}
-    ${view === 'line' ? `<details><summary>Ver valores</summary>${table}</details>` : view === 'table' || change !== undefined ? table : ''}
+    ${view === 'table' || scenario ? table : `<details><summary>Ver valores</summary>${table}</details>`}
+    <button type="button" class="nova-chat-action" data-export-chat="${turnIndex}:${artifactIndex}">Descargar CSV</button>
   </section>`;
 }
 
@@ -54,30 +57,47 @@ export function chatPage({ chat, pending, error, draft }, { esc, icon }) {
       <header class="nova-chat-top"><div><h2>Conversación</h2><p>Nova Retail · Enero–marzo 2025</p></div>
       <button class="nova-secondary" id="reset-chat" type="button">Nueva conversación</button></header>
       <div class="nova-chat-messages" id="chat-log" role="log" aria-label="Mensajes de la conversación" tabindex="0">
-        ${chat.length ? chat.map(turn => `<article class="nova-message ${turn.role}">
+        ${chat.length ? chat.map((turn, turnIndex) => `<article class="nova-message ${turn.role}">
           <span>${turn.role === 'user' ? 'Tú' : 'DataCore AI'}</span>
           ${turn.role === 'user' ? `<p>${esc(turn.text)}</p>` : turn.sections.map(section =>
-            `<div class="nova-chat-section"><h3>${headings[section.kind]}</h3><p>${esc(section.text)}</p></div>`).join('')}
-          ${(turn.artifacts ?? []).map(result => artifact(result, esc)).join('')}
+            `<div class="nova-chat-section"><p>${esc(section.text)}</p></div>`).join('')}
+          ${(turn.artifacts ?? []).map((result, index) => artifact(result, esc, turnIndex, index)).join('')}
+          ${turn.role === 'assistant' ? `<button type="button" class="nova-chat-action" data-copy-chat="${turnIndex}">Copiar respuesta</button>` : ''}
         </article>`).join('') : `<div class="nova-welcome">${icon('asistente')}<h3>¿Qué quieres analizar?</h3>
           <p>Consulta productos, compara categorías o explora un escenario de precios.</p></div>`}
       </div>
       <div class="nova-chat-composer">
         ${pending ? '<p class="nova-chat-status" role="status"><i aria-hidden="true"></i> Analizando la consulta…</p>' : ''}
         ${error ? `<p class="nova-chat-error" role="alert">${esc(error)}</p>` : ''}
-        ${!chat.length ? `<div class="nova-chat-pills">${examples.map(text => `<button type="button" data-suggest="${esc(text)}">${esc(text)}</button>`).join('')}</div>` : ''}
         <form id="chat-form" class="nova-chat-input">
           <label class="sr-only" for="chat-input">Pregunta sobre Nova Retail</label>
           <textarea id="chat-input" rows="2" maxlength="2000" placeholder="Escribe tu pregunta sobre Nova Retail…">${esc(draft)}</textarea>
           <button type="submit" aria-label="Enviar mensaje" ${pending ? 'disabled' : ''}>${icon('up')}</button>
         </form>
+        ${!chat.length ? `<details class="nova-chat-examples"><summary>Ver ejemplos opcionales</summary><div class="nova-chat-pills">${examples.map(text => `<button type="button" data-suggest="${esc(text)}">${esc(text)}</button>`).join('')}</div></details>` : ''}
         <small>Groq procesa la conversación. La fuente histórica de la PWA no contiene existencias ni costos.</small>
       </div>
     </section>
     <aside class="nova-insights" aria-labelledby="insights-title">
       <header><h2 id="insights-title">Insights inteligentes</h2><p>Hallazgos del trimestre completo</p></header>
       ${findings.map(item => `<article><h3>${esc(item.label)}</h3><strong>${esc(item.value)}</strong>
-        <p>${esc(item.detail)}</p><button type="button" data-suggest="${esc(item.question)}" data-full-period aria-label="Analizar ${esc(item.label)}">Explorar en el chat ${icon('arrow')}</button></article>`).join('')}
+        <p>${esc(item.detail)}</p><p class="nova-insight-recommendation">${esc(item.recommendation)}</p><button type="button" data-suggest="${esc(item.question)}" data-full-period aria-label="Analizar ${esc(item.label)}">Explorar en el chat ${icon('arrow')}</button></article>`).join('')}
     </aside>
   </div>`;
+}
+
+export function exportArtifact(result) {
+  const columns = result.scenario ? ['net', 'scenario', 'delta'] : [result.metric];
+  if (result.view === 'distribution') columns.push('sharePct');
+  const numbers = value => value ?? '';
+  const escapeCsv = value => '"' + String(value).replaceAll('"', '""') + '"';
+  const rows = [
+    ['Grupo', ...columns.map(key => key === 'sharePct' ? 'Participación %' : labels[key] + (['units', 'orders'].includes(key) ? '' : ' USD'))],
+    ...result.rows.map(row => [row.name, ...columns.map(key => {
+      const value = row[key];
+      if (value == null || ['units', 'orders', 'sharePct'].includes(key)) return numbers(value);
+      return (value / 100).toFixed(2);
+    })]),
+  ];
+  return '\uFEFF' + rows.map(row => row.map(escapeCsv).join(',')).join('\r\n');
 }

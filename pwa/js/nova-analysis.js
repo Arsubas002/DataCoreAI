@@ -15,7 +15,7 @@ const dimensions = {
   discount: row => (row.discount * 100) + ' %',
 };
 const metrics = ['net', 'gross', 'discount', 'units', 'orders', 'ticket', 'price'];
-const views = ['none', 'table', 'bar', 'line', 'kpi'];
+const views = ['none', 'table', 'bar', 'line', 'kpi', 'distribution'];
 const normalize = value => String(value).normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().trim();
 
 export const queryOptions = { fields, metrics, group: ['total', ...Object.keys(dimensions)], views };
@@ -37,27 +37,31 @@ function select(records, filters = {}) {
 
 export function analyze(query, context = {}) {
   if (!query || typeof query !== 'object' || Array.isArray(query)) throw new Error('invalid_query');
-  const { group = 'total', metric = 'net', filters = {}, view = 'none', change, order, limit } = query;
+  const { group = 'total', metric = 'net', filters = {}, view = 'none', change, quantityChange, discountRate, order, limit } = query;
+  const scenario = Object.fromEntries(Object.entries({ change, quantityChange, discountRate }).filter(([, value]) => value !== undefined));
+  const simulated = Object.keys(scenario).length > 0;
+  const validPct = (value, min) => value === undefined || (Number.isFinite(value) && value >= min && value <= 100);
   if (!queryOptions.group.includes(group) || !metrics.includes(metric) || !views.includes(view)
       || (order !== undefined && !['asc', 'desc'].includes(order))
       || (limit !== undefined && (!Number.isInteger(limit) || limit < 1 || limit > 31))
-      || (change !== undefined && (!Number.isFinite(change) || change < -100 || change > 100 || metric !== 'net'))) {
+      || (simulated && metric !== 'net') || !validPct(change, -100) || !validPct(quantityChange, -100) || !validPct(discountRate, 0)) {
     throw new Error('invalid_query_options');
   }
   if (!filters || typeof filters !== 'object' || Array.isArray(filters)) throw new Error('invalid_filters');
   const scope = query.replaceContext === true ? filters : { ...context, ...filters };
   const records = select(transactions, scope);
   function aggregate(rows) {
-    if (change === undefined) return null;
-    return rows.reduce((sum, row) => {
-      const price = Math.round(row.price * (100 + change));
+    const net = rows.reduce((sum, row) => {
+      const price = Math.round(row.price * (100 + (change ?? 0)));
       const gross = price * row.quantity;
-      return sum + gross - Math.floor((gross * Math.round(row.discount * 100) + 50) / 100);
+      const rate = discountRate ?? Math.round(row.discount * 100);
+      return sum + gross - Math.round(gross * (rate / 100));
     }, 0);
+    return Math.round(net * (1 + (quantityChange ?? 0) / 100));
   }
   const buckets = group === 'total' ? [{ name: 'Total', ...totals(records) }] : groupBy(records, dimensions[group]);
   const scenarios = new Map();
-  if (change !== undefined) {
+  if (simulated) {
     const key = group === 'total' ? () => 'Total' : dimensions[group];
     for (const record of records) {
       const name = key(record);
@@ -72,7 +76,7 @@ export function analyze(query, context = {}) {
       ticket: row.orders ? Math.round(row.net / row.orders) : null,
       price: row.units ? Math.round(row.gross / row.units) : null,
     };
-    if (change !== undefined) {
+    if (simulated) {
       item.scenario = aggregate(scenarios.get(row.name) ?? []);
       item.delta = item.scenario - row.net;
     }
@@ -90,9 +94,13 @@ export function analyze(query, context = {}) {
         ? Math.round((row[metric] / previous - 1) * 10000) / 100 : null;
     });
   }
+  if (view === 'distribution') {
+    const total = rows.reduce((sum, row) => sum + (row[metric] ?? 0), 0);
+    rows.forEach(row => { row.sharePct = total > 0 ? 100 * (row[metric] ?? 0) / total : null; });
+  }
   const shown = rows.slice(0, limit ?? (group === 'day' ? 90 : 31));
   if (temporal && view === 'line') shown.sort((a, b) => a.name.localeCompare(b.name));
-  return { group, metric, filters: scope, view, change, matches: records.length, groups: rows.length, rows: shown };
+  return { group, metric, filters: scope, view, ...(simulated ? { scenario } : {}), matches: records.length, groups: rows.length, rows: shown };
 }
 
 export function insights() {
@@ -106,9 +114,11 @@ export function insights() {
   }).sort((a, b) => b.growth - a.growth);
   const leading = byCategory[0];
   const lowest = analyze({ group: 'product', metric: 'units', order: 'asc', limit: 1 }).rows[0];
+  const leader = analyze({ group: 'category', view: 'distribution', limit: 1 }).rows[0];
   return [
-    { label: 'Ventas de marzo frente a febrero', value: pct(change), detail: money(latest.net) + ' frente a ' + money(previous.net), question: '¿Qué categorías, tiendas y canales explican el cambio de ventas netas de febrero a marzo de 2025?' },
-    { label: leading.growth >= 0 ? 'Mayor crecimiento mensual por categoría' : 'Mejor variación mensual por categoría', value: leading.category, detail: pct(leading.growth) + ' en ingresos netos de febrero a marzo', question: '¿Qué explica la variación de ' + leading.category + ' de febrero a marzo y qué acciones medibles sugieres?' },
-    { label: 'Producto con menos unidades vendidas', value: lowest.name, detail: lowest.units + ' unidades de enero a marzo', question: 'Analiza el desempeño de ' + lowest.name + ' frente a su categoría y sugiere un experimento de promoción.' },
+    { label: 'Concentración de ingresos', value: pct(leader.sharePct / 100), detail: leader.name + ' representa ' + money(leader.net) + ' del neto trimestral.', recommendation: 'Contrasta la participación por canal antes de asignar presupuesto.', question: '¿Qué tan concentrados están los ingresos por categoría y canal y cómo lo medirías?' },
+    { label: 'Ventas de marzo frente a febrero', value: pct(change), detail: money(latest.net) + ' frente a ' + money(previous.net), recommendation: 'Separa el efecto del volumen y el ticket antes de ajustar promociones.', question: '¿Qué categorías, tiendas y canales explican el cambio de ventas netas de febrero a marzo de 2025?' },
+    { label: leading.growth >= 0 ? 'Mayor crecimiento mensual por categoría' : 'Mejor variación mensual por categoría', value: leading.category, detail: pct(leading.growth) + ' en ingresos netos de febrero a marzo', recommendation: 'Comprueba si el cambio se concentra en una tienda o un canal.', question: '¿Qué explica la variación de ' + leading.category + ' de febrero a marzo y qué acciones medibles sugieres?' },
+    { label: 'Producto con menos unidades vendidas', value: lowest.name, detail: lowest.units + ' unidades de enero a marzo', recommendation: 'Compara su facturación y precio antes de probar una promoción.', question: 'Analiza el desempeño de ' + lowest.name + ' frente a su categoría y sugiere un experimento de promoción.' },
   ];
 }

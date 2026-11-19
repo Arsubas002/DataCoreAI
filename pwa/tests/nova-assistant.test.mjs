@@ -3,10 +3,9 @@ import assert from 'node:assert/strict';
 import { analyze, insights } from '../js/nova-analysis.js';
 import { createHandler, reply } from '../../api/assistant.mjs';
 
-const result = value => Response.json({ choices: [{ message: { content: JSON.stringify(value) } }] });
+const result = value => Response.json({ choices: [{ message: { content: typeof value === 'string' ? value : JSON.stringify(value) } }] });
 const prepared = { queries: [{ group: 'month', metric: 'net', view: 'line', filters: { category: ['Moda', 'Deportes'] } }] };
-const report = { facts: 'Comparación de Moda y Deportes.', calculations: 'Se agruparon las ventas por mes.',
-  recommendations: 'Contrastar por canal antes de promover.' };
+const report = 'Hallazgos: comparación de Moda y Deportes. Cálculos: ventas agrupadas por mes.';
 
 test('consulta abierta con errores y seguimiento: transmite los turnos y usa la evidencia comprobada', async () => {
   const calls = [];
@@ -27,7 +26,9 @@ test('consulta abierta con errores y seguimiento: transmite los turnos y usa la 
   assert.equal(calls[0].messages.at(-1).content, '¿Y cómo cambiaron mes por mes?');
   assert.match(calls[1].messages[0].content, /"name":"2025-02","net":/);
   assert.deepEqual(outcome.artifacts[0], analyze(prepared.queries[0]));
-  assert.deepEqual(outcome.sections.map(section => section.kind), ['facts', 'calculations', 'recommendations']);
+  assert.deepEqual(calls[0].response_format, { type: 'json_object' });
+  assert.equal(calls[1].response_format, undefined);
+  assert.deepEqual(outcome.sections, [{ kind: 'answer', text: report }]);
 });
 
 test('céntimos conciliados, orden cronológico y escenario de precios sin cambiar demanda', () => {
@@ -41,7 +42,7 @@ test('céntimos conciliados, orden cronológico y escenario de precios sin cambi
   assert.deepEqual(rows.map(row => row.name), ['2025-01', '2025-02', '2025-03']);
   assert.equal(rows.reduce((sum, row) => sum + row.net, 0), aggregate.net);
   assert.equal(rows[1].periodChangePct, Math.round((rows[1].net / rows[0].net - 1) * 10000) / 100);
-  assert.equal(insights().length, 3);
+  assert.equal(insights().length, 4);
   assert.throws(() => analyze({ filters: { category: ['Inexistente'] } }));
   assert.throws(() => analyze({ group: 'stock' }));
   assert.throws(() => analyze({ change: 1000 }));
@@ -51,7 +52,7 @@ test('el modelo no obtiene herramientas de escritura y las consultas sencillas o
   const noChart = { queries: [{ group: 'total', filters: { product: ['  lampara led smart  '] } }] };
   let n = 0;
   const output = await reply({ message: '¿Cuántas lámparas LED Smart se vendieron?' }, {
-    key: 'test-key', fetcher: async () => result(n++ === 0 ? noChart : { facts: 'La fuente muestra las unidades vendidas.' }),
+    key: 'test-key', fetcher: async () => result(n++ === 0 ? noChart : 'La fuente muestra las unidades vendidas.'),
   });
   assert.deepEqual(output.artifacts, []);
   await assert.rejects(reply({ message: 'Actualiza stock' }, {
@@ -99,4 +100,29 @@ test('credenciales ausentes, origen inválido, historial inválido, 429, timeout
   });
   assert.equal(unavailable.code, 502);
   assert.match(unavailable.payload.message, /modelo de Groq configurado no está disponible/);
+});
+
+test('la respuesta vacía se identifica por etapa y sus diagnósticos omiten contenido y credenciales', async () => {
+  let attempt = 0;
+  const entries = [];
+  const response = await send({
+    env: { DATACORE_ASSISTANT_ENABLED: '1', GROQ_API_KEY: 'test-key' },
+    fetcher: async () => result(attempt++ === 0 ? prepared : ''),
+    logger: { warn: (...args) => entries.push(args) },
+  }, { message: 'consulta privada de prueba' }, { socket: { remoteAddress: '127.0.0.2' } });
+  assert.equal(response.code, 502);
+  assert.match(response.payload.message, /no generó texto/);
+  assert.deepEqual(entries, [['datacore.assistant', { status: 502, stage: 'answer', reason: 'empty_content' }]]);
+});
+
+test('volumen, descuentos y participaciones se calculan en el servidor', () => {
+  const baseline = analyze({}).rows[0];
+  const volume = analyze({ quantityChange: 20 });
+  assert.equal(volume.rows[0].scenario, Math.round(baseline.net * 1.2));
+  const discount = analyze({ discountRate: 15 });
+  assert.equal(discount.rows[0].scenario, 65860125);
+  assert.equal(discount.scenario.discountRate, 15);
+  const distribution = analyze({ group: 'category', view: 'distribution' }).rows;
+  assert.ok(Math.abs(distribution.reduce((sum, row) => sum + row.sharePct, 0) - 100) < 1e-9);
+  assert.throws(() => analyze({ discountRate: -1 }));
 });
