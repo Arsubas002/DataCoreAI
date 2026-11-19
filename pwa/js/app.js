@@ -39,7 +39,11 @@ function line(records) {
   const area = `${path} L${right},${bottom} H${left} Z`;
   const ticks = [...new Set([0, 1, 2, 3, 4].map(step => Math.round(step * (days.length - 1) / 4)))];
   const dateLabel = date => date.slice(5).split('-').reverse().join('/');
-  return `<div class="nova-line-scroll" tabindex="0" role="region" aria-label="Gráfica de ventas diarias"><svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Evolución de ventas netas por día con registros, en dólares">
+  const points = days.map(day => [x(day.name), y(day.net), dateLabel(day.name) + '/' + day.name.slice(0, 4), money(day.net)]);
+  return `<div class="nova-trend" data-chart-points="${esc(JSON.stringify(points))}">
+    <div class="nova-trend-tooltip" aria-hidden="true" hidden><small></small><strong></strong></div>
+    <span class="sr-only nova-trend-announcement" aria-live="polite"></span>
+    <div class="nova-line-scroll" tabindex="0" role="region" aria-label="Gráfica de ventas diarias" aria-description="Usa las flechas para consultar los valores diarios."><svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Evolución de ventas netas por día con registros, en dólares">
     <defs><linearGradient id="nova-graph-fill" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0" stop-color="var(--chart)" stop-opacity=".32"/><stop offset="1" stop-color="var(--chart)" stop-opacity="0"/></linearGradient></defs>
     ${[0, .25, .5, .75, 1].map(fraction => {
       const value = max * fraction;
@@ -49,12 +53,23 @@ function line(records) {
     <path d="${area}" fill="url(#nova-graph-fill)"/>
     <path d="${path}" fill="none" stroke="var(--chart)" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/>
     ${ticks.map(index => `<text x="${x(days[index].name)}" y="${height - 5}" text-anchor="middle" fill="currentColor">${dateLabel(days[index].name)}</text>`).join('')}
-  </svg></div>`;
+    <g class="nova-trend-marker" aria-hidden="true">
+      <line y1="16" y2="${bottom}"/><circle r="5"/>
+    </g>
+  </svg></div></div>`;
 }
 const section=(title,sub,body)=>`<section class="nova-panel"><div class="nova-panel-head"><div><h2>${title}</h2><p>${sub}</p></div></div>${body}</section>`;
 const badge=word=>`<span class="nova-tag">${esc(word)}</span>`;
 const callout=(title,description)=>`<section class="nova-callout"><span class="nova-eyebrow">ORIGEN DE DATOS</span><strong>${esc(title)}</strong><p>${esc(description)}</p></section>`;
 const trendMonth=r=>`<div class="nova-months">${['2025-01','2025-02','2025-03'].map(m=>{const t=totals(r.filter(a=>a.date.startsWith(m)));return `<div><span>${months[m]}</span><strong>${money(t.net)}</strong><small>${num(t.orders)} transacciones</small></div>`}).join('')}</div>`;
+
+function dashboardMetric(name, value, detail, symbol, featured = false) {
+  return `<div class="nova-kpi${featured ? ' nova-kpi-featured' : ''}">
+    <div class="nova-kpi-top">${icon(symbol)}<span class="nova-kpi-label">${esc(name)}</span></div>
+    <div class="${featured ? 'nova-hero-number' : 'nova-kpi-number'}">${value}</div>
+    <small>${esc(detail)}</small>
+  </div>`;
+}
 
 function home() {
   const rows = filtered();
@@ -63,6 +78,12 @@ function home() {
   const storeTotals = sorted(groupBy(rows, r => r.shop));
   return `${info('NOVA RETAIL', 'Resumen de ventas', 'Consulta el rendimiento comercial por canal, tienda y producto.')}
     ${filters()}
+    <section class="nova-dashboard-metrics" aria-label="Indicadores principales">
+      ${dashboardMetric('Ventas netas', money(t.net), 'Después de descuentos · USD', 'ventas', true)}
+      ${dashboardMetric('Unidades vendidas', num(t.units), 'Cantidad histórica', 'productos')}
+      ${dashboardMetric('Transacciones', num(t.orders), 'Registros del archivo', 'reportes')}
+      ${dashboardMetric('Descuento total', money(t.discount), 'Diferencia frente a ventas brutas', 'down')}
+    </section>
     <div class="nova-dashboard">
       <section class="nova-panel nova-sales-overview">
         <div class="nova-panel-head">
@@ -72,20 +93,18 @@ function home() {
           </div>
           <a class="nova-secondary" href="#reportes">Ver reportes ${icon('arrow')}</a>
         </div>
-        <div class="nova-hero-number">${money(t.net)}</div>
         ${line(rows)}
         ${trendMonth(rows)}
       </section>
-      <section class="nova-dashboard-metrics" aria-label="Indicadores principales">
-        ${kpi('Unidades vendidas', num(t.units), 'Cantidad histórica')}
-        ${kpi('Transacciones', num(t.orders), 'Registros del archivo')}
-        ${kpi('Descuento total', money(t.discount), 'Diferencia frente a ventas brutas')}
+      <section class="nova-panel nova-channel-overview">
+        <div class="nova-panel-head"><div><h2>Ventas por canal</h2><p>Participación en la facturación neta</p></div></div>
+        ${donut(channelTotals)}
       </section>
     </div>
-    <div class="nova-two">
-      ${section('Ventas por canal', 'Participación en la facturación neta', donut(channelTotals))}
-      ${section('Ventas por tienda', 'Facturación neta · USD', bars(storeTotals))}
-    </div>
+    <section class="nova-panel nova-store-overview">
+      <div class="nova-panel-head"><div><h2>Ventas por tienda</h2><p>Facturación neta · USD</p></div></div>
+      ${bars(storeTotals)}
+    </section>
     ${callout('Cobertura de la fuente', 'El archivo contiene transacciones, precios y descuentos históricos. No incluye existencias ni costos.')}`;
 }
 function productsPage(){const rows=filtered(),products=sorted(groupBy(rows,r=>r.product));const sc=state.sort;products.sort((a,b)=>sc==='units'?b.units-a.units:sc==='name'?a.name.localeCompare(b.name,'es'):b.net-a.net);return `${info('NOVA RETAIL / CATÁLOGO COMERCIAL','Productos','Doce referencias con sus ventas, unidades y descuentos históricos. No se muestran existencias disponibles.')}${filters()}<section class="nova-toolbar-line"><strong>${products.length} productos</strong><label class="nova-select"><span>Ordenar por</span><select id="nova-sort"><option value="net" ${sc==='net'?'selected':''}>Facturación neta</option><option value="units" ${sc==='units'?'selected':''}>Unidades</option><option value="name" ${sc==='name'?'selected':''}>Nombre</option></select></label></section><div class="nova-products">${products.map(r=>{const p=catalog.find(x=>x.name===r.name);return `<article class="nova-product"><div class="nova-product-top">${badge(p?.category||'')}</div><h2>${esc(r.name)}</h2><p>${esc(p?.segment||'')} · precio unitario ${money(Math.round((p?.price||0)*100))}</p><div class="nova-product-metrics"><div><span>Ventas netas</span><strong>${money(r.net)}</strong></div><div><span>Unidades vendidas</span><strong>${num(r.units)}</strong></div></div><div class="nova-product-footer"><span>${num(r.orders)} operaciones</span><a href="#ventas" data-product-link="${esc(r.name)}">Ver ventas ${icon('arrow')}</a></div></article>`}).join('')}</div>${callout('La demanda no equivale al inventario','Una cantidad vendida indica movimiento comercial histórico; no confirma unidades disponibles para una compra futura.')}`}
@@ -100,7 +119,110 @@ function chatPage() {
 }
 const renderers={inicio:home,productos:productsPage,clientes:channelsPage,ventas:salesPage,inventario:storesPage,reportes:reportsPage,asistente:chatPage};
 function nav(){const page=active();$('#desktop-nav').innerHTML=ids.map(id=>`<a href="#${id}" ${page===id?'aria-current="page"':''}>${icon(id)}<span>${names[id]}</span></a>`).join('');const primary=['inicio','productos','ventas','reportes','asistente'];$('#mobile-nav').innerHTML=primary.map(id=>`<a href="#${id}" ${page===id?'aria-current="page"':''}>${icon(id)}<span>${names[id]}</span></a>`).join('')+`<button id="nova-more" type="button" aria-expanded="${state.more}" ${['clientes','inventario'].includes(page)?'aria-current="true"':''}>${icon('more')}<span>Más</span></button>`+(state.more?`<div class="nova-more-menu"><a href="#clientes" ${page==='clientes'?'aria-current="page"':''}>Canales</a><a href="#inventario" ${page==='inventario'?'aria-current="page"':''}>Tiendas</a></div>`:'')}
-function render(){const page=active();nav();$('#breadcrumb').textContent=names[page];document.title=names[page]+' · Nova Retail | DataCore AI';$('#view').innerHTML=renderers[page]();$('.demo-label').innerHTML='<i></i> Nova Retail · 2025';const footer=$('.page-footer');footer.querySelector('button').textContent='Fuente: ventas históricas de Nova Retail';$('#network-status').textContent='';$('#theme-toggle').innerHTML=icon(document.documentElement.dataset.theme==='dark'?'sun':'moon');$('#theme-toggle').setAttribute('aria-label','Cambiar tema');$('#view').dataset.page=page;const q=$('#global-search');if(q)q.value='';const sr=$('#global-results');if(sr)sr.hidden=true;if(page==='asistente'){$('#chat-log').scrollTop=$('#chat-log').scrollHeight;}}
+function wireTrend(chart) {
+  const points = JSON.parse(chart.dataset.chartPoints);
+  const region = chart.querySelector('.nova-line-scroll');
+  const svg = region.querySelector('svg');
+  const marker = svg.querySelector('.nova-trend-marker');
+  const guide = marker.querySelector('line');
+  const dot = marker.querySelector('circle');
+  const tooltip = chart.querySelector('.nova-trend-tooltip');
+  const announcement = chart.querySelector('.nova-trend-announcement');
+  let selected = -1;
+
+  function show(index, keyboard = false) {
+    selected = index;
+    const [x, y, date, value] = points[index];
+    const pixel = x / svg.viewBox.baseVal.width * svg.clientWidth;
+    if (keyboard && (pixel < region.scrollLeft || pixel > region.scrollLeft + region.clientWidth)) {
+      region.scrollLeft = Math.max(0, pixel - region.clientWidth / 2);
+    }
+    const position = pixel - region.scrollLeft;
+    marker.dataset.active = '';
+    guide.setAttribute('x1', x);
+    guide.setAttribute('x2', x);
+    dot.setAttribute('cx', x);
+    dot.setAttribute('cy', y);
+    tooltip.children[0].textContent = date;
+    tooltip.children[1].textContent = value;
+    tooltip.hidden = false;
+    tooltip.style.left = Math.max(0, Math.min(position + 12, chart.clientWidth - tooltip.offsetWidth)) + 'px';
+    if (keyboard) announcement.textContent = date + ', ' + value;
+  }
+
+  function hide() {
+    delete marker.dataset.active;
+    tooltip.hidden = true;
+  }
+
+  function showAt(clientX) {
+    const bounds = svg.getBoundingClientRect();
+    const x = (clientX - bounds.left) * svg.viewBox.baseVal.width / bounds.width;
+    let nearest = 0;
+    while (nearest + 1 < points.length && Math.abs(points[nearest + 1][0] - x) < Math.abs(points[nearest][0] - x)) nearest++;
+    show(nearest);
+  }
+
+  let frame;
+  svg.addEventListener('pointermove', event => {
+    if (event.pointerType === 'touch' || frame) return;
+    frame = requestAnimationFrame(() => {
+      frame = undefined;
+      showAt(event.clientX);
+    });
+  });
+  svg.addEventListener('pointerleave', () => {
+    if (frame) cancelAnimationFrame(frame);
+    frame = undefined;
+    hide();
+  });
+  svg.addEventListener('pointerdown', event => {
+    if (event.pointerType === 'touch') showAt(event.clientX);
+  });
+  region.addEventListener('blur', hide);
+  region.addEventListener('keydown', event => {
+    if (event.key === 'Escape') {
+      hide();
+      return;
+    }
+    const destinations = { ArrowLeft: Math.max(0, selected - 1), ArrowRight: Math.min(points.length - 1, selected + 1), Home: 0, End: points.length - 1 };
+    if (!Object.hasOwn(destinations, event.key)) return;
+    event.preventDefault();
+    show(destinations[event.key], true);
+  });
+}
+
+function wireSpotlight(card) {
+  if (!card || !matchMedia('(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)').matches) return;
+  let frame;
+  card.addEventListener('pointermove', event => {
+    if (frame) return;
+    frame = requestAnimationFrame(() => {
+      frame = undefined;
+      const rect = card.getBoundingClientRect();
+      card.style.setProperty('--glint-x', (event.clientX - rect.x) / rect.width * 100 + '%');
+      card.style.setProperty('--glint-y', (event.clientY - rect.y) / rect.height * 100 + '%');
+    });
+  });
+}
+
+function render() {
+  const page = active();
+  const view = $('#view');
+  const entering = view.dataset.page !== page;
+  nav();
+  $('#breadcrumb').textContent = names[page];
+  document.title = names[page] + ' · Nova Retail | DataCore AI';
+  view.innerHTML = renderers[page]();
+  view.toggleAttribute('data-enter', entering);
+  view.dataset.page = page;
+  view.querySelectorAll('.nova-trend').forEach(wireTrend);
+  wireSpotlight(view.querySelector('.nova-kpi-featured'));
+  $('#theme-toggle').innerHTML = icon(document.documentElement.dataset.theme === 'dark' ? 'sun' : 'moon');
+  $('#global-search').value = '';
+  $('#global-results').hidden = true;
+  if (page === 'asistente') $('#chat-log').scrollTop = $('#chat-log').scrollHeight;
+}
 async function askChat(text, fullPeriod = false) {
   const question = text?.trim();
   if (!question || state.pending) return;
@@ -157,7 +279,20 @@ async function askChat(text, fullPeriod = false) {
   }
 }
 function searchGlobal(q){const el=$('#global-results'),matches=$('#search-matches'),status=$('#search-status');if(!q.trim()){el.hidden=true;return}const term=normalize(q);const items=[...catalog.filter(p=>normalize(p.name).includes(term)).slice(0,5).map(p=>({title:p.name,sub:p.category,href:'#productos'})),...Object.entries(names).filter(([id,label])=>normalize(label).includes(term)).map(([id,label])=>({title:label,sub:'Sección',href:'#'+id})),...shops.filter(n=>normalize(n).includes(term)).map(n=>({title:n,sub:'Tienda',href:'#inventario'}))].slice(0,8);status.textContent=items.length?`${items.length} resultados`:'No se encontraron coincidencias';matches.innerHTML=items.map(i=>`<a href="${i.href}"><strong>${esc(i.title)}</strong><small>${esc(i.sub)}</small></a>`).join('');el.hidden=false}
-document.addEventListener('change',e=>{const target=e.target;if(target.matches('[data-filter]')){state[target.dataset.filter]=target.value;state.page=0;render();return}if(target.id==='nova-sort'){state.sort=target.value;render();return}});
+document.addEventListener('change', event => {
+  const target = event.target;
+  const filter = target.dataset.filter;
+  if (filter) {
+    state[filter] = target.value;
+    state.page = 0;
+    render();
+    $(`[data-filter="${filter}"]`).focus({ preventScroll: true });
+  } else if (target.id === 'nova-sort') {
+    state.sort = target.value;
+    render();
+    $('#nova-sort').focus({ preventScroll: true });
+  }
+});
 document.addEventListener('input',e=>{if(e.target.id==='chat-input'){state.draft=e.target.value;return}if(e.target.id==='sales-search'){const val=e.target.value;clearTimeout(searchTimeout);searchTimeout=setTimeout(()=>{state.term=val;state.page=0;render();const input=$('#sales-search');if(input){input.focus()}},180);return}if(e.target.id==='global-search'){searchGlobal(e.target.value);return}if(e.target.id==='whatif'){state.whatIf=+e.target.value;$('#scenario-rate').textContent=state.whatIf+' %';const r=filtered().filter(r=>r.category==='Moda'&&r.discount===.15);const v=r.reduce((a,r)=>a+r.gross*(.15-state.whatIf/100),0);$('.nova-scenario-result strong').textContent=money(Math.round(v));return}});
 document.addEventListener('click', async event => {
   const button = event.target.closest('[data-copy-chat], [data-export-chat]');
@@ -181,11 +316,12 @@ document.addEventListener('click', async event => {
   link.click();
   setTimeout(() => URL.revokeObjectURL(link.href), 1000);
 });
-document.addEventListener('click',e=>{const b=e.target.closest('button,a');if(!b)return;if(b.dataset.resetFilters){Object.assign(state,{channel:'Todos',shop:'Todas',category:'Todas',month:'Todos',page:0});render();return}if(b.id==='download-rows'){download();return}if(b.id==='print-report'){window.print();return}if(b.dataset.page){state.page=Math.max(0,state.page+Number(b.dataset.page));render();return}if(b.id==='nova-more'){state.more=!state.more;nav();return}if(b.id==='reset-chat'){state.pending?.abort();Object.assign(state,{chat:[],pending:null,draft:'',error:''});render();$('#chat-input').focus();return}if(b.dataset.suggest){askChat(b.dataset.suggest,b.hasAttribute('data-full-period'));return}if(b.dataset.productLink){state.term=b.dataset.productLink;return}if(b.id==='theme-toggle'){const next=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=next;try{localStorage.setItem('datacore-novaretail-theme',next)}catch{};$('#theme-toggle').innerHTML=icon(next==='dark'?'sun':'moon');return}if(b.classList.contains('chrome-source')){alert('Origen: libro proporcionado por el usuario, hoja in, 1,671 transacciones de Nova Retail (enero-marzo 2025). USD. Datos históricos; no incluye inventario, clientes ni costos. Ventas netas conciliadas: $749,087.25.');return}});
+document.addEventListener('click',e=>{const b=e.target.closest('button,a');if(!b)return;if(b.dataset.resetFilters){Object.assign(state,{channel:'Todos',shop:'Todas',category:'Todas',month:'Todos',page:0});render();$('[data-reset-filters]').focus({preventScroll:true});return}if(b.id==='download-rows'){download();return}if(b.id==='print-report'){window.print();return}if(b.dataset.page){state.page=Math.max(0,state.page+Number(b.dataset.page));render();return}if(b.id==='nova-more'){state.more=!state.more;nav();$('#nova-more').focus({preventScroll:true});return}if(b.id==='reset-chat'){state.pending?.abort();Object.assign(state,{chat:[],pending:null,draft:'',error:''});render();$('#chat-input').focus();return}if(b.dataset.suggest){askChat(b.dataset.suggest,b.hasAttribute('data-full-period'));return}if(b.dataset.productLink){state.term=b.dataset.productLink;return}if(b.id==='theme-toggle'){const next=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=next;try{localStorage.setItem('datacore-novaretail-theme',next)}catch{};$('#theme-toggle').innerHTML=icon(next==='dark'?'sun':'moon');return}if(b.classList.contains('chrome-source')){$('#sheet').showModal();return}});
 document.addEventListener('submit',e=>{if(e.target.id==='chat-form'){e.preventDefault();const input=$('#chat-input');const q=input.value;askChat(q);return}});
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();$('#global-search')?.focus()}if(e.key==='Escape'){$('#global-results').hidden=true;state.more=false;nav()}if(e.key==='Enter'&&e.target.id==='chat-input'&&!e.shiftKey&&!e.isComposing){e.preventDefault();e.target.closest('form')?.requestSubmit()}});
 window.addEventListener('hashchange',()=>{state.more=false;state.page=0;render();window.scrollTo({top:0,behavior:'instant'})});
 try{const t=localStorage.getItem('datacore-novaretail-theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch{}
+$('#search-symbol').innerHTML=icon('search');$('#sheet-close').innerHTML=icon('close');$('#sheet-close').addEventListener('click',()=>$('#sheet').close());
 $('#global-search').placeholder='Buscar productos, tiendas, reportes…';$('label[for="global-search"]').textContent='Buscar productos, tiendas y secciones';$('#search-clear').addEventListener('click',()=>{const e=$('#global-search');e.value='';searchGlobal('');e.focus()});
 render();
 if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{});}

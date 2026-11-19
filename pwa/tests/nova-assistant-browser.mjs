@@ -25,9 +25,9 @@ const provider = async (_url, request) => {
   return Response.json({ choices: [{ message: { content: typeof data === 'string' ? data : JSON.stringify(data) } }] });
 };
 const api = createHandler({ env: { DATACORE_ASSISTANT_ENABLED: '1', GROQ_API_KEY: 'browser-test' }, fetcher: provider });
-const staticFiles = new Set(['index.html', 'nova.css', 'styles.css', 'sw.js', 'icon.svg', 'manifest.webmanifest',
+const staticFiles = new Set(['index.html', 'nova.css', 'nova-shell.css', 'nova-workspace.css', 'nova-assistant.css', 'sw.js', 'icon.svg', 'manifest.webmanifest',
   'js/app.js', 'js/icons.js', 'js/nova-chat.js', 'js/nova-analysis.js', 'js/novaretail-data.js',
-  'assets/icon-192.png', 'assets/icon-512.png', 'assets/apple-touch-icon.png']);
+  'assets/manrope-latin.woff2', 'assets/icon-192.png', 'assets/icon-512.png', 'assets/apple-touch-icon.png']);
 const server = createServer(async (req, res) => {
   const path = new URL(req.url, 'http://localhost').pathname.slice(1) || 'index.html';
   if (path === 'api/assistant') {

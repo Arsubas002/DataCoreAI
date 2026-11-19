@@ -4,16 +4,16 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 const source = fileURLToPath(new URL("./", import.meta.url));
 const output = path.resolve(source, "../public-demo");
-const files = ["index.html", "styles.css", "nova.css", "sw.js", "manifest.webmanifest", "icon.svg"];
+const files = ["index.html", "nova.css", "nova-shell.css", "nova-workspace.css", "nova-assistant.css", "sw.js", "manifest.webmanifest", "icon.svg"];
 const modules = ["app.js", "novaretail-data.js", "icons.js", "nova-chat.js", "nova-analysis.js"];
-const icons = ["icon-192.png", "icon-512.png", "apple-touch-icon.png"];
+const assets = ["icon-192.png", "icon-512.png", "apple-touch-icon.png", "manrope-latin.woff2", "manrope-OFL.txt"];
 await rm(output, { recursive: true, force: true });
 await mkdir(output, { recursive: true });
 for (const name of files)
   await cp(path.join(source, name), path.join(output, name));
 for (const [folder, names] of [
   ["js", modules],
-  ["assets", icons],
+  ["assets", assets],
 ]) {
   await mkdir(path.join(output, folder));
   for (const name of names)
@@ -30,7 +30,7 @@ for (const name of [...files, ...modules.map((n) => "js/" + n)]) {
 const count = (
   await readdir(output, { recursive: true, withFileTypes: true })
 ).filter((entry) => entry.isFile()).length;
-if (count !== files.length + modules.length + icons.length) throw new Error("Unexpected public asset count");
+if (count !== files.length + modules.length + assets.length) throw new Error("Unexpected public asset count");
 console.log(
   `Built public-demo: ${count} allowlisted files for Nova Retail 2025.`,
 );
