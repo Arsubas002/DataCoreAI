@@ -40,7 +40,8 @@ test('consulta abierta con errores y seguimiento: transmite los turnos y usa la 
   assert.equal(calls[0].messages.at(-1).content, '¿Y cómo cambiaron mes por mes?');
   assert.match(prompt(calls[1]), /"name"\s*:\s*"2025-02"/);
   assert.deepEqual(outcome.artifacts[0].rows, analyze(prepared.queries[0]).rows);
-  assert.deepEqual(calls[0].response_format, { type: 'json_object' });
+  assert.equal(calls[0].response_format.type, 'json_schema');
+  assert.equal(calls[0].response_format.json_schema.strict, true);
   assert.equal(calls[1].response_format, undefined);
   assert.deepEqual(outcome.sections, [{ kind: 'answer', text: report }]);
 });
@@ -80,13 +81,13 @@ test('el análisis causal revisa las cifras y añade una consulta de desglose an
   const compare = { tool: 'compare_periods', periods: ['2025-01', '2025-03'], groups: ['category', 'channel'] };
   const { calls, fetcher } = provider(
     { intent: 'analysis', queries: [trend] },
-    { status: 'expand', queries: [compare] },
+    { status: 'expand', queries: [{ ...compare, group: null, metric: null, filters: { category: null } }] },
     'La diferencia observada se desglosa por categoría y canal [E2]. El archivo no identifica la causa.',
   );
   const input = { message: '¿Qué explica la diferencia de enero a marzo? Muéstrame la tendencia y los aportes por canal.' };
   const response = await reply(input, { key: 'test-key', fetcher });
   assert.equal(calls.length, 3);
-  assert.deepEqual(calls[1].response_format, { type: 'json_object' });
+  assert.equal(calls[1].response_format.json_schema.name, 'nova_review');
   assert.match(prompt(calls[1]), /"name"\s*:\s*"2025-01"/);
   assert.equal(calls[2].response_format, undefined);
   const months = analyze(trend).rows;
