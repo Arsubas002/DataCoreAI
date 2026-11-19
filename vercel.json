@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "node pwa/build.mjs",
+  "buildCommand": "node pwa/verify-groq.mjs && node pwa/build.mjs",
   "outputDirectory": "public-demo",
   "framework": null,
   "cleanUrls": false,
