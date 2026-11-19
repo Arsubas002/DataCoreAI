@@ -1,4 +1,4 @@
-const CACHE='datacore-nova-2025-v1';
+const CACHE='datacore-nova-2025-v2';
 const ASSETS=['./','./index.html','./styles.css','./nova.css','./js/app.js','./js/novaretail-data.js','./js/icons.js','./manifest.webmanifest','./icon.svg','./assets/icon-192.png','./assets/icon-512.png','./assets/apple-touch-icon.png'];
 self.addEventListener('message',event=>{if(event.data==='ACTIVATE_UPDATE')self.skipWaiting()});
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting())));

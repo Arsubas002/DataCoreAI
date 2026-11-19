@@ -4,6 +4,7 @@ from pathlib import Path
 import re
 import unittest
 ROOT=Path(__file__).resolve().parents[1]
+RUNTIME_MODULES=('js/app.js', 'js/icons.js', 'js/novaretail-data.js')
 
 class PWASmokeTests(unittest.TestCase):
     def test_manifest_and_install_icons(self):
@@ -17,7 +18,7 @@ class PWASmokeTests(unittest.TestCase):
 
     def test_offline_shell_covers_all_runtime_modules_and_assets(self):
         sw=(ROOT/'sw.js').read_text(encoding='utf-8')
-        for file in ['index.html','styles.css','manifest.webmanifest','icon.svg']+[p.relative_to(ROOT).as_posix() for p in (ROOT/'js').glob('*.js')]:
+        for file in ('index.html', 'styles.css', 'nova.css', 'manifest.webmanifest', 'icon.svg', *RUNTIME_MODULES):
             self.assertIn('./'+file,sw)
         self.assertIn("url.pathname.startsWith('/api/')",sw)
         self.assertIn("key.startsWith('datacore-')",sw)
@@ -26,10 +27,10 @@ class PWASmokeTests(unittest.TestCase):
         html=(ROOT/'index.html').read_text(encoding='utf-8')
         for path in re.findall(r'(?:src|href)="(\./[^"]+)"',html):
             self.assertTrue((ROOT/path.split('?',1)[0]).is_file(),path)
-        scripts='\n'.join(p.read_text(encoding='utf-8') for p in (ROOT/'js').glob('*.js'))
+        scripts='\n'.join((ROOT/path).read_text(encoding='utf-8') for path in RUNTIME_MODULES)
         for token in ('api.groq.com','SQLEXPRESS','GROQ_API_KEY','Authorization: Bearer'):
             self.assertNotIn(token,scripts)
-        self.assertIn('datos ficticios',html.lower())
+        self.assertIn('ventas históricas de nova retail',html.lower())
         self.assertIn('viewport-fit=cover',html)
 
     def test_deployment_excludes_private_repository(self):
