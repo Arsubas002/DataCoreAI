@@ -7,6 +7,10 @@ import { analyze, comparePeriods } from './js/nova-analysis.js';
 async function observedFetch(url, options) {
   const response = await fetch(url, options);
   const stage = JSON.parse(options.body).response_format?.json_schema?.name;
+  if (response.status === 429) {
+    const retry = response.headers.get('retry-after');
+    console.log('GROQ_LIVE_PROVIDER_LIMIT', stage ?? 'answer', /^\d+$/.test(retry ?? '') ? retry : 'no_retry_header');
+  }
   if (stage && response.ok) {
     const payload = await response.clone().json().catch(() => null);
     try {

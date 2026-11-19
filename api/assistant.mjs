@@ -1,9 +1,10 @@
 import { isIP } from 'node:net';
+import { setTimeout as wait } from 'node:timers/promises';
 import { analyze, comparePeriods, queryOptions } from '../pwa/js/nova-analysis.js';
 
 const url = 'https://api.groq.com/openai/v1/chat/completions';
 const model = 'openai/gpt-oss-120b';
-const requestDeadlineMs = 55000;
+const requestDeadlineMs = 100000;
 const intents = ['lookup', 'analysis', 'conversation', 'clarification', 'unavailable'];
 const aggregationKeys = ['tool', 'group', 'metric', 'filters', 'view', 'order', 'limit', 'replaceContext',
   'change', 'quantityChange', 'discountRate'];
@@ -62,8 +63,7 @@ Precios y descuentos por transacción se redondean a centavos; no se estima elas
 sharePct representa la participación dentro de todos los grupos filtrados. Para explicar variaciones se
 puede comparar períodos. Cada desglose atribuye el mismo diferencial dentro de su dimensión, por lo
 que nunca deben sumarse efectos de dimensiones distintas. La descomposición entre transacciones y
-ticket es contable y no demuestra causalidad. Comparar meses completos no equivale a comparar promedios diarios.
-Opciones de consulta: ${JSON.stringify(queryOptions)}.`;
+ticket es contable y no demuestra causalidad. Comparar meses completos no equivale a comparar promedios diarios.`;
 
 function failure(status, message, retryAfter) {
   return Object.assign(new Error(message), { status, retryAfter });
@@ -94,7 +94,7 @@ async function complete(fetcher, key, selectedModel, messages, signal, stage) {
   const responseFormat = gptOss
     ? { type: 'json_schema', json_schema: { name: 'nova_' + stage, strict: true, schema: outputSchemas[stage] } }
     : { type: 'json_object' };
-  const tokenBudget = { plan: 2500, review: 3600, answer: 4000 };
+  const tokenBudget = { plan: 2300, review: 3000, answer: 3600 };
   const modelRequest = {
     model: selectedModel, messages, temperature: 0.2, max_completion_tokens: tokenBudget[stage],
     ...(structured ? { response_format: responseFormat } : {}),
@@ -108,7 +108,10 @@ async function complete(fetcher, key, selectedModel, messages, signal, stage) {
   });
   if (response.status === 429) {
     const retry = response.headers.get('retry-after');
-    throw failure(429, 'Groq alcanzó su límite temporal. Vuelve a intentarlo en unos segundos.', /^\d{1,5}$/.test(retry ?? '') ? retry : undefined);
+    throw Object.assign(
+      failure(429, 'Groq alcanzó su límite temporal. Vuelve a intentarlo en unos segundos.', /^\d{1,5}$/.test(retry ?? '') ? retry : undefined),
+      { stage, reason: 'rate_limit' },
+    );
   }
   if (response.status === 401 || response.status === 403) {
     throw failure(502, 'Groq rechazó la credencial del servidor. El administrador debe revisar la clave y sus permisos.');
@@ -174,11 +177,22 @@ function executeQueries(queries, context, results, seen) {
 
 export async function reply(input, { key, selectedModel = model, fetcher = fetch, signal = AbortSignal.timeout(requestDeadlineMs) }) {
   const { messages, context } = conversation(input);
-  const run = (stage, instructions) => complete(fetcher, key, selectedModel, [
-    { role: 'system', content: metadata + '\n' + instructions },
-    ...messages,
-  ], signal, stage);
-  const tools = `Herramientas de solo lectura:
+  let resumedAfterRateLimit = false;
+  async function run(stage, instructions) {
+    const request = [{ role: 'system', content: metadata + '\n' + instructions }, ...messages];
+    try {
+      return await complete(fetcher, key, selectedModel, request, signal, stage);
+    } catch (error) {
+      const seconds = Number(error.retryAfter);
+      if (stage === 'plan' || error.status !== 429 || resumedAfterRateLimit || !(seconds >= 0 && seconds <= 65)) {
+        throw error;
+      }
+      resumedAfterRateLimit = true;
+      await wait((seconds + 1) * 1000, undefined, { signal });
+      return complete(fetcher, key, selectedModel, request, signal, stage);
+    }
+  }
+  const tools = `Herramientas de solo lectura. Opciones: ${JSON.stringify(queryOptions)}.
 - Agregación: {"tool":"aggregate","group":"product","metric":"net","filters":{},"view":"bar"}.
   Opcionales: order "asc"/"desc", limit 1–31, change o quantityChange (variación porcentual -100 a 100)
   y discountRate (tasa que reemplaza las históricas, 0 a 100). Los escenarios usan metric "net".
@@ -217,7 +231,7 @@ ${tools}`);
     const review = await run('review', `Verifica la cobertura de la evidencia para la última pregunta.
 Devuelve JSON {"status":"ready|limited|expand","queries":[],"discard":[]}. Usa discard para referencias cuyos
 segmentos, períodos o métricas no correspondan. ready exige evidencia suficiente para cada parte importante.
-limited significa que la fuente carece de información o que solo sustenta una respuesta parcial.
+limited significa que la fuente solo sustenta una respuesta parcial. En ready y limited devuelve queries vacío.
 expand autoriza 1 o 2 consultas nuevas y pertinentes cuando falta evidencia recuperable.
 Contrasta las premisas con los resultados y verifica que no haya meses ausentes, rankings truncados o comparaciones
 inconsistentes. La ausencia de registros no equivale a cero. Identifica límites causales y de costos.
