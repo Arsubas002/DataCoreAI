@@ -16,9 +16,10 @@ const dimensions = {
 };
 const metrics = ['net', 'gross', 'discount', 'units', 'orders', 'ticket', 'price'];
 const views = ['none', 'table', 'bar', 'line', 'kpi', 'distribution'];
+const comparisonGroups = ['category', 'product', 'channel', 'shop'];
 const normalize = value => String(value).normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().trim();
 
-export const queryOptions = { fields, metrics, group: ['total', ...Object.keys(dimensions)], views };
+export const queryOptions = { fields, metrics, group: ['total', ...Object.keys(dimensions)], views, comparisonGroups };
 
 function select(records, filters = {}) {
   if (!filters || typeof filters !== 'object' || Array.isArray(filters)) throw new Error('invalid_filters');
@@ -101,6 +102,69 @@ export function analyze(query, context = {}) {
   const shown = rows.slice(0, limit ?? (group === 'day' ? 90 : 31));
   if (temporal && view === 'line') shown.sort((a, b) => a.name.localeCompare(b.name));
   return { group, metric, filters: scope, view, ...(simulated ? { scenario } : {}), matches: records.length, groups: rows.length, rows: shown };
+}
+
+export function comparePeriods(query, context = {}) {
+  if (!query || typeof query !== 'object' || Array.isArray(query)) throw new Error('invalid_comparison');
+  const { periods, groups = ['category'], filters = {}, replaceContext = false } = query;
+  if (!Array.isArray(periods) || periods.length !== 2 || periods.some(period => !fields.month.includes(period))
+      || periods[0] >= periods[1]) {
+    throw new Error('invalid_comparison_periods');
+  }
+  if (!Array.isArray(groups) || groups.length === 0 || new Set(groups).size !== groups.length
+      || groups.some(group => !comparisonGroups.includes(group))) {
+    throw new Error('invalid_comparison_groups');
+  }
+  if (!filters || typeof filters !== 'object' || Array.isArray(filters) || Object.hasOwn(filters, 'month')
+      || typeof replaceContext !== 'boolean') {
+    throw new Error('invalid_comparison_filters');
+  }
+
+  const scope = replaceContext ? { ...filters } : { ...context, ...filters };
+  delete scope.month;
+  const records = select(transactions, { ...scope, month: periods });
+  const [baselineRows, currentRows] = periods.map(period => records.filter(row => dimensions.month(row) === period));
+  const baseline = comparisonSummary(periods[0], baselineRows);
+  const current = comparisonSummary(periods[1], currentRows);
+  if (!baseline.orders || !current.orders) {
+    return {
+      periods, filters: scope, coverage: 'no_matches', baseline, current,
+      netDelta: null, netDeltaPct: null, drivers: null, contributions: {},
+    };
+  }
+
+  const netDelta = current.net - baseline.net;
+  // Change the number of orders first at the baseline ticket. The remainder is
+  // the change in average ticket evaluated at the current order count.
+  const orderCountEffect = Math.round((current.orders - baseline.orders) * baseline.net / baseline.orders);
+  return {
+    periods,
+    filters: scope,
+    coverage: 'comparable',
+    baseline,
+    current,
+    netDelta,
+    netDeltaPct: baseline.net > 0 ? Math.round(netDelta * 10000 / baseline.net) / 100 : null,
+    drivers: { orderCountEffect, averageTicketEffect: netDelta - orderCountEffect },
+    contributions: Object.fromEntries(groups.map(group => [group, compareGroups(baselineRows, currentRows, dimensions[group])])),
+  };
+}
+
+function comparisonSummary(month, records) {
+  if (!records.length) return { month, net: null, gross: null, discount: null, units: null, orders: 0, ticket: null };
+  const summary = totals(records);
+  return { month, ...summary, ticket: Math.round(summary.net / summary.orders) };
+}
+
+function compareGroups(baselineRows, currentRows, key) {
+  const baseline = new Map(groupBy(baselineRows, key).map(row => [row.name, row.net]));
+  const current = new Map(groupBy(currentRows, key).map(row => [row.name, row.net]));
+  const names = new Set([...baseline.keys(), ...current.keys()]);
+  return [...names].map(name => {
+    const baselineNet = baseline.get(name) ?? 0;
+    const currentNet = current.get(name) ?? 0;
+    return { name, baselineNet, currentNet, netDelta: currentNet - baselineNet };
+  }).sort((a, b) => Math.abs(b.netDelta) - Math.abs(a.netDelta) || a.name.localeCompare(b.name, 'es'));
 }
 
 export function insights() {

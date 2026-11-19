@@ -1,31 +1,45 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { analyze, insights } from '../js/nova-analysis.js';
+import { analyze, comparePeriods, insights } from '../js/nova-analysis.js';
 import { createHandler, reply } from '../../api/assistant.mjs';
 
 const result = value => Response.json({ choices: [{ message: { content: typeof value === 'string' ? value : JSON.stringify(value) } }] });
-const prepared = { queries: [{ group: 'month', metric: 'net', view: 'line', filters: { category: ['Moda', 'Deportes'] } }] };
+const prepared = {
+  intent: 'lookup',
+  queries: [{ group: 'month', metric: 'net', view: 'line', filters: { category: ['Moda', 'Deportes'] } }],
+};
 const report = 'Hallazgos: comparación de Moda y Deportes. Cálculos: ventas agrupadas por mes.';
 
-test('consulta abierta con errores y seguimiento: transmite los turnos y usa la evidencia comprobada', async () => {
+function provider(...outputs) {
   const calls = [];
+  return {
+    calls,
+    fetcher: async (url, request) => {
+      assert.equal(url, 'https://api.groq.com/openai/v1/chat/completions');
+      assert.equal(request.headers.Authorization, 'Bearer test-key');
+      assert.ok(calls.length < outputs.length, 'la investigación debe tener un número limitado de llamadas');
+      calls.push(JSON.parse(request.body));
+      return result(outputs[calls.length - 1]);
+    },
+  };
+}
+
+const prompt = call => call.messages.filter(message => message.role === 'system').map(message => message.content).join('\n');
+
+test('consulta abierta con errores y seguimiento: transmite los turnos y usa la evidencia comprobada', async () => {
+  const { calls, fetcher } = provider(prepared, report);
   const history = [
     { role: 'user', content: 'Kontrasta las bentas de Moda y Deportes' },
     { role: 'assistant', content: 'Comparé Moda y Deportes.' },
   ];
   const outcome = await reply({ message: '¿Y cómo cambiaron mes por mes?', history }, {
-    key: 'test-key', fetcher: async (url, request) => {
-      assert.equal(url, 'https://api.groq.com/openai/v1/chat/completions');
-      assert.equal(request.headers.Authorization, 'Bearer test-key');
-      calls.push(JSON.parse(request.body));
-      return result(calls.length === 1 ? prepared : report);
-    },
+    key: 'test-key', fetcher,
   });
   assert.equal(calls.length, 2);
   assert.deepEqual(calls[0].messages.slice(1, 3), history);
   assert.equal(calls[0].messages.at(-1).content, '¿Y cómo cambiaron mes por mes?');
-  assert.match(calls[1].messages[0].content, /"name":"2025-02","net":/);
-  assert.deepEqual(outcome.artifacts[0], analyze(prepared.queries[0]));
+  assert.match(prompt(calls[1]), /"name"\s*:\s*"2025-02"/);
+  assert.deepEqual(outcome.artifacts[0].rows, analyze(prepared.queries[0]).rows);
   assert.deepEqual(calls[0].response_format, { type: 'json_object' });
   assert.equal(calls[1].response_format, undefined);
   assert.deepEqual(outcome.sections, [{ kind: 'answer', text: report }]);
@@ -49,15 +63,125 @@ test('céntimos conciliados, orden cronológico y escenario de precios sin cambi
 });
 
 test('el modelo no obtiene herramientas de escritura y las consultas sencillas omiten gráficos', async () => {
-  const noChart = { queries: [{ group: 'total', filters: { product: ['  lampara led smart  '] } }] };
-  let n = 0;
+  const noChart = {
+    intent: 'lookup',
+    queries: [{ group: 'total', metric: 'units', filters: { product: ['  lampara led smart  '] } }],
+  };
+  const { calls, fetcher } = provider(noChart, 'La fuente muestra las unidades vendidas.');
   const output = await reply({ message: '¿Cuántas lámparas LED Smart se vendieron?' }, {
-    key: 'test-key', fetcher: async () => result(n++ === 0 ? noChart : 'La fuente muestra las unidades vendidas.'),
+    key: 'test-key', fetcher,
   });
   assert.deepEqual(output.artifacts, []);
-  await assert.rejects(reply({ message: 'Actualiza stock' }, {
-    key: 'test-key', fetcher: async () => result({ queries: [{ group: 'stock' }] }),
-  }), { status: 502 });
+  assert.equal(calls.length, 2);
+});
+
+test('el análisis causal revisa las cifras y añade una consulta de desglose antes de redactar', async () => {
+  const trend = { group: 'month', metric: 'net', view: 'line' };
+  const compare = { tool: 'compare_periods', periods: ['2025-01', '2025-03'], groups: ['category', 'channel'] };
+  const { calls, fetcher } = provider(
+    { intent: 'analysis', queries: [trend] },
+    { status: 'expand', queries: [compare] },
+    'La diferencia observada se desglosa por categoría y canal [E2]. El archivo no identifica la causa.',
+  );
+  const input = { message: '¿Qué explica la diferencia de enero a marzo? Muéstrame la tendencia y los aportes por canal.' };
+  const response = await reply(input, { key: 'test-key', fetcher });
+  assert.equal(calls.length, 3);
+  assert.deepEqual(calls[1].response_format, { type: 'json_object' });
+  assert.match(prompt(calls[1]), /"name"\s*:\s*"2025-01"/);
+  assert.equal(calls[2].response_format, undefined);
+  const months = analyze(trend).rows;
+  assert.match(prompt(calls[2]), new RegExp('"netDelta"\\s*:\\s*' + (months.at(-1).net - months[0].net)));
+  assert.match(prompt(calls[2]), /"contributions"\s*:/);
+  assert.deepEqual(response.artifacts.find(artifact => artifact.view === 'line').rows, months);
+  const evidence = response.artifacts.find(artifact => artifact.kind === 'period_comparison');
+  assert.equal(evidence?.evidenceId, 'E2');
+  assert.deepEqual(evidence.contributions, comparePeriods(compare).contributions);
+});
+
+test('una consulta inválida activa revisión y no se convierte en un total por defecto', async () => {
+  const { calls, fetcher } = provider(
+    { intent: 'lookup', queries: [{ tool: 'write', group: 'total', view: 'kpi' }] },
+    { status: 'limited', queries: [] },
+    'La fuente no permite modificar el inventario.',
+  );
+  const response = await reply({ message: 'Actualiza stock' }, { key: 'test-key', fetcher });
+  assert.equal(calls.length, 3);
+  assert.deepEqual(response.artifacts, []);
+  assert.doesNotMatch(prompt(calls[2]), /74908725/);
+});
+
+test('una intención fuera de la cobertura no fuerza una consulta a ventas', async () => {
+  const { calls, fetcher } = provider(
+    { intent: 'unavailable', queries: [] },
+    'No hay registros de costos ni existencias en el archivo.',
+  );
+  const response = await reply({ message: '¿Qué margen dejó cada tienda y cuánto stock queda?' }, { key: 'test-key', fetcher });
+  assert.equal(calls.length, 2);
+  assert.deepEqual(response.artifacts, []);
+  assert.doesNotMatch(prompt(calls[1]), /74908725/);
+});
+
+test('un subconjunto sin registros requiere revisión y conserva el alcance', async () => {
+  const query = { group: 'month', view: 'line', filters: { category: ['Moda'], product: ['Lámpara LED Smart'] } };
+  assert.equal(analyze(query).matches, 0);
+  const { calls, fetcher } = provider(
+    { intent: 'lookup', queries: [query] },
+    { status: 'limited', queries: [] },
+    'La combinación solicitada no tiene registros en la fuente.',
+  );
+  const response = await reply({ message: '¿Cuánto vendió la Lámpara LED Smart en Moda?' }, { key: 'test-key', fetcher });
+  assert.equal(calls.length, 3);
+  assert.deepEqual(response.artifacts, []);
+  assert.match(prompt(calls[2]), /"status"\s*:\s*"limited"/);
+  assert.doesNotMatch(prompt(calls[2]), /74908725/);
+});
+
+test('una respuesta analítica debe citar evidencia de la consulta que se ejecutó', async () => {
+  const query = { tool: 'compare_periods', periods: ['2025-01', '2025-02'] };
+  const { calls, fetcher } = provider(
+    { intent: 'analysis', queries: [query] },
+    { status: 'ready', queries: [] },
+    'Una conclusión con una fuente inexistente [E99].',
+    'La variación calculada se puede comprobar por período [E1].',
+  );
+  const response = await reply({ message: '¿Qué impulsó la variación de enero a febrero?' }, { key: 'test-key', fetcher });
+  assert.equal(calls.length, 4);
+  assert.doesNotMatch(response.sections[0].text, /E99/);
+  assert.match(response.sections[0].text, /\[E1\]/);
+  assert.equal(response.artifacts[0].evidenceId, 'E1');
+});
+
+test('una revisión descarta el alcance incorrecto sin reutilizar su referencia', async () => {
+  const initial = { group: 'month', filters: { category: ['Deportes'] } };
+  const replacement = { group: 'month', filters: { category: ['Moda'] } };
+  const { calls, fetcher } = provider(
+    { intent: 'analysis', queries: [initial] },
+    { status: 'expand', discard: ['E1'], queries: [replacement] },
+    'La evolución de Moda se comprueba en los datos mensuales [E2].',
+  );
+  const response = await reply({ message: '¿Qué patrón hay mes a mes en Moda?' }, { key: 'test-key', fetcher });
+  assert.equal(calls.length, 3);
+  assert.doesNotMatch(prompt(calls[2]), /"evidenceId"\s*:\s*"E1"/);
+  assert.deepEqual(response.artifacts.map(({ evidenceId, filters }) => [evidenceId, filters]), [['E2', replacement.filters]]);
+});
+
+test('las contribuciones y el recuento y ticket explican aritméticamente el cambio neto', () => {
+  const periods = ['2025-01', '2025-03'];
+  const scope = { category: ['Moda'], month: ['2025-02'] };
+  const comparison = comparePeriods({ periods, groups: ['product', 'channel'] }, scope);
+  const [baseline, current] = periods.map(month => analyze({ filters: { category: ['Moda'], month: [month] } }).rows[0]);
+  assert.equal(comparison.coverage, 'comparable');
+  assert.deepEqual(comparison.filters, { category: ['Moda'] });
+  assert.equal(comparison.netDelta, current.net - baseline.net);
+  assert.equal(comparison.drivers.orderCountEffect + comparison.drivers.averageTicketEffect, comparison.netDelta);
+  for (const rows of Object.values(comparison.contributions)) {
+    assert.equal(rows.reduce((sum, row) => sum + row.netDelta, 0), comparison.netDelta);
+  }
+  const missing = comparePeriods({ periods, filters: { category: ['Moda'], product: ['Lámpara LED Smart'] } });
+  assert.equal(missing.coverage, 'no_matches');
+  assert.equal(missing.netDelta, null);
+  assert.equal(missing.drivers, null);
+  assert.throws(() => comparePeriods({ periods: ['2025-01', '2025-04'] }));
 });
 
 async function send(options, body = { message: '¿Qué tendencias detectas?' }, overrides = {}) {

@@ -6,6 +6,9 @@ const labels = {
   orders: 'Transacciones', ticket: 'Ticket medio', price: 'Precio unitario medio',
   scenario: 'Neto simulado', delta: 'Variación',
 };
+const dimensions = { category: 'Categoría', product: 'Producto', channel: 'Canal', shop: 'Tienda' };
+const comparisonMetrics = ['net', 'gross', 'discount', 'orders', 'units', 'ticket'];
+const driverLabels = { orderCountEffect: 'Efecto del número de transacciones', averageTicketEffect: 'Efecto del ticket medio' };
 const examples = [
   '¿Cómo evolucionaron las ventas?',
   'Compara Moda y Deportes',
@@ -13,7 +16,53 @@ const examples = [
 ];
 const findings = insights();
 
+function provenance(result, esc, defaultScope) {
+  const scope = Object.values(result.filters).flat().map(esc).join(' · ');
+  const source = result.evidenceId ? `[${esc(result.evidenceId)}] Nova Retail 2025 · ` : '';
+  return source + (scope || defaultScope);
+}
+
+function comparisonTable(title, headings, rows, esc) {
+  return `<div class="nova-table-scroll" tabindex="0" role="region" aria-label="${esc(title)}">
+    <table class="nova-table"><thead><tr>${headings.map(value => `<th scope="col">${esc(value)}</th>`).join('')}</tr></thead>
+    <tbody>${rows.map(([label, ...values]) => `<tr><th scope="row">${esc(label)}</th>${values.map(value => `<td>${esc(value)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+}
+
+function comparisonArtifact(result, esc, turnIndex, artifactIndex) {
+  const { baseline, current, coverage, periods, contributions, drivers, netDelta, netDeltaPct } = result;
+  const source = provenance(result, esc, 'Todas las ventas');
+  if (coverage !== 'comparable') {
+    return `<section class="nova-chat-artifact"><h3>Comparación mensual</h3><small>${source}</small>
+      <p>Al menos uno de los meses seleccionados no tiene registros para estos filtros.</p></section>`;
+  }
+  const cells = comparisonMetrics.map(metric => {
+    const format = ['orders', 'units'].includes(metric) ? num : money;
+    return [labels[metric], format(baseline[metric]), format(current[metric])];
+  });
+  const breakdown = Object.entries(contributions).map(([dimension, rows]) => {
+    const label = dimensions[dimension];
+    return `<details><summary>Aportes por ${label.toLowerCase()}</summary>
+      ${comparisonTable('Aportes por ' + label.toLowerCase(), [label, ...periods, 'Variación'],
+        rows.map(row => [row.name, money(row.baselineNet), money(row.currentNet), money(row.netDelta)]), esc)}</details>`;
+  }).join('');
+  const accounting = drivers ? `<details><summary>Cambios en transacciones y ticket</summary>
+    ${comparisonTable('Descomposición del cambio en ventas netas', ['Componente', 'Aporte'],
+      Object.entries(driverLabels).map(([key, label]) => [label, money(drivers[key])]), esc)}
+    <p>Los aportes descomponen contablemente la variación de las ventas.</p></details>` : '';
+  return `<section class="nova-chat-artifact nova-chat-comparison">
+    <h3>Comparación mensual</h3>
+    <small>${source}</small>
+    <div class="nova-chat-comparison-delta"><span>Variación de ventas netas</span>
+      <strong>${money(netDelta)}${netDeltaPct === null ? '' : ` · ${pct(netDeltaPct / 100)}`}</strong></div>
+    ${comparisonTable('Indicadores por mes', ['Indicador', ...periods], cells, esc)}
+    ${breakdown}
+    ${accounting}
+    <button type="button" class="nova-chat-action" data-export-chat="${turnIndex}:${artifactIndex}">Descargar CSV</button>
+  </section>`;
+}
+
 function artifact(result, esc, turnIndex, artifactIndex) {
+  if (result.kind === 'period_comparison') return comparisonArtifact(result, esc, turnIndex, artifactIndex);
   const { metric, rows, view, scenario, groups } = result;
   const columns = !scenario ? [metric] : ['net', 'scenario', 'delta'];
   const format = value => value == null ? '—' : ['units', 'orders'].includes(metric) ? num(value) : money(value);
@@ -39,9 +88,8 @@ function artifact(result, esc, turnIndex, artifactIndex) {
     </svg>`
     : view === 'kpi' ? `<div class="nova-chat-kpis">${rows.map(row => `<div><span>${esc(row.name)}</span><strong>${format(row[metric])}</strong></div>`).join('')}</div>`
     : '';
-  const scope = Object.values(result.filters).flat().map(esc).join(' · ');
   return `<section class="nova-chat-artifact"><h3>${title}</h3>
-    <small>${scope || 'Enero–marzo 2025'}${groups > rows.length ? ` · ${rows.length} de ${groups} grupos` : ''}</small>
+    <small>${provenance(result, esc, 'Enero–marzo 2025')}${groups > rows.length ? ` · ${rows.length} de ${groups} grupos` : ''}</small>
     ${scenario ? `<p><strong>Escenario hipotético.</strong> ${scenario.change === undefined ? 'Precios constantes.' : `Precios: ${num(scenario.change)} % de variación.`}
       ${scenario.quantityChange === undefined ? 'Volumen constante.' : `Volumen: ${num(scenario.quantityChange)} % de variación con la misma mezcla de productos.`}
       ${scenario.discountRate === undefined ? 'Se mantienen las tasas históricas.' : `Se aplica ${num(scenario.discountRate)} % de descuento a todas las operaciones.`}</p>` : ''}
@@ -86,18 +134,38 @@ export function chatPage({ chat, pending, error, draft }, { esc, icon }) {
   </div>`;
 }
 
+function csv(rows) {
+  const escapeCsv = value => '"' + String(value ?? '').replaceAll('"', '""') + '"';
+  return '\uFEFF' + rows.map(row => row.map(escapeCsv).join(',')).join('\r\n');
+}
+
+function exportComparison({ periods, baseline, current, netDeltaPct, drivers, contributions }) {
+  const usd = value => (value / 100).toFixed(2);
+  return csv([
+    ['Detalle', 'Indicador', ...periods, 'Variación', 'Variación %'],
+    ...comparisonMetrics.map(metric => {
+      const count = ['orders', 'units'].includes(metric);
+      const format = count ? Number : usd;
+      return ['Indicadores', labels[metric] + (count ? '' : ' USD'), format(baseline[metric]), format(current[metric]),
+        format(current[metric] - baseline[metric]), metric === 'net' ? netDeltaPct : ''];
+    }),
+    ...(drivers ? Object.entries(driverLabels).map(([key, label]) => ['Descomposición', label + ' USD', '', '', usd(drivers[key]), '']) : []),
+    ...Object.entries(contributions).flatMap(([dimension, rows]) => rows.map(row =>
+      [dimensions[dimension], row.name, usd(row.baselineNet), usd(row.currentNet), usd(row.netDelta), ''])),
+  ]);
+}
+
 export function exportArtifact(result) {
+  if (result.kind === 'period_comparison') return exportComparison(result);
   const columns = result.scenario ? ['net', 'scenario', 'delta'] : [result.metric];
   if (result.view === 'distribution') columns.push('sharePct');
   const numbers = value => value ?? '';
-  const escapeCsv = value => '"' + String(value).replaceAll('"', '""') + '"';
-  const rows = [
+  return csv([
     ['Grupo', ...columns.map(key => key === 'sharePct' ? 'Participación %' : labels[key] + (['units', 'orders'].includes(key) ? '' : ' USD'))],
     ...result.rows.map(row => [row.name, ...columns.map(key => {
       const value = row[key];
       if (value == null || ['units', 'orders', 'sharePct'].includes(key)) return numbers(value);
       return (value / 100).toFixed(2);
     })]),
-  ];
-  return '\uFEFF' + rows.map(row => row.map(escapeCsv).join(',')).join('\r\n');
+  ]);
 }

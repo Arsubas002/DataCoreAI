@@ -8,14 +8,20 @@ const root = new URL('../../public-demo/', import.meta.url);
 const types = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript' };
 const requests = [];
 const provider = async (_url, request) => {
-  const { messages } = JSON.parse(request.body);
+  const { messages, response_format: responseFormat } = JSON.parse(request.body);
   await new Promise(resolve => setTimeout(resolve, 160));
   const question = messages.at(-1).content;
   if (question === 'Error controlado') return new Response('', { status: 503 });
-  const waitingForPlan = messages[0].content.includes('planificador');
-  const data = waitingForPlan
-    ? { queries: [{ group: 'month', metric: 'net', view: 'line', filters: { category: ['Moda'] } }] }
-    : 'La serie muestra las ventas netas de Moda.';
+  let data;
+  if (question === '¿Qué explica la diferencia entre enero y marzo?') {
+    if (!responseFormat) data = 'La diferencia se concilia con los aportes por categoría [E1].';
+    else if (messages.some(message => message.content.includes('"evidenceId":"E1"'))) data = { status: 'ready', queries: [] };
+    else data = { intent: 'analysis', queries: [{ tool: 'compare_periods', periods: ['2025-01', '2025-03'] }] };
+  } else {
+    data = responseFormat
+      ? { intent: 'lookup', queries: [{ group: 'month', metric: 'net', view: 'line', filters: { category: ['Moda'] } }] }
+      : 'La serie muestra las ventas netas de Moda.';
+  }
   return Response.json({ choices: [{ message: { content: typeof data === 'string' ? data : JSON.stringify(data) } }] });
 };
 const api = createHandler({ env: { DATACORE_ASSISTANT_ENABLED: '1', GROQ_API_KEY: 'browser-test' }, fetcher: provider });
@@ -65,6 +71,11 @@ try {
       await page.getByRole('button', { name: 'Enviar mensaje' }).click();
       await page.locator('.nova-message.assistant').nth(1).waitFor();
       assert.equal(requests.at(-1).history[0].content, '¿Qe patrones encuntras en Moda?');
+      await input.fill('¿Qué explica la diferencia entre enero y marzo?');
+      await input.press('Enter');
+      await page.getByRole('heading', { name: 'Comparación mensual' }).waitFor();
+      await page.getByText('Aportes por categoría', { exact: true }).click();
+      assert.equal(await page.locator('.nova-message.assistant').last().getByText('Moda', { exact: true }).isVisible(), true);
       await input.fill('Error controlado');
       await input.press('Enter');
       await page.getByRole('alert').waitFor();
