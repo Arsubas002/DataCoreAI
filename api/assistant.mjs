@@ -8,6 +8,38 @@ const intents = ['lookup', 'analysis', 'conversation', 'clarification', 'unavail
 const aggregationKeys = ['tool', 'group', 'metric', 'filters', 'view', 'order', 'limit', 'replaceContext',
   'change', 'quantityChange', 'discountRate'];
 const comparisonKeys = ['tool', 'periods', 'groups', 'filters', 'replaceContext'];
+// Groq strict output requires every property to be present. Optional query
+// fields use null on the wire, then undergo the same server validation.
+const objectSchema = properties => ({
+  type: 'object', properties, required: Object.keys(properties), additionalProperties: false,
+});
+const nullable = schema => ({ anyOf: [schema, { type: 'null' }] });
+const list = items => ({ type: 'array', items });
+const options = values => ({ type: 'string', enum: values });
+const filtersSchema = objectSchema(Object.fromEntries(Object.keys(queryOptions.fields).map(field => [
+  field, nullable(list({ type: field === 'discount' ? 'number' : 'string' })),
+])));
+const querySchema = objectSchema({
+  tool: options(['aggregate', 'compare_periods']),
+  group: nullable(options(queryOptions.group)),
+  metric: nullable(options(queryOptions.metrics)),
+  view: nullable(options(queryOptions.views)),
+  order: nullable(options(['asc', 'desc'])),
+  limit: nullable({ type: 'integer' }),
+  filters: nullable(filtersSchema),
+  replaceContext: nullable({ type: 'boolean' }),
+  change: nullable({ type: 'number' }),
+  quantityChange: nullable({ type: 'number' }),
+  discountRate: nullable({ type: 'number' }),
+  periods: nullable(list({ type: 'string' })),
+  groups: nullable(list(options(queryOptions.comparisonGroups))),
+});
+const outputSchemas = {
+  plan: objectSchema({ intent: options(intents), queries: list(querySchema) }),
+  review: objectSchema({
+    status: options(['ready', 'limited', 'expand']), queries: list(querySchema), discard: list({ type: 'string' }),
+  }),
+};
 const budget = new Map();
 const minute = 60_000;
 let globalWindow = { until: 0, count: 0 };
@@ -49,12 +81,16 @@ function completionError(stage, reason, message) {
 
 async function complete(fetcher, key, selectedModel, messages, signal, stage) {
   const structured = stage !== 'answer';
-  const reasoning = /^openai\/gpt-oss-(?:20b|120b)$/.test(selectedModel)
+  const gptOss = /^openai\/gpt-oss-(?:20b|120b)$/.test(selectedModel);
+  const reasoning = gptOss
     ? { reasoning_effort: stage === 'review' ? 'high' : 'medium', include_reasoning: false } : {};
+  const responseFormat = gptOss
+    ? { type: 'json_schema', json_schema: { name: 'nova_' + stage, strict: true, schema: outputSchemas[stage] } }
+    : { type: 'json_object' };
   const tokenBudget = { plan: 2500, review: 3600, answer: 4000 };
   const modelRequest = {
     model: selectedModel, messages, temperature: 0.2, max_completion_tokens: tokenBudget[stage],
-    ...(structured ? { response_format: { type: 'json_object' } } : {}),
+    ...(structured ? { response_format: responseFormat } : {}),
     ...reasoning,
   };
   const response = await fetcher(url, {
@@ -97,9 +133,13 @@ async function complete(fetcher, key, selectedModel, messages, signal, stage) {
 
 function executeQueries(queries, context, results, seen) {
   let missing = 0;
-  for (const query of queries) {
+  for (const raw of queries) {
     try {
-      if (!query || typeof query !== 'object' || Array.isArray(query)) throw new Error('invalid_query');
+      if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('invalid_query');
+      const query = Object.fromEntries(Object.entries(raw).filter(([, value]) => value !== null));
+      if (query.filters && typeof query.filters === 'object' && !Array.isArray(query.filters)) {
+        query.filters = Object.fromEntries(Object.entries(query.filters).filter(([, values]) => values !== null));
+      }
       const compare = query.tool === 'compare_periods';
       const allowed = compare ? comparisonKeys : aggregationKeys;
       if ((!compare && query.tool !== undefined && query.tool !== 'aggregate')
@@ -137,6 +177,8 @@ export async function reply(input, { key, selectedModel = model, fetcher = fetch
   y discountRate (tasa que reemplaza las históricas, 0 a 100). Los escenarios usan metric "net".
 - Comparación de períodos: {"tool":"compare_periods","periods":["2025-02","2025-03"],"groups":["category","channel"],"filters":{}}.
   Solo dos meses distintos en orden, sin month en filters. Los meses de la consulta prevalecen sobre el contexto.
+En el esquema estricto, usa null para campos ajenos a la herramienta elegida y filtros que no aplican.
+Si se piden varias dimensiones para dos meses, inclúyelas juntas en groups del comparador.
 Cada valor de filtro debe existir en el catálogo y estar en un arreglo. Conserva el contexto ${JSON.stringify(context)}
 salvo que se solicite otro alcance. replaceContext:true elimina los filtros iniciales. Las peticiones fuera de
 la cobertura de enero–marzo requieren reconocer el límite. No uses el total trimestral como sustituto.`;
