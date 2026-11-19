@@ -243,6 +243,26 @@ body::before {
 .nova-chat-artifact h3 { margin-top: 0; }
 .nova-chat-artifact small { color: var(--muted); }
 .nova-chat-artifact .nova-bars, .nova-chat-artifact .nova-table-scroll { margin-top: .65rem; }
+.nova-chat-comparison-delta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .25rem .75rem;
+  margin-top: .75rem;
+  padding: .5rem .75rem;
+  border-radius: .5rem;
+  background: var(--soft);
+  font-size: .8rem;
+}
+.nova-chat-comparison-delta strong {
+  color: var(--ink);
+  font-size: .95rem;
+  font-variant-numeric: tabular-nums;
+}
+.nova-chat-comparison details { border-top: 1px solid var(--line); }
+.nova-chat-comparison > .nova-table-scroll + details { margin-top: .75rem; }
+.nova-chat-comparison details > p { color: var(--muted); font-size: .75rem; }
 .nova-chat-line { display: block; width: 100%; margin: .4rem 0; }
 .nova-chat-line text { fill: var(--muted); font-size: 13px; }
 .nova-chat-kpis { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: .65rem; }

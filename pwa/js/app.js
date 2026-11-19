@@ -125,7 +125,7 @@ async function askChat(text, fullPeriod = false) {
   state.error = '';
   render();
   $('#chat-input').focus();
-  const timeout = setTimeout(() => request.abort(), 30000);
+  const timeout = setTimeout(() => request.abort(), 110000);
   try {
     const response = await fetch('/api/assistant', {
       method: 'POST',
