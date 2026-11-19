@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "if [ \"$VERCEL_ENV\" = production ]; then node pwa/verify-groq.mjs || exit 1; fi && node pwa/build.mjs",
+  "buildCommand": "if [ \"$VERCEL_ENV\" = production ]; then node pwa/verify-groq.mjs diagnostic || exit 1; fi && node pwa/build.mjs",
   "outputDirectory": "public-demo",
   "framework": null,
   "cleanUrls": false,
