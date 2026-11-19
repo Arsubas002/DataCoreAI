@@ -288,3 +288,26 @@ body::before {
   .nova-analyst .nova-chat-top, .nova-analyst .nova-chat-messages, .nova-chat-composer { padding-inline: .8rem; }
 }
 @media (prefers-reduced-motion: reduce) { .nova-chat-status i { animation: none; } }
+
+.nova-chat-composer { background: var(--surface); }
+.nova-chat-input textarea { min-height: 4.5rem; font-size: .95rem; }
+.nova-chat-examples { margin-top: .7rem; }
+.nova-chat-examples summary, .nova-chat-artifact summary {
+  color: var(--muted);
+  font-size: .78rem;
+  cursor: pointer;
+  min-height: 36px;
+  align-content: center;
+}
+.nova-chat-examples .nova-chat-pills { margin: .3rem 0 0; }
+.nova-chat-action {
+  min-height: 40px;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font-size: .76rem;
+  font-weight: 700;
+  padding-inline: .4rem;
+}
+.nova-chat-action:hover { text-decoration: underline; }
+.nova-insight-recommendation { margin-top: .4rem; }

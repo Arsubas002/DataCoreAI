@@ -15,8 +15,8 @@ const provider = async (_url, request) => {
   const waitingForPlan = messages[0].content.includes('planificador');
   const data = waitingForPlan
     ? { queries: [{ group: 'month', metric: 'net', view: 'line', filters: { category: ['Moda'] } }] }
-    : { facts: 'La serie muestra las ventas netas de Moda.', recommendations: 'Contrasta el cambio por canal.' };
-  return Response.json({ choices: [{ message: { content: JSON.stringify(data) } }] });
+    : 'La serie muestra las ventas netas de Moda.';
+  return Response.json({ choices: [{ message: { content: typeof data === 'string' ? data : JSON.stringify(data) } }] });
 };
 const api = createHandler({ env: { DATACORE_ASSISTANT_ENABLED: '1', GROQ_API_KEY: 'browser-test' }, fetcher: provider });
 const staticFiles = new Set(['index.html', 'nova.css', 'styles.css', 'sw.js', 'icon.svg', 'manifest.webmanifest',
@@ -49,13 +49,16 @@ try {
     page.on('pageerror', error => errors.push(error.message));
     await page.goto('http://127.0.0.1:' + server.address().port + '/#asistente');
     await page.getByRole('heading', { name: 'Insights inteligentes' }).waitFor();
-    assert.equal(await page.locator('.nova-insights article').count(), 3);
+    assert.equal(await page.locator('.nova-insights article').count(), 4);
     const input = page.getByRole('textbox', { name: 'Pregunta sobre Nova Retail' });
     await input.fill('¿Qe patrones encuntras en Moda?');
     await input.press('Enter');
     await page.getByText('Analizando la consulta…').waitFor();
     await page.getByText('La serie muestra las ventas netas de Moda.').waitFor();
     await page.getByText('Ver valores').click();
+    const [csv] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Descargar CSV' }).click()]);
+    assert.equal(csv.suggestedFilename(), 'NovaRetail_analisis.csv');
+    assert.equal(await page.getByRole('button', { name: 'Copiar respuesta' }).count(), 1);
     assert.equal(await page.locator('.nova-chat-artifact tbody tr').count(), 3);
     if (width === 1440) {
       await input.fill('¿Y cuál fue su mejor mes?');

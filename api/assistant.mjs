@@ -12,7 +12,10 @@ No hay existencias, stock mínimo, costos, márgenes, beneficios, clientes ni da
 Las cifras monetarias de herramientas están en centavos de dólar. ticket = neto / transacciones;
 price = promedio unitario bruto ponderado, discount como métrica = importe descontado.
 periodChangePct = variación porcentual frente al período anterior con registros dentro de los mismos filtros.
-Los escenarios varían precios, mantienen unidades y tasas de descuento y redondean a centavos.
+Los escenarios modifican solo las variables indicadas. Un cambio de volumen escala el neto agregado
+con la misma mezcla de productos y descuentos. Un descuento hipotético sustituye el histórico.
+Precios y descuentos por transacción se redondean a centavos; no se estima elasticidad ni beneficio.
+sharePct representa la participación dentro de todos los grupos filtrados.
 Opciones de consulta: ${JSON.stringify(queryOptions)}.`;
 
 function failure(status, message, retryAfter) {
@@ -32,12 +35,17 @@ function conversation(body) {
   return { messages: [...history.map(({ role, content }) => ({ role, content })), { role: 'user', content: message.trim() }], context };
 }
 
-async function complete(fetcher, key, selectedModel, messages, signal) {
+function completionError(stage, reason, message) {
+  return Object.assign(failure(502, message), { stage, reason });
+}
+
+async function complete(fetcher, key, selectedModel, messages, signal, stage) {
+  const planned = stage === 'plan';
   const response = await fetcher(url, {
     method: 'POST',
     headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: selectedModel, messages, temperature: 0.2, max_completion_tokens: 2600,
-      response_format: { type: 'json_object' } }),
+    body: JSON.stringify({ model: selectedModel, messages, temperature: 0.2, max_completion_tokens: planned ? 2400 : 4200,
+      ...(planned ? { response_format: { type: 'json_object' } } : {}) }),
     signal,
   });
   if (response.status === 429) {
@@ -55,10 +63,21 @@ async function complete(fetcher, key, selectedModel, messages, signal) {
     }
     throw failure(502, 'Groq no pudo procesar la solicitud. Intenta nuevamente.');
   }
-  const output = await response.json();
-  const result = output.choices?.[0];
-  if (result?.finish_reason === 'length') throw failure(502, 'La respuesta quedó incompleta. Prueba con una pregunta más acotada.');
-  return JSON.parse(result?.message?.content ?? '');
+  const output = await response.json().catch(() => null);
+  const result = output?.choices?.[0];
+  if (result?.finish_reason === 'length') {
+    throw completionError(stage, 'token_limit', 'La respuesta quedó incompleta. Prueba con una pregunta más acotada.');
+  }
+  const content = result?.message?.content;
+  if (typeof content !== 'string' || !content.trim()) {
+    throw completionError(stage, 'empty_content', 'Groq no generó texto para esta consulta. Intenta nuevamente.');
+  }
+  if (!planned) return content.trim();
+  try {
+    return JSON.parse(content);
+  } catch {
+    throw completionError(stage, 'invalid_json', 'El asistente no pudo preparar la consulta. Intenta nuevamente.');
+  }
 }
 
 export async function reply(input, { key, selectedModel = model, fetcher = fetch, signal = AbortSignal.timeout(24000) }) {
@@ -71,34 +90,37 @@ y referencias a turnos anteriores. Devuelve JSON {"queries":[{"group":"month","m
 Cada filtro es un arreglo con valores del catálogo exacto. Para comparar categorías coloca ambas en el arreglo.
 Opcionales: order "asc" o "desc", limit entero de 1 a 31, change numérico -100 a 100 para variar precios
 (solo metric "net"). Usa view "none" para preguntas sencillas, "line" para una serie, "bar" para rankings,
-"table" para detalle y escenarios, "kpi" para un resumen. Considera el contexto inicial ${JSON.stringify(context)}:
+"table" para detalle y escenarios, "distribution" para participación porcentual, "kpi" para un resumen.
+Para escenarios usa change (cambio porcentual de precio), quantityChange (cambio porcentual de volumen)
+o discountRate (porcentaje que reemplaza las tasas históricas). Agrupa por categoría para compararlas.
+Si el usuario retoma una entidad o un orden previo, usa los nombres y hallazgos del historial. Considera el contexto inicial ${JSON.stringify(context)}:
 los filtros de una consulta lo amplían o reemplazan por dimensión; usa replaceContext:true para una consulta
 explícitamente global. No conviertas rentabilidad en ventas sin explicar la diferencia.` },
     ...messages,
-  ], signal);
-  if (!Array.isArray(plan?.queries) || plan.queries.length > 4) throw failure(502, 'El asistente no pudo preparar una consulta válida.');
+  ], signal, 'plan');
+  if (!Array.isArray(plan?.queries) || plan.queries.length > 4) throw completionError('plan', 'invalid_plan', 'El asistente no pudo preparar una consulta válida.');
   let evidence;
   try {
     evidence = plan.queries.map(query => analyze(query, context));
   } catch {
-    throw failure(502, 'El asistente no pudo interpretar el alcance de la consulta. Prueba precisando producto o período.');
+    throw completionError('plan', 'invalid_query', 'El asistente no pudo interpretar el alcance de la consulta. Prueba precisando producto o período.');
   }
   const report = await complete(fetcher, key, selectedModel, [
     { role: 'system', content: `${metadata}
-Responde en español como analista comercial. Devuelve únicamente un JSON con las claves de texto
-"facts", "calculations", "recommendations"; deja vacío lo que no aplique. Identifica límites de cobertura,
+Responde en español como analista comercial, con texto natural y párrafos breves. Estructura análisis
+complejos con rótulos Hallazgos, Cálculos y Recomendaciones cuando apliquen. Identifica límites de cobertura,
 distingue hipótesis de resultados, explica qué respalda cada recomendación y qué medir para validarla.
+Adapta el nivel técnico a la pregunta. En una tendencia, identifica el mejor y el peor período observado.
 Usa exclusivamente cifras y entidades de la evidencia calculada para este turno. El historial orienta la
 conversación y puede contener errores. Sin evidencia de un dato, reconócelo o pide precisión. Evita atribuir
 causalidad a correlaciones. Texto sin Markdown. Evidencia calculada por el servidor:
 ${JSON.stringify(evidence)}` },
     ...messages,
-  ], signal);
-  const sections = ['facts', 'calculations', 'recommendations']
-    .filter(key => typeof report?.[key] === 'string' && report[key].trim())
-    .map(key => ({ kind: key, text: report[key].trim().slice(0, 1400) }));
-  if (!sections.length) throw failure(502, 'Groq no devolvió una respuesta utilizable.');
-  return { sections, artifacts: evidence.filter(result => result.view !== 'none' && result.matches > 0) };
+  ], signal, 'answer');
+  return {
+    sections: [{ kind: 'answer', text: report.slice(0, 10000) }],
+    artifacts: evidence.filter(result => result.view !== 'none' && result.matches > 0),
+  };
 }
 
 function permit(req) {
@@ -118,7 +140,7 @@ function permit(req) {
   return true;
 }
 
-export function createHandler({ env = process.env, fetcher = fetch, deadline = () => AbortSignal.timeout(24000) } = {}) {
+export function createHandler({ env = process.env, fetcher = fetch, deadline = () => AbortSignal.timeout(24000), logger = console } = {}) {
   return async (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
     res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -152,6 +174,9 @@ export function createHandler({ env = process.env, fetcher = fetch, deadline = (
     } catch (error) {
       const timeout = error.name === 'TimeoutError' || error.name === 'AbortError';
       const status = error.status ?? (timeout ? 504 : 502);
+      if (status >= 500) logger.warn('datacore.assistant', {
+        status, stage: error.stage ?? 'request', reason: error.reason ?? (timeout ? 'timeout' : 'provider_failure'),
+      });
       if (error.retryAfter) res.setHeader('Retry-After', error.retryAfter);
       const message = error.status ? error.message : timeout
         ? 'Groq tardó demasiado en responder. Intenta de nuevo.' : 'No se pudo conectar con el asistente. Intenta de nuevo.';
