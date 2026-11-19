@@ -4,7 +4,7 @@ from pathlib import Path
 import re
 import unittest
 ROOT=Path(__file__).resolve().parents[1]
-RUNTIME_MODULES=('js/app.js', 'js/icons.js', 'js/novaretail-data.js')
+RUNTIME_MODULES=('js/app.js', 'js/icons.js', 'js/novaretail-data.js', 'js/nova-chat.js', 'js/nova-analysis.js')
 
 class PWASmokeTests(unittest.TestCase):
     def test_manifest_and_install_icons(self):
