@@ -4,6 +4,30 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { createHandler } from '../api/assistant.mjs';
 import { analyze, comparePeriods } from './js/nova-analysis.js';
 
+async function observedFetch(url, options) {
+  const response = await fetch(url, options);
+  const stage = JSON.parse(options.body).response_format?.json_schema?.name;
+  if (stage && response.ok) {
+    const payload = await response.clone().json().catch(() => null);
+    try {
+      const decision = JSON.parse(payload?.choices?.[0]?.message?.content ?? '');
+      console.log('GROQ_LIVE_DECISION', stage, JSON.stringify({
+        intent: decision.intent,
+        status: decision.status,
+        queries: Array.isArray(decision.queries) ? decision.queries.map(query => ({
+          tool: query?.tool, group: query?.group, metric: query?.metric,
+          periods: query?.periods, groups: query?.groups,
+          filterKeys: Object.entries(query?.filters ?? {}).filter(([, value]) => value !== null).map(([key]) => key),
+        })) : [],
+        discardCount: Array.isArray(decision.discard) ? decision.discard.length : 0,
+      }));
+    } catch {
+      console.log('GROQ_LIVE_DECISION_UNREADABLE', stage);
+    }
+  }
+  return response;
+}
+
 async function ask(message, history = [], retries = 2) {
   const result = {};
   const response = {
@@ -11,7 +35,7 @@ async function ask(message, history = [], retries = 2) {
     status(code) { result.code = code; return this; },
     json(body) { result.body = body; },
   };
-  await createHandler()({ method: 'POST', headers: {}, body: { message, history } }, response);
+  await createHandler({ fetcher: observedFetch })({ method: 'POST', headers: {}, body: { message, history } }, response);
   if (result.code === 429 && retries > 0) {
     const seconds = Math.min(120, Math.max(61, result.retryAfter || 0));
     console.log('GROQ_LIVE_RATE_LIMIT_RETRY', seconds);
