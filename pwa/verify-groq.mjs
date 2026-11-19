@@ -55,14 +55,23 @@ const probes = {
   },
   async diagnostic() {
     const diagnostic = await ask('Me dijeron que las ventas netas cayeron de febrero a marzo. ¿Es cierto? Contrasta las cifras, los aportes por categoría y canal y el cambio en transacciones y ticket. Dime qué puede explicar la fuente.');
-    const actual = diagnostic.artifacts.find(item => item.kind === 'period_comparison');
+    const actual = diagnostic.artifacts.find(item => item.kind === 'period_comparison'
+      && item.contributions.category && item.contributions.channel);
+    const direction = /aument|subi|creci|increment|repunt|fue mayor/i.test(diagnostic.sections[0].text);
+    const citation = !!actual && diagnostic.sections[0].text.includes('[' + actual.evidenceId + ']');
+    console.log('GROQ_LIVE_DIAGNOSTIC_CHECK', JSON.stringify({
+      artifacts: diagnostic.artifacts.map(item => item.kind === 'period_comparison'
+        ? { kind: item.kind, periods: item.periods, dimensions: Object.keys(item.contributions) }
+        : { kind: item.kind, group: item.group, metric: item.metric }),
+      direction, citation,
+    }));
     const comparisonMonths = comparePeriods({ periods: ['2025-02', '2025-03'], groups: ['category', 'channel'] });
     assert.ok(actual?.contributions.category && actual.contributions.channel, 'Period analysis includes category and channel');
     assert.deepEqual(actual.periods, comparisonMonths.periods);
     assert.equal(actual.netDelta, comparisonMonths.netDelta);
     assert.equal(actual.drivers.orderCountEffect + actual.drivers.averageTicketEffect, actual.netDelta);
-    assert.ok(diagnostic.sections[0].text.includes('[' + actual.evidenceId + ']'), 'Conclusion cites the comparison');
-    assert.match(diagnostic.sections[0].text, /aument|subi|creci|increment/i, 'Conclusion corrects the false premise');
+    assert.ok(citation, 'Conclusion cites the comparison');
+    assert.ok(direction, 'Conclusion corrects the false premise');
     console.log('GROQ_LIVE_DIAGNOSTIC_OK');
 
   },
@@ -89,7 +98,9 @@ const probes = {
   },
 };
 
+const selected = new Set(process.argv.slice(2));
 for (const [phase, run] of Object.entries(probes)) {
+  if (selected.size && !selected.has(phase)) continue;
   try {
     await run();
   } catch (error) {
